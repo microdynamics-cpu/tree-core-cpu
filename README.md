@@ -34,13 +34,13 @@ The ancients once said: **it’s always shallow on paper, and you must do it you
 
 - #### Instruction test
 
-- #### Code test
+- #### Program test
 
 ### Hardware test
 
 - #### Hardware configuration
 
-- #### Hardware simulation
+- #### Function test
 
 ## Summary
 
