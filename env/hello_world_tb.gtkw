@@ -1,0 +1,21 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Mon Jan 25 14:34:16 2021
+[*]
+[dumpfile] "/home/myyerrol/Workspaces/tree_core_cpu/env/hello_world_tb.vcd"
+[dumpfile_mtime] "Mon Jan 25 14:34:07 2021"
+[dumpfile_size] 639
+[savefile] "/home/myyerrol/Workspaces/tree_core_cpu/env/hello_world_tb.gtkw"
+[timestart] 0
+[size] 1839 1050
+[pos] -1 -1
+*-15.000000 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 252
+[signals_width] 235
+[sst_expanded] 1
+[sst_vpaned_height] 319
+@28
+hello_world_tb.clk
+hello_world_tb.rst_n
+[pattern_trace] 1
+[pattern_trace] 0
