@@ -1,0 +1,6 @@
+*.log
+*.area
+*.db
+*.bit
+*.o
+*.vcd
