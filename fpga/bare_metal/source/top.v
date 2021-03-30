@@ -7,7 +7,7 @@ module top(
     output LED_R
 );
 
-    wire clk_main, clk_debug;
+    wire clk_main, clk_debug, rst_n_main;
     wire delay_1s;
     wire[9:0] delay_1ms_cnt, delay_1s_cnt;
 
@@ -16,6 +16,7 @@ module top(
         .rst_n(rst_n),
 
         .clk_main(clk_main),
+        .rst_n_main(rst_n_main),
         .delay_1s(delay_1s),
         .delay_1ms_cnt(delay_1ms_cnt),
         .delay_1s_cnt(delay_1s_cnt),
@@ -24,7 +25,7 @@ module top(
 
     // led u_led(
     //     .clk(clk_main),
-    //     .rst_n(rst_n),
+    //     .rst_n(rst_n_main),
     //     .delay_1s(delay_1s),
 
     //     .val(LED_R)
@@ -32,7 +33,7 @@ module top(
 
     pwm u_pwm(
         .clk(clk_main),
-        .rst_n(rst_n),
+        .rst_n(rst_n_main),
         .delay_1s(delay_1s),
         .pulse_cnt(delay_1ms_cnt),
         .display_cnt(delay_1s_cnt),

@@ -5,6 +5,8 @@ module clk_div(
     input rst_n,
 
     output clk_main,
+    output reg rst_n_main,
+
     output delay_1us,
     output delay_1ms,
     output delay_1s,
@@ -27,11 +29,22 @@ module clk_div(
         .clk1_out(clk_debug)
     );
 
+    // sync reset signal
+    always @(posedge clk_main) begin
+        if(!rst_n) begin
+            rst_n_main <= 1'b0;
+        end
+        else begin
+            rst_n_main <= 1'b1;
+        end
+    end
+
+
     counter #(
         .DELAY_LIMIT(DELAY_1US_LIMIT)
     ) u_counter_1us(
         .clk(clk_main),
-        .rst_n(rst_n),
+        .rst_n(rst_n_main),
         .delay_en(1'b1),
 
         .counter_cnt(delay_1us_cnt),
@@ -42,7 +55,7 @@ module clk_div(
         .DELAY_LIMIT(DELAY_1MS_LIMIT)
     ) u_counter_1ms(
         .clk(clk_main),
-        .rst_n(rst_n),
+        .rst_n(rst_n_main),
         .delay_en(delay_1us),
 
         .counter_cnt(delay_1ms_cnt),
@@ -53,7 +66,7 @@ module clk_div(
         .DELAY_LIMIT(DELAY_1S_LIMIT)
     ) u_counter_1s(
         .clk(clk_main),
-        .rst_n(rst_n),
+        .rst_n(rst_n_main),
         .delay_en(delay_1ms),
 
         .counter_cnt(delay_1s_cnt),
