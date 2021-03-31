@@ -32,6 +32,12 @@
 				<clock_frequency>120.0000000000000000Mhz</clock_frequency>
 				<phase_shift>0.0000000000000000deg</phase_shift>
 			</clock>
+			<clock>
+				<id>2</id>
+				<clock_division_factor>30</clock_division_factor>
+				<clock_frequency>32.0000000000000000Mhz</clock_frequency>
+				<phase_shift>0.0000000000000000deg</phase_shift>
+			</clock>
 		</clocks>
 	</Page3>
 </PLLConfig>

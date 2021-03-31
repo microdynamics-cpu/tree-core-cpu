@@ -1,25 +1,27 @@
 // Verilog netlist created by TD v5.0.25878
-// Sun Mar 28 14:02:22 2021
+// Tue Mar 30 15:14:32 2021
 
 `timescale 1ns / 1ps
-module pll  // pll.v(23)
+module pll  // pll.v(24)
   (
   refclk,
   reset,
   clk0_out,
-  clk1_out
+  clk1_out,
+  clk2_out
   );
 
-  input refclk;  // pll.v(28)
-  input reset;  // pll.v(29)
-  output clk0_out;  // pll.v(30)
-  output clk1_out;  // pll.v(31)
+  input refclk;  // pll.v(30)
+  input reset;  // pll.v(31)
+  output clk0_out;  // pll.v(32)
+  output clk1_out;  // pll.v(33)
+  output clk2_out;  // pll.v(34)
 
-  wire clk0_buf;  // pll.v(33)
+  wire clk0_buf;  // pll.v(36)
 
   EG_PHY_GCLK bufg_feedback (
     .clki(clk0_buf),
-    .clko(clk0_out));  // pll.v(35)
+    .clko(clk0_out));  // pll.v(38)
   EG_PHY_CONFIG #(
     .DONE_PERSISTN("ENABLE"),
     .INIT_PERSISTN("ENABLE"),
@@ -37,10 +39,10 @@ module pll  // pll.v(23)
     .CLKC1_DIV2_ENABLE("DISABLE"),
     .CLKC1_ENABLE("ENABLE"),
     .CLKC1_FPHASE(0),
-    .CLKC2_CPHASE(1),
-    .CLKC2_DIV(1),
+    .CLKC2_CPHASE(29),
+    .CLKC2_DIV(30),
     .CLKC2_DIV2_ENABLE("DISABLE"),
-    .CLKC2_ENABLE("DISABLE"),
+    .CLKC2_ENABLE("ENABLE"),
     .CLKC2_FPHASE(0),
     .CLKC3_CPHASE(1),
     .CLKC3_DIV(1),
@@ -106,7 +108,7 @@ module pll  // pll.v(23)
     .refclk(refclk),
     .reset(reset),
     .stdby(1'b0),
-    .clkc({open_n47,open_n48,open_n49,clk1_out,clk0_buf}));  // pll.v(62)
+    .clkc({open_n47,open_n48,clk2_out,clk1_out,clk0_buf}));  // pll.v(69)
 
 endmodule 
 
