@@ -14,6 +14,7 @@ module clk_div(
     output[9:0] delay_1ms_cnt,
     output[9:0] delay_1s_cnt,
 
+    output clk_i2c,
     output clk_debug
     );
 
@@ -26,7 +27,8 @@ module clk_div(
         .reset(~rst_n),
 
         .clk0_out(clk_main),
-        .clk1_out(clk_debug)
+        .clk1_out(clk_debug),
+        .clk2_out(clk_i2c)
     );
 
     // sync reset signal

@@ -2,19 +2,23 @@ module led (
     input clk,
     input rst_n,
     input delay_1s,
-
-    output reg val
+    input load_en,
+    input wire[1:0] led_sel,
+    output reg[2:0] led
 );
 
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
-            val <= 1'b1;
+            led <= 3'b111;
+        end
+        else if(load_en) begin
+            led <= 3'b111;
         end
         else if(delay_1s) begin
-            val <= ~val;
+            led[led_sel] <= ~led[led_sel];
         end
         else begin
-            val <= val;
+            led[led_sel] <= led[led_sel];
         end
     end
 endmodule
