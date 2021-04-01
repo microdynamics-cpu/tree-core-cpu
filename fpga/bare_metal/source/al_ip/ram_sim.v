@@ -1,20 +1,36 @@
 // Verilog netlist created by TD v5.0.25878
-// Thu Apr  1 10:50:57 2021
+// Wed Mar 31 16:58:51 2021
 
 `timescale 1ns / 1ps
-module rom  // rom.v(14)
+module ram  // ram.v(14)
   (
   addra,
+  cea,
   clka,
+  dia,
+  ocea,
   rsta,
+  wea,
   doa
   );
 
-  input [7:0] addra;  // rom.v(18)
-  input clka;  // rom.v(19)
-  input rsta;  // rom.v(20)
-  output [1:0] doa;  // rom.v(16)
+  input [7:0] addra;  // ram.v(29)
+  input cea;  // ram.v(31)
+  input clka;  // ram.v(33)
+  input [1:0] dia;  // ram.v(28)
+  input ocea;  // ram.v(32)
+  input rsta;  // ram.v(34)
+  input wea;  // ram.v(30)
+  output [1:0] doa;  // ram.v(26)
 
+  parameter ADDR_WIDTH_A = 8;
+  parameter ADDR_WIDTH_B = 8;
+  parameter DATA_DEPTH_A = 256;
+  parameter DATA_DEPTH_B = 256;
+  parameter DATA_WIDTH_A = 2;
+  parameter DATA_WIDTH_B = 2;
+  parameter REGMODE_A = "OUTREG";
+  parameter WRITEMODE_A = "NORMAL";
 
   EG_PHY_CONFIG #(
     .DONE_PERSISTN("ENABLE"),
@@ -25,11 +41,10 @@ module rom  // rom.v(14)
   // address_offset=0;data_offset=0;depth=256;width=2;num_section=1;width_per_section=2;section_size=2;working_depth=4096;working_width=8;mode_ecc=0;address_step=1;bytes_in_per_section=1;
   EG_PHY_BRAM32K #(
     .CLKBMUX("0"),
-    .CSAMUX("1"),
     .CSBMUX("0"),
     .DATA_WIDTH_A("8"),
     .DATA_WIDTH_B("8"),
-    .INIT_00(256'h0000000000000000000000000000000000000000000001010101010201010101),
+    .INIT_00(256'h0000000000000000000000000000000000000000000000000000000000000000),
     .INIT_01(256'h0000000000000000000000000000000000000000000000000000000000000000),
     .INIT_02(256'h0000000000000000000000000000000000000000000000000000000000000000),
     .INIT_03(256'h0000000000000000000000000000000000000000000000000000000000000000),
@@ -158,13 +173,11 @@ module rom  // rom.v(14)
     .INIT_7E(256'h0000000000000000000000000000000000000000000000000000000000000000),
     .INIT_7F(256'h0000000000000000000000000000000000000000000000000000000000000000),
     .MODE("SP16K"),
-    .OCEAMUX("0"),
     .OCEBMUX("0"),
-    .REGMODE_A("NOREG"),
+    .REGMODE_A("OUTREG"),
     .REGMODE_B("NOREG"),
     .RSTBMUX("0"),
     .SRMODE("SYNC"),
-    .WEAMUX("0"),
     .WEBMUX("0"),
     .WRITEMODE_A("NORMAL"),
     .WRITEMODE_B("NORMAL"))
@@ -174,9 +187,12 @@ module rom  // rom.v(14)
     .bytea(addra[0]),
     .byteb(1'b0),
     .clka(clka),
-    .dia({open_n52,open_n53,open_n54,open_n55,open_n56,open_n57,open_n58,open_n59,open_n60,open_n61,open_n62,open_n63,open_n64,open_n65,2'b00}),
+    .csa(cea),
+    .dia({open_n51,open_n52,open_n53,open_n54,open_n55,open_n56,open_n57,open_n58,open_n59,open_n60,open_n61,open_n62,open_n63,open_n64,dia}),
+    .ocea(ocea),
     .rsta(rsta),
-    .doa({open_n87,open_n88,open_n89,open_n90,open_n91,open_n92,open_n93,open_n94,open_n95,open_n96,open_n97,open_n98,open_n99,open_n100,doa}));
+    .wea(wea),
+    .doa({open_n84,open_n85,open_n86,open_n87,open_n88,open_n89,open_n90,open_n91,open_n92,open_n93,open_n94,open_n95,open_n96,open_n97,doa}));
 
 endmodule 
 
