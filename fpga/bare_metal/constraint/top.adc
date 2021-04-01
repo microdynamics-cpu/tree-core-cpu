@@ -1,10 +1,17 @@
-set_pin_assignment	{ clk_in }	{ LOCATION = K14; }
-set_pin_assignment	{ led[0] }	{ LOCATION = R3; }
-set_pin_assignment	{ led[1] }	{ LOCATION = J14; }
-set_pin_assignment	{ led[2] }	{ LOCATION = P13; }
-set_pin_assignment	{ rst_n }	{ LOCATION = K16; }
-set_pin_assignment	{ scl }	{ LOCATION = N12; }
-set_pin_assignment	{ sda }	{ LOCATION = P12; }
+set_pin_assignment	{ clk_in }	{ LOCATION = K14; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ led[0] }	{ LOCATION = R3; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ led[1] }	{ LOCATION = J14; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ led[2] }	{ LOCATION = P13; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ rst_n }	{ LOCATION = K16; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ scl }	{ LOCATION = L12; IOSTANDARD = LVCMOS33; }
+set_pin_assignment	{ sda }	{ LOCATION = J11; IOSTANDARD = LVCMOS33; }
+
+
+
+
+
+
+
 
 
 
