@@ -2,7 +2,7 @@ module led (
     input clk,
     input rst_n,
     input delay_1s,
-    input load_en,
+    input led_load_en,
     input wire[1:0] led_sel,
     output reg[2:0] led
 );
@@ -11,7 +11,7 @@ module led (
         if(!rst_n) begin
             led <= 3'b111;
         end
-        else if(load_en) begin
+        else if(led_load_en) begin
             led <= 3'b111;
         end
         else if(delay_1s) begin
