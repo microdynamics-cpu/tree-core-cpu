@@ -142,21 +142,21 @@ module top(
     //     .val(LED_R)
     // );
 
-    oled u_oled(
-        .clk_32M(clk_i2c),
-        .rst_n(rst_n),
-        .scl(scl),
-        .sda(sda)
-    );
-
-    // lcd u_lcd(
-    //     .clk(clk_main),
-    //     .rst_n(rst_n_main),
-
-    //     .spi_clk(spi_clk),
-    //     .spi_mosi(spi_mosi),
-    //     .spi_dc(spi_dc),
-    //     .spi_cs(spi_cs),
-    //     .spi_blk(spi_blk)
+    // oled u_oled(
+    //     .clk_32M(clk_i2c),
+    //     .rst_n(rst_n),
+    //     .scl(scl),
+    //     .sda(sda)
     // );
+
+    lcd u_lcd(
+        .clk(clk_main),
+        .rst_n(rst_n_main),
+
+        .spi_clk(spi_clk),
+        .spi_mosi(spi_mosi),
+        .spi_dc(spi_dc),
+        .spi_cs(spi_cs),
+        .spi_blk(spi_blk)
+    );
 endmodule

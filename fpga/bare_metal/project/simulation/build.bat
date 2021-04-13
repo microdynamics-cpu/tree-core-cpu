@@ -7,10 +7,14 @@
 @REM vvp -n i2c_master_tb.o
 @REM gtkwave i2c_master_tb.vcd
 
-iverilog -o oled_tb.o -y ../../source oled_tb.v 
-vvp -n oled_tb.o
-gtkwave oled_tb.vcd
+@REM iverilog -o oled_tb.o -y ../../source oled_tb.v 
+@REM vvp -n oled_tb.o
+@REM gtkwave oled_tb.vcd
 
 @REM iverilog -o spi_tb.o -y ../../source spi_tb.v 
 @REM vvp -n spi_tb.o
 @REM gtkwave spi_tb.vcd
+
+iverilog -o lcd_tb.o -y ../../source lcd_tb.v 
+vvp -n lcd_tb.o
+gtkwave lcd_tb.vcd
