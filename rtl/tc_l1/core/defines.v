@@ -56,8 +56,8 @@
 `define Hold_Pc   4'b001
 `define Hold_If   4'b010
 `define Hold_Id   4'b011
-`define Hold_Mem  4'b100
-`define Hold_Wb   4'b101
+`define Hold_Ex   4'b100
+`define Hold_Mem   4'b101
 
 // I type inst
 `define INST_TYPE_I 7'b0010011

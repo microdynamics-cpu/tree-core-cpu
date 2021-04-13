@@ -282,6 +282,15 @@ module tinyriscv(
         .csr_rdata_o(ie_csr_rdata_o)
     );
 
+    wire[`MemBus] ex2mem_mem_wdata;
+    wire[`MemAddrBus] ex2mem_mem_raddr;
+    wire[`MemAddrBus] ex2mem_mem_waddr;
+    wire ex2mem_mem_we;
+    wire ex2mem_mem_req;
+
+    wire[`RegBus] ex2mem_reg_wdata;
+    wire ex2mem_reg_we;
+    wire[`RegAddrBus] ex2mem_reg_waddr;
     // ex模块例化
     ex u_ex(
         .rst(rst),
@@ -304,6 +313,16 @@ module tinyriscv(
         .reg_wdata_o(ex_reg_wdata_o),
         .reg_we_o(ex_reg_we_o),
         .reg_waddr_o(ex_reg_waddr_o),
+        // new code start
+        // .mem_wdata_o(ex2mem_mem_wdata),
+        // .mem_raddr_o(ex2mem_mem_raddr),
+        // .mem_waddr_o(ex2mem_mem_waddr),
+        // .mem_we_o(ex2mem_mem_we),
+        // .mem_req_o(ex2mem_mem_req),
+        // .reg_wdata_o(ex2mem_reg_wdata),
+        // .reg_we_o(ex2mem_reg_we),
+        // .reg_waddr_o(ex2mem_reg_waddr),
+        // new code end
         .hold_flag_o(ex_hold_flag_o),
         .jump_flag_o(ex_jump_flag_o),
         .jump_addr_o(ex_jump_addr_o),
@@ -325,6 +344,92 @@ module tinyriscv(
         .csr_we_o(ex_csr_we_o),
         .csr_waddr_o(ex_csr_waddr_o)
     );
+
+
+    // wire[`MemBus] ex_mem2mem_mem_wdata;
+    // wire[`MemAddrBus] ex_mem2mem_mem_raddr;
+    // wire[`MemAddrBus] ex_mem2mem_mem_waddr;
+    // wire ex_mem2mem_mem_we;
+    // wire ex_mem2mem_mem_req;  
+
+    // wire[`RegBus] ex_mem2mem_reg_wdata;
+    // wire ex_mem2mem_reg_we;
+    // wire[`RegAddrBus] ex_mem2mem_reg_waddr;
+    // ex_mem u_ex_mem(
+    //     .clk(clk),
+    //     .rst(rst),
+
+    //     .hold_flag_i(ctrl_hold_flag_o),
+
+    //     .mem_wdata_i(ex2mem_mem_wdata),
+    //     .mem_raddr_i(ex2mem_mem_raddr),
+    //     .mem_waddr_i(ex2mem_mem_waddr),
+    //     .mem_we_i(ex2mem_mem_we),
+    //     .mem_req_i(ex2mem_mem_req),
+    //     .reg_wdata_i(ex2mem_reg_wdata),
+    //     .reg_we_i(ex2mem_reg_we),
+    //     .reg_waddr_i(ex2mem_reg_waddr),
+
+    //     .mem_wdata_o(ex_mem2mem_mem_wdata),
+    //     .mem_raddr_o(ex_mem2mem_mem_raddr),
+    //     .mem_waddr_o(ex_mem2mem_mem_waddr),
+    //     .mem_we_o(ex_mem2mem_mem_we),
+    //     .mem_req_o(ex_mem2mem_mem_req),
+    //     .reg_wdata_o(ex_mem2mem_reg_wdata),
+    //     .reg_we_o(ex_mem2mem_reg_we),
+    //     .reg_waddr_o(ex_mem2mem_reg_waddr)
+    // );
+
+    // wire[`RegBus] mem2wb_reg_wdata;
+    // wire mem2wb_reg_we;
+    // wire[`RegAddrBus] mem2wb_reg_waddr;
+    // mem u_mem(
+    //     .mem_wdata_i(ex_mem2mem_mem_wdata),
+    //     .mem_raddr_i(ex_mem2mem_mem_raddr),
+    //     .mem_waddr_i(ex_mem2mem_mem_waddr),
+    //     .mem_we_i(ex_mem2mem_mem_we),
+    //     .mem_req_i(ex_mem2mem_mem_req),
+    //     .reg_wdata_i(ex_mem2mem_reg_wdata),
+    //     .reg_we_i(ex_mem2mem_reg_we),
+    //     .reg_waddr_i(ex_mem2mem_reg_waddr),
+
+    //     .mem_wdata_o(ex_mem_wdata_o),
+    //     .mem_raddr_o(ex_mem_raddr_o),
+    //     .mem_waddr_o(ex_mem_waddr_o),
+    //     .mem_we_o(ex_mem_we_o),
+    //     .mem_req_o(ex_mem_req_o),
+    //     .reg_wdata_o(mem2wb_reg_wdata),
+    //     .reg_we_o(mem2wb_reg_we),
+    //     .reg_waddr_o(mem2wb_reg_waddr)
+    // );
+
+    // wire[`RegBus] mem_wb2wb_reg_wdata;
+    // wire mem_wb2wb_reg_we;
+    // wire[`RegAddrBus] mem_wb2wb_reg_waddr;
+    // mem_wb u_mem_wb(
+    //     .clk(clk),
+    //     .rst(rst),
+
+    //     .hold_flag_i(ctrl_hold_flag_o),
+
+    //     .reg_wdata_i(mem2wb_reg_wdata),
+    //     .reg_we_i(mem2wb_reg_we),
+    //     .reg_waddr_i(mem2wb_reg_waddr),
+
+    //     .reg_wdata_o(mem_wb2wb_reg_wdata),
+    //     .reg_we_o(mem_wb2wb_reg_we),
+    //     .reg_waddr_o(mem_wb2wb_reg_waddr)
+    // );
+
+    // wb u_wb(
+    //     .reg_wdata_i(mem_wb2wb_reg_wdata),
+    //     .reg_we_i(mem_wb2wb_reg_we),
+    //     .reg_waddr_i(mem_wb2wb_reg_waddr),
+
+    //     .reg_wdata_o(ex_reg_wdata_o),
+    //     .reg_we_o(ex_reg_we_o),
+    //     .reg_waddr_o(ex_reg_waddr_o)
+    // );
 
     // div模块例化
     div u_div(
