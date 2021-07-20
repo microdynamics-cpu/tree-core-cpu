@@ -15,6 +15,8 @@
 @REM vvp -n spi_tb.o
 @REM gtkwave spi_tb.vcd
 
-iverilog -o lcd_tb.o -y ../../source lcd_tb.v 
-vvp -n lcd_tb.o
-gtkwave lcd_tb.vcd
+@REM iverilog -o lcd_tb.o -y ../../source lcd_tb.v 
+@REM vvp -n lcd_tb.o
+@REM gtkwave lcd_tb.vcd
+
+iverilog -o top_tb.o -y ../../source ../../source/top.v
