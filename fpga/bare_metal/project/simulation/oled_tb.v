@@ -24,6 +24,7 @@ module oled_tb;
 
     always #(CLOCK_PERIOD / 2) clk = ~clk;
     
+     
      oled u_oled(
         .clk_32M(clk),
         .rst_n(rst_n),
