@@ -10,13 +10,13 @@ import treecorel2._
 
 // import utest._
 
-// class TopTest extends FlatSpec with ChiselScalatestTester with Matchers { 
-//   behavior of "Testers2"                                                    
-     
-//   //定义一个测试案例                                                                     
+// class TopTest extends FlatSpec with ChiselScalatestTester with Matchers {
+//   behavior of "Testers2"
+
+//   //定义一个测试案例
 //   it should "test sequential circuits" in {
 //     //定义被测的模块
-//     test(new Module {                 
+//     test(new Module {
 //       val io = IO(new Bundle {
 //         val in = Input(UInt(8.W))
 //         val out = Output(UInt(8.W))
