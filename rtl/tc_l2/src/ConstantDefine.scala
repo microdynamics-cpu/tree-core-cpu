@@ -9,4 +9,5 @@ trait ConstantDefine {
   val RegNum       = 32
   val ALUOpcodeLen = 7
   val ALUSelLen    = 3
+  val InstTypeLen  = 3
 }
