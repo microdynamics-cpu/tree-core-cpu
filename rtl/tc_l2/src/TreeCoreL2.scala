@@ -11,14 +11,14 @@ class TreeCoreL2 extends Module with ConstantDefine {
     val outEna:  Bool = Output(Bool())
   })
 
-  val pc    = Module(new PCRegister);
-  val if2id = Module(new IFToID);
+  val pcUnit    = Module(new PCRegister)
+  val if2idUnit = Module(new IFToID)
 
-  io.outEna := pc.io.instEnaOut
+  io.outEna := pcUnit.io.instEnaOut
 
-  if2id.io.ifInstAddrIn := pc.io.instAddrOut
-  if2id.io.ifInstDataIn := io.in1
-  io.outAddr            := if2id.io.idInstAddrOut
-  io.out2               := if2id.io.idInstDataOut
+  if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
+  if2idUnit.io.ifInstDataIn := io.in1
+  io.outAddr                := if2idUnit.io.idInstAddrOut
+  io.out2                   := if2idUnit.io.idInstDataOut
 
 }
