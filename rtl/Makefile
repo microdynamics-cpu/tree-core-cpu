@@ -5,10 +5,10 @@ test:
 
 verilog:
 	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain Elaborate -td $(BUILD_DIR)
+	mill -i __.test.runMain Top -td $(BUILD_DIR)
 
 help:
-	mill -i __.test.runMain Elaborate --help
+	mill -i __.test.runMain Top --help
 
 compile:
 	mill -i __.compile
