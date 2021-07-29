@@ -4,14 +4,14 @@ import chisel3._
 
 class PCRegister extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val instAddr: UInt = Output(UInt(BusWidth.W))
-    val instEna:  Bool = Output(Bool())
+    val instAddrOut: UInt = Output(UInt(BusWidth.W))
+    val instEnaOut:  Bool = Output(Bool())
   })
 
   private val pc: UInt = RegInit(0.U(BusWidth.W))
-  pc          := pc + 4.U
-  io.instAddr := pc
-  io.instEna  := !this.reset.asBool()
+  pc             := pc + 4.U
+  io.instAddrOut := pc
+  io.instEnaOut  := !this.reset.asBool()
 }
 
 // object PCRegister extends App {

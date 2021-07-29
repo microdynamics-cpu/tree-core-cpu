@@ -4,21 +4,21 @@ import chisel3._
 
 class IFToID extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val ifInstAddr: UInt = Input(UInt(BusWidth.W))
-    val ifInstData: UInt = Input(UInt(BusWidth.W))
+    val ifInstAddrIn: UInt = Input(UInt(BusWidth.W))
+    val ifInstDataIn: UInt = Input(UInt(BusWidth.W))
 
-    val idInstAddr: UInt = Output(UInt(BusWidth.W))
-    val idInstData: UInt = Output(UInt(BusWidth.W))
+    val idInstAddrOut: UInt = Output(UInt(BusWidth.W))
+    val idInstDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   private val pcRegister:   UInt = RegInit(0.U(BusWidth.W))
   private val instRegister: UInt = RegInit(0.U(BusWidth.W))
 
-  pcRegister   := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstAddr)
-  instRegister := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstData)
+  pcRegister   := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstAddrIn)
+  instRegister := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstDataIn)
 
-  io.idInstAddr := pcRegister
-  io.idInstData := instRegister
+  io.idInstAddrOut := pcRegister
+  io.idInstDataOut := instRegister
 }
 
 // object PCRegister extends App {

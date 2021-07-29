@@ -11,9 +11,9 @@ class PCRegisterTest extends FlatSpec with ChiselScalatestTester with Matchers {
   // test case body here
       test(new PCRegister) { dut =>
       // test body here
-      dut.instAddr.expect(0.U)
+      dut.instAddrOut.expect(0.U)
       dut.clock.step()
-      dut.instAddr.expect(4.U)
+      dut.instAddrOut.expect(4.U)
     }
   }
 }
