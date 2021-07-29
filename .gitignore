@@ -3,3 +3,4 @@ env/*.vvp
 *.swp
 out
 build
+.bsp
