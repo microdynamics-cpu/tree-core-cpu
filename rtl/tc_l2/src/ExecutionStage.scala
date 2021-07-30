@@ -3,8 +3,8 @@ package treecorel2
 import chisel3._
 import chisel3.util.MuxLookup
 
-object ExecutionStage{
-  // TODO: some code 4 is needed to be in ConstDefine 
+object ExecutionStage {
+  // TODO: some code 4 is needed to be in ConstDefine
   // TODO: with ALUOperTypeLen
   val aluADDIType = 0.U(4.W)
 //   val ALU_SUB     = 1.U(4.W)
