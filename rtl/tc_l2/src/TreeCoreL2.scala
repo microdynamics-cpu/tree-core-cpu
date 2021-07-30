@@ -15,11 +15,14 @@ class TreeCoreL2 extends Module with ConstantDefine {
   private val if2idUnit     = Module(new IFToID)
   private val regFile       = Module(new RegFile)
   private val instDecoder   = Module(new InstDecoderStage)
+  private val id2exUnit     = Module(new IDToEX)
+  private val execUnit      = Module(new ExecutionStage)
 
   instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
 
   // TODO: need to pass extra instAddr to the next stage?
+  // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
   if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
 
@@ -33,6 +36,18 @@ class TreeCoreL2 extends Module with ConstantDefine {
   regFile.io.rdAddrAIn := instDecoder.io.rdAddrAOut
   regFile.io.rdEnaBIn  := instDecoder.io.rdEnaBOut
   regFile.io.rdAddrBIn := instDecoder.io.rdAddrBOut
+
+  // id to ex
+  id2exUnit.io.idAluOperTypeIn := instDecoder.io.aluOperTypeOut
+  id2exUnit.io.idRsValAIn      := instDecoder.io.rsValAOut
+  id2exUnit.io.idRsValBIn      := instDecoder.io.rsValBOut
+  // ex
+  execUnit.io.aluOperTypeIn := id2exUnit.io.exAluOperTypeOut
+  execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
+  execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
+  // ex to ma
+  // ma
+  // ma to wb
 
   // demo
   regFile.io.wtEnaIn  := io.out1
