@@ -4,21 +4,39 @@ import chisel3._
 
 class TreeCoreL2 extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val in1:  UInt = Input(UInt(BusWidth.W))
-    val out2: UInt = Output(UInt(BusWidth.W))
+    val out1: Bool = Input(Bool())
+    val out2: UInt = Input(UInt(RegAddrLen.W))
+    val out3: UInt = Input(UInt(BusWidth.W))
 
-    val outAddr: UInt = Output(UInt(BusWidth.W))
-    val outEna:  Bool = Output(Bool())
   })
 
-  val pcUnit    = Module(new PCRegister)
-  val if2idUnit = Module(new IFToID)
+  private val pcUnit        = Module(new PCRegister)
+  private val instCacheUnit = Module(new InstCache)
+  private val if2idUnit     = Module(new IFToID)
+  private val regFile       = Module(new RegFile)
+  private val instDecoder   = Module(new InstDecoderStage)
 
-  io.outEna := pcUnit.io.instEnaOut
+  instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
+  instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
 
+  // TODO: need to pass extra instAddr to the next stage?
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
-  if2idUnit.io.ifInstDataIn := io.in1
-  io.outAddr                := if2idUnit.io.idInstAddrOut
-  io.out2                   := if2idUnit.io.idInstDataOut
+  if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
+
+  // inst decoder
+  instDecoder.io.instAddrIn := if2idUnit.io.idInstAddrOut
+  instDecoder.io.instDataIn := if2idUnit.io.idInstDataOut
+  instDecoder.io.rdDataAIn  := regFile.io.rdDataAOut
+  instDecoder.io.rdDataBIn  := regFile.io.rdDataBOut
+
+  regFile.io.rdEnaAIn  := instDecoder.io.rdEnaAOut
+  regFile.io.rdAddrAIn := instDecoder.io.rdAddrAOut
+  regFile.io.rdEnaBIn  := instDecoder.io.rdEnaBOut
+  regFile.io.rdAddrBIn := instDecoder.io.rdAddrBOut
+
+  // demo
+  regFile.io.wtEnaIn  := io.out1
+  regFile.io.wtAddrIn := io.out2
+  regFile.io.wtDataIn := io.out3
 
 }

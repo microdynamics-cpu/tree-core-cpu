@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 
-class RegisterFile extends Module with ConstantDefine {
+class RegFile extends Module with ConstantDefine {
   val io = IO(new Bundle {
     val rdEnaAIn:  Bool = Input(Bool())
     val rdAddrAIn: UInt = Input(UInt(RegAddrLen.W))
