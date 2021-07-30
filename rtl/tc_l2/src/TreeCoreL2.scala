@@ -41,11 +41,14 @@ class TreeCoreL2 extends Module with ConstantDefine {
   id2exUnit.io.idAluOperTypeIn := instDecoder.io.aluOperTypeOut
   id2exUnit.io.idRsValAIn      := instDecoder.io.rsValAOut
   id2exUnit.io.idRsValBIn      := instDecoder.io.rsValBOut
+  id2exUnit.io.idWtEnaIn       := instDecoder.io.wtEnaOut
+  id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
   // ex
   execUnit.io.aluOperTypeIn := id2exUnit.io.exAluOperTypeOut
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
+
   // ma
   // ma to wb
 
