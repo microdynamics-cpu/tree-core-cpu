@@ -17,6 +17,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
   private val instDecoder   = Module(new InstDecoderStage)
   private val id2exUnit     = Module(new IDToEX)
   private val execUnit      = Module(new ExecutionStage)
+  private val ex2maUnit     = Module(new EXToMA)
 
   instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
@@ -48,8 +49,11 @@ class TreeCoreL2 extends Module with ConstantDefine {
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
-
+  ex2maUnit.io.exResIn := execUnit.io.resOut
+  ex2maUnit.io.exWtEnaIn := id2exUnit.io.exWtEnaOut
+  ex2maUnit.io.exWtAddrOut := id2exUnit.io.exWtAddrOut
   // ma
+  
   // ma to wb
 
   // demo
