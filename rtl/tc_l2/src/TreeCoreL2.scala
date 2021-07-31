@@ -4,9 +4,9 @@ import chisel3._
 
 class TreeCoreL2 extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val out1: Bool = Input(Bool())
-    val out2: UInt = Input(UInt(RegAddrLen.W))
-    val out3: UInt = Input(UInt(BusWidth.W))
+    val out1: Bool = Output(Bool())
+    val out2: UInt = Output(UInt(RegAddrLen.W))
+    val out3: UInt = Output(UInt(BusWidth.W))
 
   })
 
@@ -19,6 +19,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
   private val execUnit      = Module(new ExecutionStage)
   private val ex2maUnit     = Module(new EXToMA)
   private val memAccess     = Module(new MemoryAccessStage)
+  private val ma2wbUnit     = Module(new MAToWB)
 
   instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
@@ -58,10 +59,18 @@ class TreeCoreL2 extends Module with ConstantDefine {
   memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
   memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
   // ma to wb
-
+  ma2wbUnit.io.maResIn    := memAccess.io.resOut
+  ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
+  ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
   // demo
-  regFile.io.wtEnaIn  := io.out1
-  regFile.io.wtAddrIn := io.out2
-  regFile.io.wtDataIn := io.out3
+  regFile.io.wtDataIn := ma2wbUnit.io.wbResOut
+  regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
+  regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
+
+  io.out1 := ma2wbUnit.io.wbResOut
+  io.out2 := ma2wbUnit.io.wbWtEnaOut
+  io.out3 := ma2wbUnit.io.wbWtAddrOut
+
 
 }
+
