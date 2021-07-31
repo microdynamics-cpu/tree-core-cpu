@@ -69,16 +69,16 @@ class InstDecoderStage extends Module with ConstantDefine {
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
 
-    val rdEnaAOut:  UInt = Output(Bool())
+    val rdEnaAOut:  Bool = Output(Bool())
     val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
-    val rdEnaBOut:  UInt = Output(Bool())
+    val rdEnaBOut:  Bool = Output(Bool())
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
 
     val aluOperTypeOut: UInt = Output(UInt(ALUOperTypeLen.W))
     val rsValAOut:      UInt = Output(UInt(BusWidth.W))
     val rsValBOut:      UInt = Output(UInt(BusWidth.W))
 
-    val wtEnaOut:  UInt = Output(Bool())
+    val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
 
