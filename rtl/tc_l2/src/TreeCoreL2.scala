@@ -18,6 +18,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
   private val id2exUnit     = Module(new IDToEX)
   private val execUnit      = Module(new ExecutionStage)
   private val ex2maUnit     = Module(new EXToMA)
+  private val memAccess     = Module(new MemoryAccessStage)
 
   instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
@@ -49,11 +50,13 @@ class TreeCoreL2 extends Module with ConstantDefine {
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
-  ex2maUnit.io.exResIn := execUnit.io.resOut
-  ex2maUnit.io.exWtEnaIn := id2exUnit.io.exWtEnaOut
-  ex2maUnit.io.exWtAddrOut := id2exUnit.io.exWtAddrOut
+  ex2maUnit.io.exResIn    := execUnit.io.resOut
+  ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
+  ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
   // ma
-  
+  memAccess.io.resIn    := ex2maUnit.io.maResOut
+  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
   // ma to wb
 
   // demo
