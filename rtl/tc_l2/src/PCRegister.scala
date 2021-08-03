@@ -8,7 +8,7 @@ class PCRegister extends Module with ConstantDefine {
     val instEnaOut:  Bool = Output(Bool())
   })
 
-  private val pc: UInt = RegInit(0.U(BusWidth.W))
+  protected val pc: UInt = RegInit(0.U(BusWidth.W))
   pc             := pc + 4.U
   io.instAddrOut := pc
   io.instEnaOut  := !this.reset.asBool()

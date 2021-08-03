@@ -11,8 +11,8 @@ class IFToID extends Module with ConstantDefine {
     val idInstDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  private val pcRegister:   UInt = RegInit(0.U(BusWidth.W))
-  private val instRegister: UInt = RegInit(0.U(BusWidth.W))
+  protected val pcRegister:   UInt = RegInit(0.U(BusWidth.W))
+  protected val instRegister: UInt = RegInit(0.U(BusWidth.W))
 
   pcRegister   := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstAddrIn)
   instRegister := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.ifInstDataIn)

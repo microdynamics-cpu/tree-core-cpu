@@ -10,16 +10,16 @@ class TreeCoreL2 extends Module with ConstantDefine {
 
   })
 
-  private val pcUnit        = Module(new PCRegister)
-  private val instCacheUnit = Module(new InstCache)
-  private val if2idUnit     = Module(new IFToID)
-  private val regFile       = Module(new RegFile)
-  private val instDecoder   = Module(new InstDecoderStage)
-  private val id2exUnit     = Module(new IDToEX)
-  private val execUnit      = Module(new ExecutionStage)
-  private val ex2maUnit     = Module(new EXToMA)
-  private val memAccess     = Module(new MemoryAccessStage)
-  private val ma2wbUnit     = Module(new MAToWB)
+  protected val pcUnit        = Module(new PCRegister)
+  protected val instCacheUnit = Module(new InstCache)
+  protected val if2idUnit     = Module(new IFToID)
+  protected val regFile       = Module(new RegFile)
+  protected val instDecoder   = Module(new InstDecoderStage)
+  protected val id2exUnit     = Module(new IDToEX)
+  protected val execUnit      = Module(new ExecutionStage)
+  protected val ex2maUnit     = Module(new EXToMA)
+  protected val memAccess     = Module(new MemoryAccessStage)
+  protected val ma2wbUnit     = Module(new MAToWB)
 
   instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut

@@ -12,10 +12,10 @@ class ImmExtension extends Module with ConstantDefine {
   })
 
   // construct different type immediate
-  private val rTypeImm: UInt = 0.U(BusWidth.W)
-  private val iTypeImm: UInt = io.instDataIn(31, 20)
-  private val sTypeImm: UInt = Cat(io.instDataIn(31, 25), io.instDataIn(11, 7))
-  private val bTypeImm: UInt = Cat(io.instDataIn(31), io.instDataIn(7), io.instDataIn(30, 25), io.instDataIn(11, 8))
+  protected val rTypeImm: UInt = 0.U(BusWidth.W)
+  protected val iTypeImm: UInt = io.instDataIn(31, 20)
+  protected val sTypeImm: UInt = Cat(io.instDataIn(31, 25), io.instDataIn(11, 7))
+  protected val bTypeImm: UInt = Cat(io.instDataIn(31), io.instDataIn(7), io.instDataIn(30, 25), io.instDataIn(11, 8))
 
   io.immOut := MuxLookup(
     io.instTypeIn,

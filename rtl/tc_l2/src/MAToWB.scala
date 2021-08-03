@@ -13,9 +13,9 @@ class MAToWB extends Module with ConstantDefine {
     val wbWtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
 
-  private val resRegister:    UInt = RegInit(0.U(BusWidth.W))
-  private val wtEnaRegister:  Bool = RegInit(false.B)
-  private val wtAddrRegister: UInt = RegInit(0.U(RegAddrLen.W))
+  protected val resRegister:    UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaRegister:  Bool = RegInit(false.B)
+  protected val wtAddrRegister: UInt = RegInit(0.U(RegAddrLen.W))
 
   resRegister    := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.maResIn)
   wtEnaRegister  := Mux(this.reset.asBool(), false.B, io.maWtEnaIn)

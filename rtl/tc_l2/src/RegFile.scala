@@ -18,7 +18,7 @@ class RegFile extends Module with ConstantDefine {
     val rdDataBOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  private val regFile = Mem(RegNum, UInt(BusWidth.W))
+  protected val regFile = Mem(RegNum, UInt(BusWidth.W))
 
   // TODO: need to solve the when rdAddr* === wtAddrIn(the forward circuit)
   io.rdDataAOut := Mux(io.rdEnaAIn && (io.rdAddrAIn =/= 0.U), regFile.read(io.rdAddrAIn), 0.U)
