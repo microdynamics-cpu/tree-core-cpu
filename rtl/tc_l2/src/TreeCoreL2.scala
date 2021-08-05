@@ -8,26 +8,38 @@ class TreeCoreL2 extends Module with ConstantDefine {
     val out2: UInt = Output(UInt(RegAddrLen.W))
     val out3: UInt = Output(UInt(BusWidth.W))
 
+    val instDataIn: UInt = Input(UInt(InstWidth.W))
+    val memRDataIn: UInt = Input(UInt(BusWidth.W))
+
+    val instAddrOut: UInt = Output(UInt(BusWidth.W))
+    val instEnaOut:  Bool = Output(Bool())
+
+    val memAddrOut:    UInt = Output(UInt(BusWidth.W))
+    val memDoWriteOut: Bool = Output(Bool())
+
+    val memEnaOut:    Bool = Output(Bool())
+    val memMaskOut:   UInt = Output(UInt(BusWidth.W))
+    val memWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  protected val pcUnit        = Module(new PCRegister)
-  protected val instCacheUnit = Module(new InstCache)
-  protected val if2idUnit     = Module(new IFToID)
-  protected val regFile       = Module(new RegFile)
-  protected val instDecoder   = Module(new InstDecoderStage)
-  protected val id2exUnit     = Module(new IDToEX)
-  protected val execUnit      = Module(new ExecutionStage)
-  protected val ex2maUnit     = Module(new EXToMA)
-  protected val memAccess     = Module(new MemoryAccessStage)
-  protected val ma2wbUnit     = Module(new MAToWB)
+  protected val pcUnit = Module(new PCRegister)
+  // protected val instCacheUnit = Module(new InstCache)
+  protected val if2idUnit   = Module(new IFToID)
+  protected val regFile     = Module(new RegFile)
+  protected val instDecoder = Module(new InstDecoderStage)
+  protected val id2exUnit   = Module(new IDToEX)
+  protected val execUnit    = Module(new ExecutionStage)
+  protected val ex2maUnit   = Module(new EXToMA)
+  protected val memAccess   = Module(new MemoryAccessStage)
+  protected val ma2wbUnit   = Module(new MAToWB)
 
-  instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
-  instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
-
+  // instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
+  // instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
-  if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
+  // if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
+  if2idUnit.io.ifInstDataIn := io.instDataIn
 
   // inst decoder
   instDecoder.io.instAddrIn := if2idUnit.io.idInstAddrOut
@@ -71,6 +83,6 @@ class TreeCoreL2 extends Module with ConstantDefine {
   io.out2 := ma2wbUnit.io.wbWtEnaOut
   io.out3 := ma2wbUnit.io.wbWtAddrOut
 
-
+  io.instAddrOut := pcUnit.io.instAddrOut
+  io.instEnaOut  := pcUnit.io.instEnaOut
 }
-
