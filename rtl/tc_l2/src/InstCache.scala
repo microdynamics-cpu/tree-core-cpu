@@ -11,7 +11,7 @@ class InstCache extends Module with ConstantDefine {
     val instDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  private val cache = Mem(InstCacheLen, UInt(BusWidth.W))
+  protected val cache = Mem(InstCacheLen, UInt(BusWidth.W))
   loadMemoryFromFile(cache, "data/InstcacheInit.txt")
 
   io.instDataOut := Mux(

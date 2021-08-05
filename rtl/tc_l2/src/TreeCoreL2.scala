@@ -4,28 +4,42 @@ import chisel3._
 
 class TreeCoreL2 extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val out1: Bool = Input(Bool())
-    val out2: UInt = Input(UInt(RegAddrLen.W))
-    val out3: UInt = Input(UInt(BusWidth.W))
+    val out1: Bool = Output(Bool())
+    val out2: UInt = Output(UInt(RegAddrLen.W))
+    val out3: UInt = Output(UInt(BusWidth.W))
 
+    val instDataIn: UInt = Input(UInt(InstWidth.W))
+    val memRDataIn: UInt = Input(UInt(BusWidth.W))
+
+    val instAddrOut: UInt = Output(UInt(BusWidth.W))
+    val instEnaOut:  Bool = Output(Bool())
+
+    val memAddrOut:    UInt = Output(UInt(BusWidth.W))
+    val memDoWriteOut: Bool = Output(Bool())
+
+    val memEnaOut:    Bool = Output(Bool())
+    val memMaskOut:   UInt = Output(UInt(BusWidth.W))
+    val memWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  private val pcUnit        = Module(new PCRegister)
-  private val instCacheUnit = Module(new InstCache)
-  private val if2idUnit     = Module(new IFToID)
-  private val regFile       = Module(new RegFile)
-  private val instDecoder   = Module(new InstDecoderStage)
-  private val id2exUnit     = Module(new IDToEX)
-  private val execUnit      = Module(new ExecutionStage)
-  private val ex2maUnit     = Module(new EXToMA)
+  protected val pcUnit = Module(new PCRegister)
+  // protected val instCacheUnit = Module(new InstCache)
+  protected val if2idUnit   = Module(new IFToID)
+  protected val regFile     = Module(new RegFile)
+  protected val instDecoder = Module(new InstDecoderStage)
+  protected val id2exUnit   = Module(new IDToEX)
+  protected val execUnit    = Module(new ExecutionStage)
+  protected val ex2maUnit   = Module(new EXToMA)
+  protected val memAccess   = Module(new MemoryAccessStage)
+  protected val ma2wbUnit   = Module(new MAToWB)
 
-  instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
-  instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
-
+  // instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
+  // instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
-  if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
+  // if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
+  if2idUnit.io.ifInstDataIn := io.instDataIn
 
   // inst decoder
   instDecoder.io.instAddrIn := if2idUnit.io.idInstAddrOut
@@ -49,16 +63,26 @@ class TreeCoreL2 extends Module with ConstantDefine {
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
-  ex2maUnit.io.exResIn := execUnit.io.resOut
-  ex2maUnit.io.exWtEnaIn := id2exUnit.io.exWtEnaOut
-  ex2maUnit.io.exWtAddrOut := id2exUnit.io.exWtAddrOut
+  ex2maUnit.io.exResIn    := execUnit.io.resOut
+  ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
+  ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
   // ma
-  
+  memAccess.io.resIn    := ex2maUnit.io.maResOut
+  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
   // ma to wb
-
+  ma2wbUnit.io.maResIn    := memAccess.io.resOut
+  ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
+  ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
   // demo
-  regFile.io.wtEnaIn  := io.out1
-  regFile.io.wtAddrIn := io.out2
-  regFile.io.wtDataIn := io.out3
+  regFile.io.wtDataIn := ma2wbUnit.io.wbResOut
+  regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
+  regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
 
+  io.out1 := ma2wbUnit.io.wbResOut
+  io.out2 := ma2wbUnit.io.wbWtEnaOut
+  io.out3 := ma2wbUnit.io.wbWtAddrOut
+
+  io.instAddrOut := pcUnit.io.instAddrOut
+  io.instEnaOut  := pcUnit.io.instEnaOut
 }

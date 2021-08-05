@@ -18,12 +18,21 @@ class RegFile extends Module with ConstantDefine {
     val rdDataBOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  private val regFile = Mem(RegNum, UInt(BusWidth.W))
+  protected val regFile: Vec[UInt] = RegInit(VecInit(Seq.fill(RegNum)(0.U(BusWidth.W))))
+  protected val rdDataA: UInt      = Wire(UInt(BusWidth.W))
+  protected val rdDataB: UInt      = Wire(UInt(BusWidth.W))
+  protected val wtAddr:  UInt      = io.wtAddrIn
 
+  regFile(wtAddr) := Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtDataIn, 0.U)
+
+  rdDataA       := Mux(io.rdEnaAIn, regFile(io.rdAddrAIn), 0.U)
+  rdDataB       := Mux(io.rdEnaBIn, regFile(io.rdAddrBIn), 0.U)
+  io.rdDataAOut := rdDataA
+  io.rdDataBOut := rdDataB
+
+  // protected val regFile = Mem(RegNum, UInt(BusWidth.W))
   // TODO: need to solve the when rdAddr* === wtAddrIn(the forward circuit)
-  io.rdDataAOut := Mux(io.rdEnaAIn && (io.rdAddrAIn =/= 0.U), regFile.read(io.rdAddrAIn), 0.U)
-  io.rdDataBOut := Mux(io.rdEnaBIn && (io.rdAddrBIn =/= 0.U), regFile.read(io.rdAddrBIn), 0.U)
-
-  // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn, Mux(io.wtAddrIn === 0.U, 0.U, io.wtDataIn), regFile(io.wtAddrIn)))
-  regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtDataIn, regFile(io.wtAddrIn)))
+  // io.rdDataAOut := Mux(io.rdEnaAIn && (io.rdAddrAIn =/= 0.U), regFile.read(io.rdAddrAIn), 0.U)
+  // io.rdDataBOut := Mux(io.rdEnaBIn && (io.rdAddrBIn =/= 0.U), regFile.read(io.rdAddrBIn), 0.U)
+  // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtDataIn, regFile(io.wtAddrIn)))
 }

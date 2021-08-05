@@ -17,11 +17,11 @@ class IDToEX extends Module with ConstantDefine {
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
   })
 
-  private val aluOperTypeRegister: UInt = RegInit(0.U(ALUOperTypeLen.W))
-  private val rsValARegister:      UInt = RegInit(0.U(BusWidth.W))
-  private val rsValBRegister:      UInt = RegInit(0.U(BusWidth.W))
-  private val wtEnaRegister:       Bool = RegInit(false.B)
-  private val wtAddrRegister:      UInt = RegInit(0.U(RegAddrLen.W))
+  protected val aluOperTypeRegister: UInt = RegInit(0.U(ALUOperTypeLen.W))
+  protected val rsValARegister:      UInt = RegInit(0.U(BusWidth.W))
+  protected val rsValBRegister:      UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaRegister:       Bool = RegInit(false.B)
+  protected val wtAddrRegister:      UInt = RegInit(0.U(RegAddrLen.W))
 
   aluOperTypeRegister := Mux(this.reset.asBool(), 0.U(ALUOperTypeLen.W), io.idAluOperTypeIn)
   rsValARegister      := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.idRsValAIn)

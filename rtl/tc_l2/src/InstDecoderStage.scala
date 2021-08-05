@@ -6,8 +6,8 @@ import ExecutionStage._
 import InstRegexPattern._
 
 object InstDecoderStage {
-  private val wtRegFalse = false.B
-  private val wtRegTrue  = true.B
+  protected val wtRegFalse = false.B
+  protected val wtRegTrue  = true.B
 
   // inst type
   val nopInstType = 0.U(3.W)
@@ -19,27 +19,27 @@ object InstDecoderStage {
   val jInstType   = 6.U(3.W)
 
   // ALU operation number type
-  private val nopAluOperNumType = 0.U(2.W)
-  private val regAluOperNumType = 1.U(2.W)
-  private val immAluOperNumType = 2.U(2.W)
+  protected val nopAluOperNumType = 0.U(2.W)
+  protected val regAluOperNumType = 1.U(2.W)
+  protected val immAluOperNumType = 2.U(2.W)
 
-  private val branchFalse = false.B
-  private val branchTrue  = true.B
+  protected val branchFalse = false.B
+  protected val branchTrue  = true.B
 
-  private val rdMemFalse = false.B
-  private val rdMemTrue  = true.B
+  protected val rdMemFalse = false.B
+  protected val rdMemTrue  = true.B
 
-  private val wtMemFalse = false.B
-  private val wtMemTrue  = true.B
+  protected val wtMemFalse = false.B
+  protected val wtMemTrue  = true.B
 
-  private val nopWtType = 0.U(2.W)
-  private val aluWtType = 1.U(2.W)
-  private val memWtType = 2.U(2.W)
+  protected val nopWtType = 0.U(2.W)
+  protected val aluWtType = 1.U(2.W)
+  protected val memWtType = 2.U(2.W)
 
-  private val defDecodeRes =
+  protected val defDecodeRes =
     List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
 
-  private val decodeTable = Array(
+  protected val decodeTable = Array(
     ADDI -> List(wtRegTrue, iInstType, regAluOperNumType, aluADDIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
     // ADD -> List(wtRegTrue, rInstType, regAluOperNumType, ALU_ADD, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // SUB -> List(wtRegTrue, rInstType, regAluOperNumType, ALU_SUB, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
@@ -82,14 +82,14 @@ class InstDecoderStage extends Module with ConstantDefine {
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
 
-  private val rsRegAddrA: UInt = io.instAddrIn(19, 15)
-  private val rsRegAddrB: UInt = io.instAddrIn(24, 20)
-  private val rdRegAddr:  UInt = io.instAddrIn(11, 7)
+  protected val rsRegAddrA: UInt = io.instAddrIn(19, 15)
+  protected val rsRegAddrB: UInt = io.instAddrIn(24, 20)
+  protected val rdRegAddr:  UInt = io.instAddrIn(11, 7)
 
-  private val decodeRes = ListLookup(io.instDataIn, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
+  protected val decodeRes = ListLookup(io.instDataIn, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
 
   // acoording the inst type to construct the imm
-  private val immExtensionUnit = Module(new ImmExtension)
+  protected val immExtensionUnit = Module(new ImmExtension)
   immExtensionUnit.io.instDataIn := io.instDataIn
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
