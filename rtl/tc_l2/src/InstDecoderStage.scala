@@ -64,7 +64,7 @@ object InstDecoderStage {
 class InstDecoderStage extends Module with ConstantDefine {
   val io = IO(new Bundle {
     val instAddrIn: UInt = Input(UInt(BusWidth.W))
-    val instDataIn: UInt = Input(UInt(BusWidth.W))
+    val instDataIn: UInt = Input(UInt(InstWidth.W))
 
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
