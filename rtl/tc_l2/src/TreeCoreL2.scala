@@ -11,7 +11,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
     val instEnaOut:  Bool = Output(Bool())
 
     // val memAddrOut:    UInt = Output(UInt(BusWidth.W))
-    // val memDoWriteOut: Bool = Output(Bool())
+    // val memWtEnaOut: Bool = Output(Bool())
 
     // val memEnaOut:    Bool = Output(Bool())
     // val memMaskOut:   UInt = Output(UInt(BusWidth.W))
@@ -70,7 +70,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
   ma2wbUnit.io.maResIn    := memAccess.io.resOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
   ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
-  
+
   // wb
   regFile.io.wtDataIn := ma2wbUnit.io.wbResOut
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut

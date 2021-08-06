@@ -1,3 +1,5 @@
+package sim.univtest
+
 import treecorel2._
 
 object UnivTop extends App {
