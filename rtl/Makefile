@@ -6,11 +6,11 @@ test:
 
 univBuild:
 	mkdir -p $(BUILD_DIR)/univ-build
-	mill -i __.test.runMain UnivTop -td $(BUILD_DIR)/univ-build
+	mill -i __.test.runMain sim.univtest.UnivTop -td $(BUILD_DIR)/univ-build
 
 diffBuild:
 	mkdir -p $(BUILD_DIR)/diff-build
-	mill -i __.test.runMain SimTop -td $(BUILD_DIR)/diff-build
+	mill -i __.test.runMain sim.difftest.SimTop -td $(BUILD_DIR)/diff-build
 
 help:
 	mill -i __.test.runMain Top --help
