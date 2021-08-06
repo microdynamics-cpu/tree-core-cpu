@@ -6,7 +6,7 @@ import InstDecoderStage.{bInstType, iInstType, nopInstType, rInstType, sInstType
 
 class ImmExtension extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val instDataIn: UInt = Input(UInt(BusWidth.W))
+    val instDataIn: UInt = Input(UInt(InstWidth.W))
     val instTypeIn: UInt = Input(UInt(InstTypeLen.W))
     val immOut:     UInt = Output(UInt(BusWidth.W))
   })
@@ -27,5 +27,4 @@ class ImmExtension extends Module with ConstantDefine {
       bInstType -> bTypeImm
     )
   )
-//   io.imm := MuxLookup(io.imm_sel, 0.U, Seq(IMM_R -> Iimm, IMM_I -> Iimm, IMM_S -> Simm, IMM_B -> Bimm))
 }

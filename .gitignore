@@ -4,3 +4,6 @@ env/*.vvp
 out
 build
 .bsp
+am
+NEMU
+difftest

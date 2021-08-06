@@ -4,22 +4,18 @@ import chisel3._
 
 class TreeCoreL2 extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val out1: Bool = Output(Bool())
-    val out2: UInt = Output(UInt(RegAddrLen.W))
-    val out3: UInt = Output(UInt(BusWidth.W))
-
     val instDataIn: UInt = Input(UInt(InstWidth.W))
-    val memRDataIn: UInt = Input(UInt(BusWidth.W))
+    // val memRDataIn: UInt = Input(UInt(BusWidth.W))
 
     val instAddrOut: UInt = Output(UInt(BusWidth.W))
     val instEnaOut:  Bool = Output(Bool())
 
-    val memAddrOut:    UInt = Output(UInt(BusWidth.W))
-    val memDoWriteOut: Bool = Output(Bool())
+    // val memAddrOut:    UInt = Output(UInt(BusWidth.W))
+    // val memWtEnaOut: Bool = Output(Bool())
 
-    val memEnaOut:    Bool = Output(Bool())
-    val memMaskOut:   UInt = Output(UInt(BusWidth.W))
-    val memWtDataOut: UInt = Output(UInt(BusWidth.W))
+    // val memEnaOut:    Bool = Output(Bool())
+    // val memMaskOut:   UInt = Output(UInt(BusWidth.W))
+    // val memWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val pcUnit = Module(new PCRegister)
@@ -74,14 +70,11 @@ class TreeCoreL2 extends Module with ConstantDefine {
   ma2wbUnit.io.maResIn    := memAccess.io.resOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
   ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
-  // demo
+
+  // wb
   regFile.io.wtDataIn := ma2wbUnit.io.wbResOut
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
   regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
-
-  io.out1 := ma2wbUnit.io.wbResOut
-  io.out2 := ma2wbUnit.io.wbWtEnaOut
-  io.out3 := ma2wbUnit.io.wbWtAddrOut
 
   io.instAddrOut := pcUnit.io.instAddrOut
   io.instEnaOut  := pcUnit.io.instEnaOut

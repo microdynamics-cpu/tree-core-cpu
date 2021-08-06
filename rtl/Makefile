@@ -1,11 +1,16 @@
 BUILD_DIR = ./build
 
+
 test:
 	mill -i __.test
 
-verilog:
-	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain Top -td $(BUILD_DIR)
+univBuild:
+	mkdir -p $(BUILD_DIR)/univ-build
+	mill -i __.test.runMain sim.univtest.UnivTop -td $(BUILD_DIR)/univ-build
+
+diffBuild:
+	mkdir -p $(BUILD_DIR)/diff-build
+	mill -i __.test.runMain sim.difftest.SimTop -td $(BUILD_DIR)/diff-build
 
 help:
 	mill -i __.test.runMain Top --help
