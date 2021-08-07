@@ -1,16 +1,18 @@
-BUILD_DIR = ./build
+BUILD_DIR = tc_l2/build
 
 
 test:
 	mill -i __.test
 
 univBuild:
-	mkdir -p $(BUILD_DIR)/univ-build
-	mill -i __.test.runMain sim.univtest.UnivTop -td $(BUILD_DIR)/univ-build
+	mkdir -p $(BUILD_DIR)
+	mill -i __.test.runMain sim.univtest.UnivTop -td $(BUILD_DIR)
 
 diffBuild:
-	mkdir -p $(BUILD_DIR)/diff-build
-	mill -i __.test.runMain sim.difftest.SimTop -td $(BUILD_DIR)/diff-build
+	mkdir -p $(BUILD_DIR)
+	mill -i __.test.runMain sim.difftest.SimTop -td $(BUILD_DIR)
+
+allBuild: univBuild diffBuild
 
 help:
 	mill -i __.test.runMain Top --help
@@ -28,6 +30,6 @@ checkformat:
 	mill -i __.checkFormat
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	rm -rf ${BUILD_DIR}
 
 .PHONY: test verilog help compile bsp reformat checkformat clean
