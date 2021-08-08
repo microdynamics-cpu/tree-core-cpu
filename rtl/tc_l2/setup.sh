@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # to print the color in terminal
-INFO="\033[1;33m"
-ERROR="\033[1;31m"
-RIGHT="\033[1;32m"
+INFO="\033[0;33m"
+ERROR="\033[0;31m"
+RIGHT="\033[0;32m"
 END="\033[0m"
 
 
@@ -15,129 +15,207 @@ AM_KERNELS_FOLDER_PATH=${AM_FOLDER_PATH}"/am-kernels"
 
 DIFFTEST_FOLDER_PATH=${ROOT_PATH}"/difftest"
 NEMU_FOLDER_PATH=${ROOT_PATH}"/NEMU"
+
+
 # download the am repo from the github
-mkdir -p ${AM_FOLDER_PATH}
-cd ${AM_FOLDER_PATH}
-
 ###### abstract-machine ######
-if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
-    echo -e "${RIGHT}abstract-machine exist!${END}"
-    # if git fsck --full != 0; then
-    #     echo "[download error]: remove the dir and git clone"
-    #     rm -rf abstract-machine
-    #     git clone https://github.com/NJU-ProjectN/abstract-machine.git
-    # fi
-else
-    echo -e "${INFO}[no download]: git clone${END}"
-    git clone https://github.com/NJU-ProjectN/abstract-machine.git
-fi
+configAbstractMachine() {
+    mkdir -p ${AM_FOLDER_PATH}
+    cd ${AM_FOLDER_PATH}
 
-cd ${ABSTRACT_MACHINE_FOLDER_PATH}
-git checkout ysyx2021
+    if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}abstract-machine exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf abstract-machine
+        #     git clone https://github.com/NJU-ProjectN/abstract-machine.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+        git clone https://github.com/NJU-ProjectN/abstract-machine.git
+    fi
 
-if [[ -z $AM_HOME ]]; then
-    echo -e "${INFO}AM_HOME is empty, set AM_HOME...${END}"
-    export AM_HOME=${ABSTRACT_MACHINE_FOLDER_PATH}
+    cd ${ABSTRACT_MACHINE_FOLDER_PATH}
+    git checkout ysyx2021
 
-elif [[ $AM_HOME != ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
-    echo -e "${ERROR}AM_HOME is set error, error value: $AM_HOME${END}"
-    export AM_HOME=${ABSTRACT_MACHINE_FOLDER_PATH}
+    if [[ -z $AM_HOME ]]; then
+        echo -e "${INFO}AM_HOME is empty, set AM_HOME...${END}"
+        export AM_HOME=${ABSTRACT_MACHINE_FOLDER_PATH}
 
-else
-    echo -e "${RIGHT}AM_HOME exist and is a right value${END}"
-fi
-echo -e "${RIGHT}AM_HOME: $AM_HOME${END}"
+    elif [[ $AM_HOME != ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
+        echo -e "${ERROR}AM_HOME is set error, error value: $AM_HOME${END}"
+        export AM_HOME=${ABSTRACT_MACHINE_FOLDER_PATH}
 
-cd ${AM_FOLDER_PATH}
+    else
+        echo -e "${RIGHT}AM_HOME exist and is a right value${END}"
+    fi
+    echo -e "${RIGHT}AM_HOME: $AM_HOME${END}"
+
+    cd ${ROOT_PATH} # am -> tc-l2
+}
 
 ###### riscv-tests ######
-if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
-    echo -e "${RIGHT}riscv-tests exist!${END}"
-    # if git fsck --full != 0; then
-    #     echo "[download error]: remove the dir and git clone"
-    #     rm -rf riscv-tests
-    #     git clone https://github.com/NJU-ProjectN/riscv-tests.git
-    # fi
-else
-    echo -e "${INFO}[no download]: git clone${END}"
-   git clone https://github.com/NJU-ProjectN/riscv-tests.git
-fi
+configRiscvTests() {
+    mkdir -p ${AM_FOLDER_PATH}
+    cd ${AM_FOLDER_PATH}
+
+    if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}riscv-tests exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf riscv-tests
+        #     git clone https://github.com/NJU-ProjectN/riscv-tests.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+    git clone https://github.com/NJU-ProjectN/riscv-tests.git
+    fi
+
+    cd ${ROOT_PATH} # am -> tc-l2
+}
 
 ###### am-kernels ######
-if [[ -d ${AM_KERNELS_FOLDER_PATH} ]]; then
-    echo -e "${RIGHT}am-kernels exist!${END}"
-    # if git fsck --full != 0; then
-    #     echo "[download error]: remove the dir and git clone"
-    #     rm -rf am-kernels
-    #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-    # fi
-else
-    echo -e "${INFO}[no download]: git clone${END}"
-   git clone https://github.com/NJU-ProjectN/am-kernels.git
-fi
+configAMKernels() {
+    mkdir -p ${AM_FOLDER_PATH}
+    cd ${AM_FOLDER_PATH}
 
-cd ${ROOT_PATH} # am -> tc-l2
+    if [[ -d ${AM_KERNELS_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}am-kernels exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf am-kernels
+        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+    git clone https://github.com/NJU-ProjectN/am-kernels.git
+    fi
 
-# download the specific version difftest and NEMU
-# the version is same as the https://github.com/OSCPU/oscpu-framework.git
+    cd ${ROOT_PATH} # am -> tc-l2
+}
+
+# download the specific commit id difftest and NEMU
+# the commit id is same as the https://github.com/OSCPU/oscpu-framework.git
 ###### difftest ######
-if [[ -d ${DIFFTEST_FOLDER_PATH} ]]; then
-    echo -e "${RIGHT}difftest exist!${END}"
-    # if git fsck --full != 0; then
-    #     echo "[download error]: remove the dir and git clone"
-    #     rm -rf am-kernels
-    #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-    # fi
-else
-    echo -e "${INFO}[no download]: git clone${END}"
-    git clone https://github.com/OpenXiangShan/difftest.git
-fi
+configDiffTest() {
+    cd ${ROOT_PATH}
 
-cd ${DIFFTEST_FOLDER_PATH}
-git checkout -b 086c891828d1f8a1a2738c90e0b10c1f98cc61e0
-# change the ram size from 8G to 256MB
-sed -i 's/^\/\/\s\+\(#define\s\+EMU_RAM_SIZE\s\+(256\)/\1/' src/test/csrc/common/ram.h
-sed -i 's/^#define\s\+EMU_RAM_SIZE\s\+(8/\/\/ &/' src/test/csrc/common/ram.h
+    if [[ -d ${DIFFTEST_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}difftest exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf am-kernels
+        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+        git clone https://github.com/OpenXiangShan/difftest.git
+    fi
 
-cd ${ROOT_PATH}
+    cd ${DIFFTEST_FOLDER_PATH}
+    git checkout 086c891828d1f8a1a2738c90e0b10c1f98cc61e0
+    # change the ram size from 8G to 256MB
+    sed -i 's/^\/\/\s\+\(#define\s\+EMU_RAM_SIZE\s\+(256\)/\1/' src/test/csrc/common/ram.h
+    sed -i 's/^#define\s\+EMU_RAM_SIZE\s\+(8/\/\/ &/' src/test/csrc/common/ram.h
+
+    cd ${ROOT_PATH}
+}
 
 ###### NEMU ######
-if [[ -d ${NEMU_FOLDER_PATH} ]]; then
-    echo -e "${RIGHT}NEMU exist!${END}"
-    # if git fsck --full != 0; then
-    #     echo "[download error]: remove the dir and git clone"
-    #     rm -rf am-kernels
-    #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-    # fi
-else
-    echo -e "${INFO}[no download]: git clone${END}"
-    git clone https://github.com/OpenXiangShan/NEMU.git
-fi
+configNemu() {
+    if [[ -d ${NEMU_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}NEMU exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf am-kernels
+        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+        git clone https://github.com/OpenXiangShan/NEMU.git
+    fi
 
-cd ${NEMU_FOLDER_PATH}
-git checkout -b 1e6883d271e48d2412bc46af852a093d7a7fdde7
+    cd ${NEMU_FOLDER_PATH}
+    git checkout 1e6883d271e48d2412bc46af852a093d7a7fdde7
 
-if [[ -z $NEMU_HOME ]]; then
-    echo -e "${INFO}NEMU_HOME is empty, set NEMU_HOME...${END}"
-    export NEMU_HOME=${NEMU_FOLDER_PATH}
-    export NOOP_HOME=${ROOT_PATH}
+    if [[ -z $NEMU_HOME ]]; then
+        echo -e "${INFO}NEMU_HOME is empty, set NEMU_HOME...${END}"
+        export NEMU_HOME=${NEMU_FOLDER_PATH}
+        export NOOP_HOME=${ROOT_PATH}
 
-elif [[ $NEMU_HOME != ${NEMU_FOLDER_PATH} ]]; then
-    echo -e "${ERROR}NEMU_HOME is set error, error value: $NEMU_HOME${END}"
-    export NEMU_HOME=${NEMU_FOLDER_PATH}
-    export NOOP_HOME=${ROOT_PATH}
-else
-    echo -e "${RIGHT}NEMU_HOME exist and is a right value${END}"
-fi
-echo -e "${RIGHT}NEMU_HOME: $NEMU_HOME${END}"
-echo -e "${RIGHT}NOOP_HOME: $NOOP_HOME${END}"
+    elif [[ $NEMU_HOME != ${NEMU_FOLDER_PATH} ]]; then
+        echo -e "${ERROR}NEMU_HOME is set error, error value: $NEMU_HOME${END}"
+        export NEMU_HOME=${NEMU_FOLDER_PATH}
+        export NOOP_HOME=${ROOT_PATH}
+    else
+        echo -e "${RIGHT}NEMU_HOME exist and is a right value${END}"
+    fi
 
+    echo -e "${RIGHT}NEMU_HOME: $NEMU_HOME${END}"
+    echo -e "${RIGHT}NOOP_HOME: $NOOP_HOME${END}"
 
-make defconfig riscv64-xs-ref_defconfig
-# change the sim memory from 8G to 256MB
-sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
+    make defconfig riscv64-xs-ref_defconfig
+    # change the sim memory from 8G to 256MB
+    # need to enter 'make menuconfig' and 
+    # modify [Memory Configuration]->[Memory size] to '0x10000000' manually
+    # sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
 
-cd ${ROOT_PATH}
+    cd ${ROOT_PATH}
+}
 
+helpInfo() {
+    echo -e "${INFO}Usage: setup.sh [-a][-n][-d][-m][-r][-k][-s repo][-h]${END}"
+    echo -e "Description - set up the build env of the treecore riscv processor"
+    echo -e ""
+    echo -e "${RIGHT}  -a: download and config all the repos${END}"
+    echo -e "${RIGHT}  -n: download and config nemu${END}"
+    echo -e "${RIGHT}  -d: download and config difftest${END}"
+    echo -e "${RIGHT}  -m: download and config abstract-machine${END}"
+    echo -e "${RIGHT}  -r: download and config riscv-tests${END}"
+    echo -e "${RIGHT}  -k: download and config am-kernels${END}"
+    echo -e "${RIGHT}  -s: download and config specific repo${END}"
+    echo -e "      sample: ./setup.sh -s [repo](default: nemu) ${INFO}[repo]: [nemu, diffttest, am, riscv-tests, am-kernels]${END}"
+    echo -e "${RIGHT}  -h: help information${END}"
+    
+}
 
+configSpecRepo() {
+    if [[ -n $1 && $1 == "all" ]]; then
+        configAbstractMachine
+        configRiscvTests
+        configAMKernels
+        configDiffTest
+        configNemu
+    elif [[ -n $1 && $1 == "nemu" ]]; then
+        configNemu
+    elif [[ -n $1 && $1 == "difftest" ]]; then
+        configDiffTest
+    elif [[ -n $1 && $1 == "am" ]]; then
+        configAbstractMachine
+    elif [[ -n $1 && $1 == "riscv-tests" ]]; then
+        configRiscvTests
+    elif [[ -n $1 && $1 == "am-kernels" ]]; then
+        configAMKernels
+    else
+        echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, am, riscv-tests, am-kernels]"
+    fi
+}
+
+# Check parameters
+while getopts 'andmrks:h' OPT; do
+    case $OPT in
+        a) configSpecRepo "all";;
+        n) configNemu;;
+        d) configDiffTest;;
+        m) configAbstractMachine;;
+        r) configRiscvTests;;
+        k) configAMKernels;;
+        s) configSpecRepo $OPTARG;;
+        h) helpInfo;;
+        ?) 
+        echo -e "${ERROR}invalid parameters!!!${END}"
+        helpInfo
+        ;;
+    esac
+done
 
