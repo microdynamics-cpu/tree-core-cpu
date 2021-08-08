@@ -2,26 +2,25 @@ package treecorel2
 
 import chisel3._
 
-class TreeCoreL2 extends Module with ConstantDefine {
+class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDefine {
   val io = IO(new Bundle {
-    val instDataIn: UInt = Input(UInt(InstWidth.W))
-    // val memRDataIn: UInt = Input(UInt(BusWidth.W))
+    val instDataIn:  UInt = Input(UInt(InstWidth.W))
+    val memRdDataIn: UInt = Input(UInt(BusWidth.W))
 
     val instAddrOut: UInt = Output(UInt(BusWidth.W))
     val instEnaOut:  Bool = Output(Bool())
 
-    // val memAddrOut:    UInt = Output(UInt(BusWidth.W))
-    // val memWtEnaOut: Bool = Output(Bool())
-
-    // val memEnaOut:    Bool = Output(Bool())
-    // val memMaskOut:   UInt = Output(UInt(BusWidth.W))
-    // val memWtDataOut: UInt = Output(UInt(BusWidth.W))
+    val memAddrOut:   UInt = Output(UInt(BusWidth.W))
+    val memWtEnaOut:  Bool = Output(Bool())
+    val memValidOut:  Bool = Output(Bool())
+    val memMaskOut:   UInt = Output(UInt(BusWidth.W))
+    val memWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val pcUnit = Module(new PCRegister)
   // protected val instCacheUnit = Module(new InstCache)
   protected val if2idUnit   = Module(new IFToID)
-  protected val regFile     = Module(new RegFile)
+  protected val regFile     = Module(new RegFile(ifDiffTest))
   protected val instDecoder = Module(new InstDecoderStage)
   protected val id2exUnit   = Module(new IDToEX)
   protected val execUnit    = Module(new ExecutionStage)
@@ -29,6 +28,8 @@ class TreeCoreL2 extends Module with ConstantDefine {
   protected val memAccess   = Module(new MemoryAccessStage)
   protected val ma2wbUnit   = Module(new MAToWB)
 
+  io.instAddrOut := pcUnit.io.instAddrOut
+  io.instEnaOut  := pcUnit.io.instEnaOut
   // instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
   // instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
   // TODO: need to pass extra instAddr to the next stage?
@@ -63,9 +64,17 @@ class TreeCoreL2 extends Module with ConstantDefine {
   ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
   ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
   // ma
-  memAccess.io.resIn    := ex2maUnit.io.maResOut
-  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
-  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
+  memAccess.io.func3       := 0.U
+  memAccess.io.resIn       := ex2maUnit.io.maResOut
+  memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
+  memAccess.io.memRdDataIn := io.memRdDataIn
+
+  io.memAddrOut   := memAccess.io.memAddrOut
+  io.memWtEnaOut  := memAccess.io.memWtEnaOut
+  io.memWtDataOut := memAccess.io.memWtDataOut
+  io.memMaskOut   := memAccess.io.memMaskOut
+  io.memValidOut  := memAccess.io.memValidOut
   // ma to wb
   ma2wbUnit.io.maResIn    := memAccess.io.resOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
@@ -76,6 +85,7 @@ class TreeCoreL2 extends Module with ConstantDefine {
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
   regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
 
-  io.instAddrOut := pcUnit.io.instAddrOut
-  io.instEnaOut  := pcUnit.io.instEnaOut
+  if(ifDiffTest) {
+    
+  }
 }
