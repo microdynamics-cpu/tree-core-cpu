@@ -30,4 +30,14 @@ object tc_l2 extends ScalaModule with ScalafmtModule { m =>
       ivy"edu.berkeley.cs::chiseltest:0.3.3",
     )
   }
+
+   override def moduleDeps = super.moduleDeps ++ Seq(difftest)
+}
+
+object difftest extends ScalaModule {
+  override def scalaVersion = "2.12.13"
+  override def millSourcePath = os.pwd / "tc_l2" / "difftest"
+  override def ivyDeps = Agg(
+    ivy"edu.berkeley.cs::chisel3:3.4.3"
+  )
 }
