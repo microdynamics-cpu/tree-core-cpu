@@ -12,4 +12,7 @@ class PCRegister extends Module with ConstantDefine {
   pc             := pc + 4.U
   io.instAddrOut := pc
   io.instEnaOut  := !this.reset.asBool()
+
+  //@printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(io.instAddrOut)}\n")
+  //@printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(io.instEnaOut)}\n")
 }

@@ -93,4 +93,8 @@ class MemoryAccessStage extends Module with ConstantDefine {
   io.memValidOut := false.B
   // io.memMaskOut  := wMask
   io.memMaskOut := 0.U
+
+  //@printf(p"[ma]io.resOut = 0x${Hexadecimal(io.resOut)}\n")
+  //@printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
+  //@printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
 }
