@@ -1,6 +1,7 @@
 package treecorel2
 
 import chisel3._
+import difftest._
 
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDefine {
   val io = IO(new Bundle {
@@ -27,6 +28,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
   protected val ex2maUnit   = Module(new EXToMA)
   protected val memAccess   = Module(new MemoryAccessStage)
   protected val ma2wbUnit   = Module(new MAToWB)
+
+  //@printf(p"[TreeCoreL2]this.reset = ${Hexadecimal(this.reset.asBool())}\n\n\n")
 
   io.instAddrOut := pcUnit.io.instAddrOut
   io.instEnaOut  := pcUnit.io.instEnaOut
@@ -85,7 +88,66 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
   regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
 
-  if(ifDiffTest) {
-    
+  if (ifDiffTest) {
+    // commit
+    val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
+    val instValidWire = pcUnit.io.instEnaOut && !this.reset.asBool() && (io.instDataIn =/= 0.U)
+    // val instValidReg  = RegNext(instValidWire)
+    // val pcReg         = RegNext(pcUnit.io.instAddrOut, 0.U)
+
+    diffCommitState.io.clock    := this.clock
+    diffCommitState.io.coreid   := 0.U
+    diffCommitState.io.index    := 0.U
+    diffCommitState.io.skip     := false.B
+    diffCommitState.io.isRVC    := false.B
+    diffCommitState.io.scFailed := false.B
+
+    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire)))))
+    diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn)))))
+    diffCommitState.io.wen   := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtEnaOut)))))
+    diffCommitState.io.wdata := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbResOut)))))
+    diffCommitState.io.wdest := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtAddrOut)))))
+
+    // CSR State
+    val diffCsrState = Module(new DifftestCSRState())
+    diffCsrState.io.clock          := this.clock
+    diffCsrState.io.coreid         := 0.U
+    diffCsrState.io.mstatus        := 0.U
+    diffCsrState.io.mcause         := 0.U
+    diffCsrState.io.mepc           := 0.U
+    diffCsrState.io.sstatus        := 0.U
+    diffCsrState.io.scause         := 0.U
+    diffCsrState.io.sepc           := 0.U
+    diffCsrState.io.satp           := 0.U
+    diffCsrState.io.mip            := 0.U
+    diffCsrState.io.mie            := 0.U
+    diffCsrState.io.mscratch       := 0.U
+    diffCsrState.io.sscratch       := 0.U
+    diffCsrState.io.mideleg        := 0.U
+    diffCsrState.io.medeleg        := 0.U
+    diffCsrState.io.mtval          := 0.U
+    diffCsrState.io.stval          := 0.U
+    diffCsrState.io.mtvec          := 0.U
+    diffCsrState.io.stvec          := 0.U
+    diffCsrState.io.priviledgeMode := 0.U
   }
+
+  // trap event
+  val diffTrapState = Module(new DifftestTrapEvent)
+  // val cycleCnt = RegInit(0.U(BusWidth.W))
+  // val instCnt = RegInit(0.U(BusWidth.W))
+  val trapReg = RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn === TrapInst.U, false.B)))))
+
+  // cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
+  // instCnt := instCnt + instValidWire
+  diffTrapState.io.clock    := this.clock
+  diffTrapState.io.coreid   := 0.U
+  diffTrapState.io.valid    := trapReg
+  diffTrapState.io.code     := 0.U // GoodTrap
+  diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+  diffTrapState.io.cycleCnt := 0.U
+  diffTrapState.io.instrCnt := 0.U
+  // diffTrapState.io.cycleCnt := cycleCnt
+  // diffTrapState.io.instrCnt := instCnt
 }
