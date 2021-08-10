@@ -23,15 +23,25 @@ class IDToEX extends Module with ConstantDefine {
   protected val wtEnaRegister:       Bool = RegInit(false.B)
   protected val wtAddrRegister:      UInt = RegInit(0.U(RegAddrLen.W))
 
-  aluOperTypeRegister := Mux(this.reset.asBool(), 0.U(ALUOperTypeLen.W), io.idAluOperTypeIn)
-  rsValARegister      := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.idRsValAIn)
-  rsValBRegister      := Mux(this.reset.asBool(), 0.U(BusWidth.W), io.idRsValBIn)
-  wtEnaRegister       := Mux(this.reset.asBool(), false.B, io.idWtEnaIn)
-  wtAddrRegister      := Mux(this.reset.asBool(), 0.U(RegAddrLen.W), io.idWtAddrIn)
+  aluOperTypeRegister := io.idAluOperTypeIn
+  rsValARegister      := io.idRsValAIn
+  rsValBRegister      := io.idRsValBIn
+  wtEnaRegister       := io.idWtEnaIn
+  wtAddrRegister      := io.idWtAddrIn
 
   io.exAluOperTypeOut := aluOperTypeRegister
   io.exRsValAOut      := rsValARegister
   io.exRsValBOut      := rsValBRegister
   io.exWtEnaOut       := wtEnaRegister
   io.exWtAddrOut      := wtAddrRegister
+
+  // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
+  // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
+
+  //@printf(p"[id2ex]io.idWtEnaIn  = 0x${Hexadecimal(io.idWtEnaIn)}\n")
+  //@printf(p"[id2ex]io.idWtAddrIn = 0x${Hexadecimal(io.idWtAddrIn)}\n")
+
+  //@printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
+  //@printf(p"[id2ex]io.exWtEnaOut  = 0x${Hexadecimal(io.exWtEnaOut)}\n")
+  //@printf(p"[id2ex]io.exWtAddrOut = 0x${Hexadecimal(io.exWtAddrOut)}\n")
 }

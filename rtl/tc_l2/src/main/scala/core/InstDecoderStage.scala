@@ -40,7 +40,7 @@ object InstDecoderStage {
     List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
 
   protected val decodeTable = Array(
-    ADDI -> List(wtRegTrue, iInstType, regAluOperNumType, aluADDIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
+    ADDI -> List(wtRegTrue, iInstType, immAluOperNumType, aluADDIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
     // ADD -> List(wtRegTrue, rInstType, regAluOperNumType, ALU_ADD, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // SUB -> List(wtRegTrue, rInstType, regAluOperNumType, ALU_SUB, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // AND -> List(wtRegTrue, rInstType, regAluOperNumType, ALU_AND, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
@@ -82,11 +82,24 @@ class InstDecoderStage extends Module with ConstantDefine {
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
 
-  protected val rsRegAddrA: UInt = io.instAddrIn(19, 15)
-  protected val rsRegAddrB: UInt = io.instAddrIn(24, 20)
-  protected val rdRegAddr:  UInt = io.instAddrIn(11, 7)
+  protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
+  protected val rsRegAddrB: UInt = io.instDataIn(24, 20)
+  protected val rdRegAddr:  UInt = io.instDataIn(11, 7)
+  //@printf(p"[id]rsRegAddrA = 0x${Hexadecimal(rsRegAddrA)}\n")
+  //@printf(p"[id]rsRegAddrB = 0x${Hexadecimal(rsRegAddrB)}\n")
+  //@printf(p"[id]rdRegAddr = 0x${Hexadecimal(rdRegAddr)}\n")
 
   protected val decodeRes = ListLookup(io.instDataIn, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
+
+  //@printf(p"[id]io.instDataIn = 0x${Hexadecimal(io.instDataIn)}\n")
+  //@printf(p"[id]decodeRes(0) = 0x${Hexadecimal(decodeRes(0))}\n")
+  //@printf(p"[id]decodeRes(1) = 0x${Hexadecimal(decodeRes(1))}\n")
+  //@printf(p"[id]decodeRes(2) = 0x${Hexadecimal(decodeRes(2))}\n")
+  //@printf(p"[id]decodeRes(3) = 0x${Hexadecimal(decodeRes(3))}\n")
+  //@printf(p"[id]decodeRes(4) = 0x${Hexadecimal(decodeRes(4))}\n")
+  //@printf(p"[id]decodeRes(5) = 0x${Hexadecimal(decodeRes(5))}\n")
+  //@printf(p"[id]decodeRes(6) = 0x${Hexadecimal(decodeRes(6))}\n")
+  //@printf(p"[id]decodeRes(7) = 0x${Hexadecimal(decodeRes(7))}\n")
 
   // acoording the inst type to construct the imm
   protected val immExtensionUnit = Module(new ImmExtension)
@@ -108,13 +121,15 @@ class InstDecoderStage extends Module with ConstantDefine {
 
   io.rdEnaBOut := Mux(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.jInstType),
+      (decodeRes(1) =/= InstDecoderStage.jInstType) &&
+      (decodeRes(1) =/= InstDecoderStage.iInstType),
     true.B,
     false.B
   )
   io.rdAddrBOut := Mux(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.jInstType),
+      (decodeRes(1) =/= InstDecoderStage.jInstType) &&
+      (decodeRes(1) =/= InstDecoderStage.iInstType),
     rsRegAddrB,
     0.U
   )
@@ -127,4 +142,16 @@ class InstDecoderStage extends Module with ConstantDefine {
 
   io.wtEnaOut  := decodeRes(0)
   io.wtAddrOut := rdRegAddr
+
+  //@printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
+  //@printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
+  //@printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
+  //@printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
+
+  //@printf(p"[id]io.aluOperTypeOut = 0x${Hexadecimal(io.aluOperTypeOut)}\n")
+  //@printf(p"[id]io.rsValAOut = 0x${Hexadecimal(io.rsValAOut)}\n")
+  //@printf(p"[id]io.rsValBOut = 0x${Hexadecimal(io.rsValBOut)}\n")
+
+  //@printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
+  //@printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
 }

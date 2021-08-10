@@ -29,4 +29,9 @@ class ExecutionStage extends Module with ConstantDefine {
       ExecutionStage.aluADDIType -> (io.rsValAIn + io.rsValBIn)
     )
   )
+
+  //@printf(p"[ex]io.aluOperTypeIn = 0x${Hexadecimal(io.aluOperTypeIn)}\n")
+  //@printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
+  //@printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
+  //@printf(p"[ex]io.resOut = 0x${Hexadecimal(io.resOut)}\n")
 }
