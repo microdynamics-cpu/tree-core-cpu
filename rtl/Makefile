@@ -55,6 +55,8 @@ nemuBuild:
 difftestBuild:
 	$(MAKE) -C $(DIFFTEST_HOME)
 
+diffAllBuild: diffBuild difftestBuild
+
 ###### riscv-tests target ######
 riscvTestBuild:
 	$(MAKE) -C $(RISCVTEST_HOME) ARCH=riscv64-nemu
