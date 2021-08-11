@@ -92,8 +92,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
     // commit
     val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
     val instValidWire = pcUnit.io.instEnaOut && !this.reset.asBool() && (io.instDataIn =/= 0.U)
-    // val instValidReg  = RegNext(instValidWire)
-    // val pcReg         = RegNext(pcUnit.io.instAddrOut, 0.U)
 
     diffCommitState.io.clock    := this.clock
     diffCommitState.io.coreid   := 0.U
@@ -131,23 +129,22 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
     diffCsrState.io.mtvec          := 0.U
     diffCsrState.io.stvec          := 0.U
     diffCsrState.io.priviledgeMode := 0.U
-  }
 
-  // trap event
-  val diffTrapState = Module(new DifftestTrapEvent)
-  // val cycleCnt = RegInit(0.U(BusWidth.W))
-  // val instCnt = RegInit(0.U(BusWidth.W))
-  val trapReg = RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn === TrapInst.U, false.B)))))
+    // trap event
+    val diffTrapState = Module(new DifftestTrapEvent)
+    val instCnt       = RegInit(0.U(BusWidth.W))
+    val cycleCnt      = RegInit(0.U(BusWidth.W))
+    val trapReg       = RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn === TrapInst.U, false.B)))))
 
-  // cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
-  // instCnt := instCnt + instValidWire
-  diffTrapState.io.clock    := this.clock
-  diffTrapState.io.coreid   := 0.U
-  diffTrapState.io.valid    := trapReg
-  diffTrapState.io.code     := 0.U // GoodTrap
-  diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
-  diffTrapState.io.cycleCnt := 0.U
-  diffTrapState.io.instrCnt := 0.U
-  // diffTrapState.io.cycleCnt := cycleCnt
-  // diffTrapState.io.instrCnt := instCnt
+    instCnt  := instCnt + instValidWire
+    cycleCnt := Mux(trapReg, 0.U, cycleCnt + 1.U)
+
+    diffTrapState.io.clock    := this.clock
+    diffTrapState.io.coreid   := 0.U
+    diffTrapState.io.valid    := trapReg
+    diffTrapState.io.code     := 0.U // GoodTrap
+    diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffTrapState.io.cycleCnt := cycleCnt
+    diffTrapState.io.instrCnt := instCnt
+  } // ifDiffTest
 }
