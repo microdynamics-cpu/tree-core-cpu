@@ -69,6 +69,11 @@ class InstDecoderStage extends Module with ConstantDefine {
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
 
+    val fwRsEnaAIn: Bool = Input(Bool())
+    val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
+    val fwRsEnaBIn: Bool = Input(Bool())
+    val fwRsValBIn: UInt = Input(UInt(BusWidth.W))
+
     val rdEnaAOut:  Bool = Output(Bool())
     val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
     val rdEnaBOut:  Bool = Output(Bool())
@@ -137,8 +142,17 @@ class InstDecoderStage extends Module with ConstantDefine {
   io.aluOperTypeOut := decodeRes(3)
 
   // TODO: just for testing the addi
-  io.rsValAOut := io.rdDataAIn
-  io.rsValBOut := Mux(decodeRes(2) === InstDecoderStage.immAluOperNumType, immExtensionUnit.io.immOut, io.rdDataBIn)
+  io.rsValAOut := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
+
+  when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
+    io.rsValBOut := immExtensionUnit.io.immOut
+  }.elsewhen(io.fwRsEnaBIn) {
+    io.rsValBOut := io.fwRsValBIn
+  }.otherwise {
+    io.rsValBOut := io.rdDataBIn
+  }
+
+  // io.rsValBOut := Mux(decodeRes(2) === InstDecoderStage.immAluOperNumType, immExtensionUnit.io.immOut, io.rdDataBIn)
 
   io.wtEnaOut  := decodeRes(0)
   io.wtAddrOut := rdRegAddr

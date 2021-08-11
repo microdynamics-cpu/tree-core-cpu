@@ -28,7 +28,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
   protected val ex2maUnit   = Module(new EXToMA)
   protected val memAccess   = Module(new MemoryAccessStage)
   protected val ma2wbUnit   = Module(new MAToWB)
-
+  protected val forwardUnit = Module(new ForWard)
   //@printf(p"[TreeCoreL2]this.reset = ${Hexadecimal(this.reset.asBool())}\n\n\n")
 
   io.instAddrOut := pcUnit.io.instAddrOut
@@ -63,12 +63,12 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
-  ex2maUnit.io.exResIn    := execUnit.io.resOut
+  ex2maUnit.io.exDataIn   := execUnit.io.resOut
   ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
   ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
   // ma
   memAccess.io.func3       := 0.U
-  memAccess.io.resIn       := ex2maUnit.io.maResOut
+  memAccess.io.resIn       := ex2maUnit.io.maDataOut
   memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
   memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
   memAccess.io.memRdDataIn := io.memRdDataIn
@@ -79,14 +79,33 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
   io.memMaskOut   := memAccess.io.memMaskOut
   io.memValidOut  := memAccess.io.memValidOut
   // ma to wb
-  ma2wbUnit.io.maResIn    := memAccess.io.resOut
+  ma2wbUnit.io.maDataIn   := memAccess.io.resOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
   ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
 
   // wb
-  regFile.io.wtDataIn := ma2wbUnit.io.wbResOut
+  regFile.io.wtDataIn := ma2wbUnit.io.wbDataOut
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
   regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
+
+  // forward control unit
+  forwardUnit.io.exDataIn   := ex2maUnit.io.exDataIn
+  forwardUnit.io.exWtEnaIn  := ex2maUnit.io.exWtEnaIn
+  forwardUnit.io.exWtAddrIn := ex2maUnit.io.exWtAddrIn
+
+  forwardUnit.io.maDataIn   := ma2wbUnit.io.maDataIn
+  forwardUnit.io.maWtEnaIn  := ma2wbUnit.io.maWtEnaIn
+  forwardUnit.io.maWtAddrIn := ma2wbUnit.io.maWtAddrIn
+
+  forwardUnit.io.idRdEnaAIn  := instDecoder.io.rdEnaAOut
+  forwardUnit.io.idRdAddrAIn := instDecoder.io.rdAddrAOut
+  forwardUnit.io.idRdEnaBIn  := instDecoder.io.rdEnaBOut
+  forwardUnit.io.idRdAddrBIn := instDecoder.io.rdAddrBOut
+
+  instDecoder.io.fwRsEnaAIn := forwardUnit.io.fwRsEnaAOut
+  instDecoder.io.fwRsValAIn := forwardUnit.io.fwRsValAOut
+  instDecoder.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
+  instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   if (ifDiffTest) {
     // commit
@@ -104,7 +123,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
     diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
     diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn)))))
     diffCommitState.io.wen   := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtEnaOut)))))
-    diffCommitState.io.wdata := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbResOut)))))
+    diffCommitState.io.wdata := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbDataOut)))))
     diffCommitState.io.wdest := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtAddrOut)))))
 
     // CSR State
