@@ -13,15 +13,15 @@ class EXToMA extends Module with ConstantDefine {
     val maWtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
 
-  protected val resRegister:    UInt = RegInit(0.U(BusWidth.W))
-  protected val wtEnaRegister:  Bool = RegInit(false.B)
-  protected val wtAddrRegister: UInt = RegInit(0.U(RegAddrLen.W))
+  protected val resReg:    UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaReg:  Bool = RegInit(false.B)
+  protected val wtAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
 
-  resRegister    := io.exResIn
-  wtEnaRegister  := io.exWtEnaIn
-  wtAddrRegister := io.exWtAddrIn
+  resReg    := io.exResIn
+  wtEnaReg  := io.exWtEnaIn
+  wtAddrReg := io.exWtAddrIn
 
-  io.maResOut    := resRegister
-  io.maWtEnaOut  := wtEnaRegister
-  io.maWtAddrOut := wtAddrRegister
+  io.maResOut    := resReg
+  io.maWtEnaOut  := wtEnaReg
+  io.maWtAddrOut := wtAddrReg
 }

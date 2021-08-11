@@ -17,23 +17,23 @@ class IDToEX extends Module with ConstantDefine {
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
   })
 
-  protected val aluOperTypeRegister: UInt = RegInit(0.U(ALUOperTypeLen.W))
-  protected val rsValARegister:      UInt = RegInit(0.U(BusWidth.W))
-  protected val rsValBRegister:      UInt = RegInit(0.U(BusWidth.W))
-  protected val wtEnaRegister:       Bool = RegInit(false.B)
-  protected val wtAddrRegister:      UInt = RegInit(0.U(RegAddrLen.W))
+  protected val aluOperTypeReg: UInt = RegInit(0.U(ALUOperTypeLen.W))
+  protected val rsValAReg:      UInt = RegInit(0.U(BusWidth.W))
+  protected val rsValBReg:      UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaReg:       Bool = RegInit(false.B)
+  protected val wtAddrReg:      UInt = RegInit(0.U(RegAddrLen.W))
 
-  aluOperTypeRegister := io.idAluOperTypeIn
-  rsValARegister      := io.idRsValAIn
-  rsValBRegister      := io.idRsValBIn
-  wtEnaRegister       := io.idWtEnaIn
-  wtAddrRegister      := io.idWtAddrIn
+  aluOperTypeReg := io.idAluOperTypeIn
+  rsValAReg      := io.idRsValAIn
+  rsValBReg      := io.idRsValBIn
+  wtEnaReg       := io.idWtEnaIn
+  wtAddrReg      := io.idWtAddrIn
 
-  io.exAluOperTypeOut := aluOperTypeRegister
-  io.exRsValAOut      := rsValARegister
-  io.exRsValBOut      := rsValBRegister
-  io.exWtEnaOut       := wtEnaRegister
-  io.exWtAddrOut      := wtAddrRegister
+  io.exAluOperTypeOut := aluOperTypeReg
+  io.exRsValAOut      := rsValAReg
+  io.exRsValBOut      := rsValBReg
+  io.exWtEnaOut       := wtEnaReg
+  io.exWtAddrOut      := wtAddrReg
 
   // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
   // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
