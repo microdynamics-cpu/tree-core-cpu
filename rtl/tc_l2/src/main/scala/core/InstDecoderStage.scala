@@ -7,7 +7,7 @@ import InstRegexPattern._
 
 object InstDecoderStage {
   protected val InstTypeLen       = 3
-  protected val AlUOperNumTypeLen = 2
+  protected val AlUOperNumTypeLen = 3
   protected val wtDataSrcTypeLen  = 2
 
   protected val wtRegFalse = false.B
@@ -23,9 +23,10 @@ object InstDecoderStage {
   val jInstType   = 6.U(InstTypeLen.W)
 
   // ALU operation number type
-  protected val nopAluOperNumType = 0.U(AlUOperNumTypeLen.W)
-  protected val regAluOperNumType = 1.U(AlUOperNumTypeLen.W)
-  protected val immAluOperNumType = 2.U(AlUOperNumTypeLen.W)
+  protected val nopAluOperNumType   = 0.U(AlUOperNumTypeLen.W)
+  protected val regAluOperNumType   = 1.U(AlUOperNumTypeLen.W)
+  protected val immAluOperNumType   = 2.U(AlUOperNumTypeLen.W)
+  protected val shamtAluOperNumType = 3.U(AlUOperNumTypeLen.W)
 
   protected val branchFalse = false.B
   protected val branchTrue  = true.B
@@ -48,10 +49,15 @@ object InstDecoderStage {
     ADDIW -> List(wtRegTrue, iInstType, immAluOperNumType, aluADDIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SLTI -> List(wtRegTrue, iInstType, immAluOperNumType, aluSLTIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SLTIU -> List(wtRegTrue, iInstType, immAluOperNumType, aluSLTIUType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-
     ANDI -> List(wtRegTrue, iInstType, immAluOperNumType, aluANDIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    ORI  -> List(wtRegTrue, iInstType, immAluOperNumType, aluORIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    ORI -> List(wtRegTrue, iInstType, immAluOperNumType, aluORIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     XORI -> List(wtRegTrue, iInstType, immAluOperNumType, aluXORIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLLI -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSLLIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLLIW -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSLLIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRLI -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRLIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRLIW -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRLIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRAI -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRAIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRAIW -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRAIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
   )
 }
 
@@ -105,48 +111,41 @@ class InstDecoderStage extends Module with ConstantDefine {
   immExtensionUnit.io.instDataIn := io.instDataIn
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
-  io.rdEnaAOut := Mux(
+  when(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.jInstType),
-    true.B,
-    false.B
-  )
-  io.rdAddrAOut := Mux(
-    (decodeRes(1) =/= InstDecoderStage.uInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.jInstType),
-    rsRegAddrA,
-    0.U
-  )
+      (decodeRes(1) =/= InstDecoderStage.jInstType)
+  ) {
+    io.rdEnaAOut  := true.B
+    io.rdAddrAOut := rsRegAddrA
+  }.otherwise {
+    io.rdEnaAOut  := false.B
+    io.rdAddrAOut := 0.U
+  }
 
-  io.rdEnaBOut := Mux(
+  when(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
       (decodeRes(1) =/= InstDecoderStage.jInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.iInstType),
-    true.B,
-    false.B
-  )
-  io.rdAddrBOut := Mux(
-    (decodeRes(1) =/= InstDecoderStage.uInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.jInstType) &&
-      (decodeRes(1) =/= InstDecoderStage.iInstType),
-    rsRegAddrB,
-    0.U
-  )
+      (decodeRes(1) =/= InstDecoderStage.iInstType)
+  ) {
+    io.rdEnaBOut  := true.B
+    io.rdAddrBOut := rsRegAddrB
+  }.otherwise {
+    io.rdEnaBOut  := false.B
+    io.rdAddrBOut := 0.U
+  }
 
   io.aluOperTypeOut := decodeRes(3)
-
-  // TODO: just for testing the addi
-  io.rsValAOut := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
+  io.rsValAOut      := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
 
   when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
     io.rsValBOut := immExtensionUnit.io.immOut
+  }.elsewhen(decodeRes(2) === InstDecoderStage.shamtAluOperNumType) {
+    io.rsValBOut := io.instDataIn(25, 20)
   }.elsewhen(io.fwRsEnaBIn) {
     io.rsValBOut := io.fwRsValBIn
   }.otherwise {
     io.rsValBOut := io.rdDataBIn
   }
-
-  // io.rsValBOut := Mux(decodeRes(2) === InstDecoderStage.immAluOperNumType, immExtensionUnit.io.immOut, io.rdDataBIn)
 
   io.wtEnaOut  := decodeRes(0)
   io.wtAddrOut := rdRegAddr

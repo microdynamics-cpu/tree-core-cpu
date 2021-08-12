@@ -16,7 +16,13 @@ object ExecutionStage {
   val aluORIType  = 5.U(ALUOperTypeLen.W)
   val aluXORIType = 6.U(ALUOperTypeLen.W)
 
-  val aluNopType = 63.U(ALUOperTypeLen.W)
+  val aluSLLIType  = 7.U(ALUOperTypeLen.W)
+  val aluSLLIWType = 8.U(ALUOperTypeLen.W)
+  val aluSRLIType  = 9.U(ALUOperTypeLen.W)
+  val aluSRLIWType = 10.U(ALUOperTypeLen.W)
+  val aluSRAIType  = 11.U(ALUOperTypeLen.W)
+  val aluSRAIWType = 12.U(ALUOperTypeLen.W)
+  val aluNopType   = 63.U(ALUOperTypeLen.W)
 }
 
 class ExecutionStage extends Module with ConstantDefine {
@@ -40,11 +46,22 @@ class ExecutionStage extends Module with ConstantDefine {
       ExecutionStage.aluSLTIUType -> (io.rsValAIn < io.rsValBIn),
       ExecutionStage.aluANDIType -> (io.rsValAIn & io.rsValBIn),
       ExecutionStage.aluORIType -> (io.rsValAIn | io.rsValBIn),
-      ExecutionStage.aluXORIType -> (io.rsValAIn ^ io.rsValBIn)
+      ExecutionStage.aluXORIType -> (io.rsValAIn ^ io.rsValBIn),
+      ExecutionStage.aluSLLIType -> (io.rsValAIn << io.rsValBIn(5, 0)),
+      ExecutionStage.aluSLLIWType -> (io.rsValAIn << io.rsValBIn(4, 0)),
+      ExecutionStage.aluSRLIType -> (io.rsValAIn >> io.rsValBIn(5, 0)),
+      ExecutionStage.aluSRLIWType -> (io.rsValAIn(31, 0) >> io.rsValBIn(4, 0)),
+      ExecutionStage.aluSRAIType -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
+      ExecutionStage.aluSRAIWType -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt)
     )
   )
 
-  when(io.aluOperTypeIn === ExecutionStage.aluADDIWType) {
+  when(
+    io.aluOperTypeIn === ExecutionStage.aluADDIWType ||
+      io.aluOperTypeIn === ExecutionStage.aluSLLIWType ||
+      io.aluOperTypeIn === ExecutionStage.aluSRLIWType ||
+      io.aluOperTypeIn === ExecutionStage.aluSRAIWType
+  ) {
     io.resOut := getSignExtn(BusWidth, res(31, 0))
   }.otherwise {
     io.resOut := res
