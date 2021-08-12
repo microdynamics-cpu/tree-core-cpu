@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 
-class EXToMA extends Module with ConstantDefine {
+class EXToMA extends Module with InstConfig {
   val io = IO(new Bundle {
     val exDataIn:   UInt = Input(UInt(BusWidth.W))
     val exWtEnaIn:  Bool = Input(Bool())

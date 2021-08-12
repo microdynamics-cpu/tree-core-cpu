@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util.Cat
 import chisel3.util.experimental.loadMemoryFromFile
 
-class InstCache extends Module with ConstantDefine {
+class InstCache extends Module with InstConfig {
   val io = IO(new Bundle {
     val instAddrIn:  UInt = Input(UInt(BusWidth.W))
     val instEnaIn:   Bool = Input(Bool())

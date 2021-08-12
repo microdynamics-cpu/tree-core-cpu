@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 
-class PCRegister extends Module with ConstantDefine {
+class PCReg extends Module with InstConfig {
   val io = IO(new Bundle {
     val instAddrOut: UInt = Output(UInt(BusWidth.W))
     val instEnaOut:  Bool = Output(Bool())
