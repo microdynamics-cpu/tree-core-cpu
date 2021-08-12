@@ -90,6 +90,8 @@ class ExecutionStage extends Module with ConstantDefine {
       ExecutionStage.aluSUBWType  -> (io.rsValAIn - io.rsValBIn),
       ExecutionStage.aluSRAType   -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
       ExecutionStage.aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
+      
+      ExecutionStage.aluNopType   -> (io.rsValAIn + io.rsValBIn)
     )
   )
 
