@@ -1,23 +1,24 @@
 package treecorel2
 
 import chisel3._
+import treecorel2.common.ConstVal._
 
-class IDToEX extends Module with ConstantDefine {
+class IDToEX extends Module with InstConfig {
   val io = IO(new Bundle {
-    val idAluOperTypeIn: UInt = Input(UInt(ALUOperTypeLen.W))
+    val idAluOperTypeIn: UInt = Input(UInt(EXUOperTypeLen.W))
     val idRsValAIn:      UInt = Input(UInt(BusWidth.W))
     val idRsValBIn:      UInt = Input(UInt(BusWidth.W))
     val idWtEnaIn:       Bool = Input(Bool())
     val idWtAddrIn:      UInt = Input(UInt(RegAddrLen.W))
 
-    val exAluOperTypeOut: UInt = Output(UInt(ALUOperTypeLen.W))
+    val exAluOperTypeOut: UInt = Output(UInt(EXUOperTypeLen.W))
     val exRsValAOut:      UInt = Output(UInt(BusWidth.W))
     val exRsValBOut:      UInt = Output(UInt(BusWidth.W))
     val exWtEnaOut:       Bool = Output(Bool())
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
   })
 
-  protected val aluOperTypeReg: UInt = RegInit(0.U(ALUOperTypeLen.W))
+  protected val aluOperTypeReg: UInt = RegInit(0.U(EXUOperTypeLen.W))
   protected val rsValAReg:      UInt = RegInit(0.U(BusWidth.W))
   protected val rsValBReg:      UInt = RegInit(0.U(BusWidth.W))
   protected val wtEnaReg:       Bool = RegInit(false.B)

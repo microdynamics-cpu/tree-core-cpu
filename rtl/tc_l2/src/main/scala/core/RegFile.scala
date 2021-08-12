@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class RegFile(val ifDiffTest: Boolean) extends Module with ConstantDefine {
+class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     val rdEnaAIn:  Bool = Input(Bool())
     val rdAddrAIn: UInt = Input(UInt(RegAddrLen.W))

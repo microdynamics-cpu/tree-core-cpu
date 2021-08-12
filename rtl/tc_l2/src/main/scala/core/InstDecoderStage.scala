@@ -2,19 +2,17 @@ package treecorel2
 
 import chisel3._
 import chisel3.util._
+import treecorel2.common.ConstVal._
 import ALU._
+import BEU._
 import InstRegexPattern._
 
 object InstDecoderStage {
-  protected val InstTypeLen       = 3
-  protected val AlUOperNumTypeLen = 3
-  protected val wtDataSrcTypeLen  = 2
-
   protected val wtRegFalse = false.B
   protected val wtRegTrue  = true.B
 
   // inst type
-  // nop: addi x0, x0, 0
+  // nop is equal to [addi x0, x0, 0], so the oper is same as 'addi' inst
   val nopInstType = 2.U(InstTypeLen.W)
   val rInstType   = 1.U(InstTypeLen.W)
   val iInstType   = 2.U(InstTypeLen.W)
@@ -24,10 +22,10 @@ object InstDecoderStage {
   val jInstType   = 6.U(InstTypeLen.W)
 
   // ALU operation number type
-  protected val nopAluOperNumType   = 2.U(AlUOperNumTypeLen.W)
-  protected val regAluOperNumType   = 1.U(AlUOperNumTypeLen.W)
-  protected val immAluOperNumType   = 2.U(AlUOperNumTypeLen.W)
-  protected val shamtAluOperNumType = 3.U(AlUOperNumTypeLen.W)
+  protected val nopAluOperNumType   = 2.U(EXUOperNumTypeLen.W)
+  protected val regAluOperNumType   = 1.U(EXUOperNumTypeLen.W)
+  protected val immAluOperNumType   = 2.U(EXUOperNumTypeLen.W)
+  protected val shamtAluOperNumType = 3.U(EXUOperNumTypeLen.W)
 
   protected val branchFalse = false.B
   protected val branchTrue  = true.B
@@ -86,7 +84,7 @@ object InstDecoderStage {
   )
 }
 
-class InstDecoderStage extends Module with ConstantDefine {
+class InstDecoderStage extends Module with InstConfig {
   val io = IO(new Bundle {
     val instAddrIn: UInt = Input(UInt(BusWidth.W))
     val instDataIn: UInt = Input(UInt(InstWidth.W))
@@ -104,7 +102,7 @@ class InstDecoderStage extends Module with ConstantDefine {
     val rdEnaBOut:  Bool = Output(Bool())
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
 
-    val aluOperTypeOut: UInt = Output(UInt(ALUOperTypeLen.W))
+    val aluOperTypeOut: UInt = Output(UInt(EXUOperTypeLen.W))
     val rsValAOut:      UInt = Output(UInt(BusWidth.W))
     val rsValBOut:      UInt = Output(UInt(BusWidth.W))
 
@@ -132,7 +130,7 @@ class InstDecoderStage extends Module with ConstantDefine {
   //@printf(p"[id]decodeRes(7) = 0x${Hexadecimal(decodeRes(7))}\n")
 
   // acoording the inst type to construct the imm
-  protected val immExtensionUnit = Module(new ImmExtension)
+  protected val immExtensionUnit = Module(new ImmExten)
   immExtensionUnit.io.instDataIn := io.instDataIn
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 

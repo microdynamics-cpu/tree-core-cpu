@@ -2,9 +2,10 @@ package treecorel2
 
 import chisel3._
 import chisel3.util.{Cat, MuxLookup}
+import treecorel2.common.ConstVal._
 import InstDecoderStage.{bInstType, iInstType, nopInstType, rInstType, sInstType, uInstType}
 
-class ImmExtension extends Module with ConstantDefine {
+class ImmExten extends Module with InstConfig {
   val io = IO(new Bundle {
     val instDataIn: UInt = Input(UInt(InstWidth.W))
     val instTypeIn: UInt = Input(UInt(InstTypeLen.W))

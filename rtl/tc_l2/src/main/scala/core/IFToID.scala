@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 
-class IFToID extends Module with ConstantDefine {
+class IFToID extends Module with InstConfig {
   val io = IO(new Bundle {
     val ifInstAddrIn: UInt = Input(UInt(BusWidth.W))
     val ifInstDataIn: UInt = Input(UInt(InstWidth.W))

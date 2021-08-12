@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 
-class MAToWB extends Module with ConstantDefine {
+class MAToWB extends Module with InstConfig {
   val io = IO(new Bundle {
     val maDataIn:   UInt = Input(UInt(BusWidth.W))
     val maWtEnaIn:  Bool = Input(Bool())

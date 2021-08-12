@@ -2,50 +2,50 @@ package treecorel2
 
 import chisel3._
 import chisel3.util.{Cat, MuxLookup}
+import treecorel2.common.ConstVal._
 import treecorel2.common.{getSignExtn, getZeroExtn}
 
+
 object ALU {
-  protected val ALUOperTypeLen = 6
+  val aluADDIType  = 0.U(EXUOperTypeLen.W)
+  val aluADDIWType = 1.U(EXUOperTypeLen.W)
+  val aluSLTIType  = 2.U(EXUOperTypeLen.W)
+  val aluSLTIUType = 3.U(EXUOperTypeLen.W)
+  val aluANDIType  = 4.U(EXUOperTypeLen.W)
+  val aluORIType   = 5.U(EXUOperTypeLen.W)
+  val aluXORIType  = 6.U(EXUOperTypeLen.W)
+  val aluSLLIType  = 7.U(EXUOperTypeLen.W)
+  val aluSLLIWType = 8.U(EXUOperTypeLen.W)
+  val aluSRLIType  = 9.U(EXUOperTypeLen.W)
+  val aluSRLIWType = 10.U(EXUOperTypeLen.W)
+  val aluSRAIType  = 11.U(EXUOperTypeLen.W)
+  val aluSRAIWType = 12.U(EXUOperTypeLen.W)
 
-  val aluADDIType  = 0.U(ALUOperTypeLen.W)
-  val aluADDIWType = 1.U(ALUOperTypeLen.W)
-  val aluSLTIType  = 2.U(ALUOperTypeLen.W)
-  val aluSLTIUType = 3.U(ALUOperTypeLen.W)
-  val aluANDIType  = 4.U(ALUOperTypeLen.W)
-  val aluORIType   = 5.U(ALUOperTypeLen.W)
-  val aluXORIType  = 6.U(ALUOperTypeLen.W)
-  val aluSLLIType  = 7.U(ALUOperTypeLen.W)
-  val aluSLLIWType = 8.U(ALUOperTypeLen.W)
-  val aluSRLIType  = 9.U(ALUOperTypeLen.W)
-  val aluSRLIWType = 10.U(ALUOperTypeLen.W)
-  val aluSRAIType  = 11.U(ALUOperTypeLen.W)
-  val aluSRAIWType = 12.U(ALUOperTypeLen.W)
+  val aluLUIType   = 13.U(EXUOperTypeLen.W)
+  val aluAUIPCType = 14.U(EXUOperTypeLen.W)
 
-  val aluLUIType   = 13.U(ALUOperTypeLen.W)
-  val aluAUIPCType = 14.U(ALUOperTypeLen.W)
+  val aluADDType  = 15.U(EXUOperTypeLen.W)
+  val aluADDWType = 16.U(EXUOperTypeLen.W)
+  val aluSLTType  = 17.U(EXUOperTypeLen.W)
+  val aluSLTUType = 18.U(EXUOperTypeLen.W)
+  val aluANDType  = 19.U(EXUOperTypeLen.W)
+  val aluORType   = 20.U(EXUOperTypeLen.W)
+  val aluXORType  = 21.U(EXUOperTypeLen.W)
+  val aluSLLType  = 22.U(EXUOperTypeLen.W)
+  val aluSLLWType = 23.U(EXUOperTypeLen.W)
+  val aluSRLType  = 24.U(EXUOperTypeLen.W)
+  val aluSRLWType = 25.U(EXUOperTypeLen.W)
+  val aluSUBType  = 26.U(EXUOperTypeLen.W)
+  val aluSUBWType = 27.U(EXUOperTypeLen.W)
+  val aluSRAType  = 28.U(EXUOperTypeLen.W)
+  val aluSRAWType = 29.U(EXUOperTypeLen.W)
 
-  val aluADDType  = 15.U(ALUOperTypeLen.W)
-  val aluADDWType = 16.U(ALUOperTypeLen.W)
-  val aluSLTType  = 17.U(ALUOperTypeLen.W)
-  val aluSLTUType = 18.U(ALUOperTypeLen.W)
-  val aluANDType  = 19.U(ALUOperTypeLen.W)
-  val aluORType   = 20.U(ALUOperTypeLen.W)
-  val aluXORType  = 21.U(ALUOperTypeLen.W)
-  val aluSLLType  = 22.U(ALUOperTypeLen.W)
-  val aluSLLWType = 23.U(ALUOperTypeLen.W)
-  val aluSRLType  = 24.U(ALUOperTypeLen.W)
-  val aluSRLWType = 25.U(ALUOperTypeLen.W)
-  val aluSUBType  = 26.U(ALUOperTypeLen.W)
-  val aluSUBWType = 27.U(ALUOperTypeLen.W)
-  val aluSRAType  = 28.U(ALUOperTypeLen.W)
-  val aluSRAWType = 29.U(ALUOperTypeLen.W)
-
-  val aluNopType = 63.U(ALUOperTypeLen.W)
+  val aluNopType = 63.U(EXUOperTypeLen.W)
 }
 
-class ALU extends Module with ConstantDefine {
+class ALU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val aluOperTypeIn: UInt = Input(UInt(ALUOperTypeLen.W))
+    val aluOperTypeIn: UInt = Input(UInt(EXUOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
 
