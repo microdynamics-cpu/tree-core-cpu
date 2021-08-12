@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class RegFile(val ifDiffTest: Boolean) extends Module with ConstantDefine {
+class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     val rdEnaAIn:  Bool = Input(Bool())
     val rdAddrAIn: UInt = Input(UInt(RegAddrLen.W))
@@ -43,8 +43,9 @@ class RegFile(val ifDiffTest: Boolean) extends Module with ConstantDefine {
     val diffRegState: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     diffRegState.io.clock  := this.clock
     diffRegState.io.coreid := 0.U
+    // $0 is always zero!!
     diffRegState.io.gpr.zipWithIndex.foreach({
-      case (v, i) => v := regFile(i.U)
+      case (v, i) => v := Mux(i.U === 0.U, 0.U(BusWidth.W), regFile(i.U))
     })
   }
 }

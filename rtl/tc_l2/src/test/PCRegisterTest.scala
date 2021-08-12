@@ -4,12 +4,12 @@
 // import chiseltest._
 // import chisel3._
 
-// class PCRegisterTest extends FlatSpec with ChiselScalatestTester with Matchers {
+// class PCRegTest extends FlatSpec with ChiselScalatestTester with Matchers {
 //   behavior of "MyModule"
 //   // test class body here
 //   it should "do something" in {
 //   // test case body here
-//       test(new PCRegister) { dut =>
+//       test(new PCReg) { dut =>
 //       // test body here
 //       dut.instAddrOut.expect(0.U)
 //       dut.clock.step()

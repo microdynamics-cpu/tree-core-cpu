@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDefine {
+class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
   val io = IO(new Bundle {
     val instDataIn:  UInt = Input(UInt(InstWidth.W))
     val memRdDataIn: UInt = Input(UInt(BusWidth.W))
@@ -18,7 +18,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with ConstantDe
     val memWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  protected val pcUnit = Module(new PCRegister)
+  protected val pcUnit = Module(new PCReg)
   // protected val instCacheUnit = Module(new InstCache)
   protected val if2idUnit   = Module(new IFToID)
   protected val regFile     = Module(new RegFile(ifDiffTest))

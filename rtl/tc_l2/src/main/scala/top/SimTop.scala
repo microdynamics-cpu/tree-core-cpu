@@ -4,7 +4,7 @@ import chisel3._
 import treecorel2._
 import difftest._
 
-class RAMHelper extends BlackBox with ConstantDefine {
+class RAMHelper extends BlackBox with InstConfig {
   val io = IO(new Bundle {
     val clk:   Clock = Input(Clock())
     val en:    Bool  = Input(Bool())
@@ -17,7 +17,7 @@ class RAMHelper extends BlackBox with ConstantDefine {
   })
 }
 
-class SimTop(val ifDiffTest: Boolean) extends Module with ConstantDefine {
+class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     val logCtrl  = new LogCtrlIO
     val perfInfo = new PerfInfoIO

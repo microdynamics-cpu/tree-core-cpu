@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class MemoryAccessStage extends Module with ConstantDefine {
+class MemoryAccessStage extends Module with InstConfig {
   val io = IO(new Bundle {
     // resIn: maybe the 64bits data to write back, or addr to load/store data
     val func3:    UInt = Input(UInt(3.W))
