@@ -2,7 +2,7 @@ package treecorel2
 
 import chisel3._
 import chisel3.util._
-import ExecutionStage._
+import ALU._
 import InstRegexPattern._
 
 object InstDecoderStage {
@@ -64,25 +64,25 @@ object InstDecoderStage {
     LUI   -> List(wtRegTrue, uInstType, immAluOperNumType, aluLUIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     AUIPC -> List(wtRegTrue, uInstType, immAluOperNumType, aluAUIPCType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // r type inst
-    ADD   -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    ADDW  -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SLT   -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLTType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SLTU  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLTUType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    AND   -> List(wtRegTrue, rInstType, regAluOperNumType, aluANDType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    OR    -> List(wtRegTrue, rInstType, regAluOperNumType, aluORType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    XOR   -> List(wtRegTrue, rInstType, regAluOperNumType, aluXORType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SLL   -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLLType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SLLW  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLLWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SRL   -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRLType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SRLW  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRLWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SUB   -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SUBW  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SRA   -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SRAW  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    ADD  -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    ADDW -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLT  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLTType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLTU -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLTUType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    AND  -> List(wtRegTrue, rInstType, regAluOperNumType, aluANDType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    OR   -> List(wtRegTrue, rInstType, regAluOperNumType, aluORType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    XOR  -> List(wtRegTrue, rInstType, regAluOperNumType, aluXORType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLL  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLLType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SLLW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSLLWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRL  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRLType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRLW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRLWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SUB  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SUBW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRA  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    SRAW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // nop inst
-    NOP   -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
+    NOP -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
     // j type inst
-    // JAL  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    JAL -> List(wtRegTrue, jInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
   )
 }
 
