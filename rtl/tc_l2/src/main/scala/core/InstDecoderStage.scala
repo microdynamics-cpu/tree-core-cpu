@@ -59,6 +59,9 @@ object InstDecoderStage {
     SRLIW -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRLIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SRAI  -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRAIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SRAIW -> List(wtRegTrue, iInstType, shamtAluOperNumType, aluSRAIWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    // u type inst
+    LUI   -> List(wtRegTrue, uInstType, immAluOperNumType, aluLUIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    AUIPC -> List(wtRegTrue, uInstType, immAluOperNumType, aluAUIPCType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // r type inst
     ADD  -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     ADDW -> List(wtRegTrue, rInstType, regAluOperNumType, aluADDWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
@@ -74,7 +77,8 @@ object InstDecoderStage {
     SUB  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SUBW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSUBWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     SRA  -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
-    SRAW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
+    SRAW -> List(wtRegTrue, rInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    
   )
 }
 
@@ -152,7 +156,16 @@ class InstDecoderStage extends Module with ConstantDefine {
   }
 
   io.aluOperTypeOut := decodeRes(3)
-  io.rsValAOut      := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
+
+  when(decodeRes(3) === aluAUIPCType) {
+    io.rsValAOut := io.instAddrIn
+  }.elsewhen(io.fwRsEnaAIn) {
+    io.rsValAOut := io.fwRsValAIn
+  }.otherwise {
+    io.rsValAOut := io.rdDataAIn
+  }
+
+  // io.rsValAOut      := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
 
   when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
     io.rsValBOut := immExtensionUnit.io.immOut

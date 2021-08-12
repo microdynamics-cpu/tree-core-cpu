@@ -21,6 +21,9 @@ object ExecutionStage {
   val aluSRAIType  = 11.U(ALUOperTypeLen.W)
   val aluSRAIWType = 12.U(ALUOperTypeLen.W)
 
+  val aluLUIType = 13.U(ALUOperTypeLen.W)
+  val aluAUIPCType = 14.U(ALUOperTypeLen.W)
+
   val aluADDType  = 15.U(ALUOperTypeLen.W)
   val aluADDWType = 16.U(ALUOperTypeLen.W)
   val aluSLTType  = 17.U(ALUOperTypeLen.W)
@@ -68,6 +71,10 @@ class ExecutionStage extends Module with ConstantDefine {
       ExecutionStage.aluSRLIWType -> (io.rsValAIn(31, 0) >> io.rsValBIn(4, 0)),
       ExecutionStage.aluSRAIType  -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
       ExecutionStage.aluSRAIWType -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
+
+      ExecutionStage.aluLUIType   -> (io.rsValBIn << 12),
+      ExecutionStage.aluAUIPCType -> (io.rsValAIn + (io.rsValBIn << 12)),
+
       ExecutionStage.aluADDType   -> (io.rsValAIn + io.rsValBIn),
       ExecutionStage.aluADDWType  -> (io.rsValAIn + io.rsValBIn),
       ExecutionStage.aluSLTType   -> Cat(0.U((BusWidth - 1).W), io.rsValAIn.asSInt < io.rsValBIn.asSInt),
@@ -82,7 +89,7 @@ class ExecutionStage extends Module with ConstantDefine {
       ExecutionStage.aluSUBType   -> (io.rsValAIn - io.rsValBIn),
       ExecutionStage.aluSUBWType  -> (io.rsValAIn - io.rsValBIn),
       ExecutionStage.aluSRAType   -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
-      ExecutionStage.aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt)
+      ExecutionStage.aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
     )
   )
 
@@ -106,4 +113,5 @@ class ExecutionStage extends Module with ConstantDefine {
   //@printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
   //@printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
   //@printf(p"[ex]io.resOut = 0x${Hexadecimal(io.resOut)}\n")
+  //@printf("\n")
 }
