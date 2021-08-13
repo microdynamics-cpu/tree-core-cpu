@@ -6,7 +6,7 @@ import treecorel2.common.ConstVal._
 
 class ExecutionStage extends Module with InstConfig {
   val io = IO(new Bundle {
-    val instAddrIn:          UInt = Input(UInt(BusWidth.W))
+    val exuOperNumIn:          UInt = Input(UInt(BusWidth.W))
     val exuOperTypeIn:       UInt = Input(UInt(EXUOperTypeLen.W))
     val exuOperTypeInfromId: UInt = Input(UInt(EXUOperTypeLen.W))
     val rsValAIn:            UInt = Input(UInt(BusWidth.W))
@@ -26,7 +26,7 @@ class ExecutionStage extends Module with InstConfig {
   io.resOut            := alu.io.resOut
 
   protected val beu = Module(new BEU)
-  beu.io.instAddrIn    := io.instAddrIn
+  beu.io.exuOperNumIn    := io.exuOperNumIn
   beu.io.exuOperTypeIn := io.exuOperTypeInfromId
   // beu.io.rsValAIn      := io.rsValAIn
   // beu.io.rsValBIn      := io.rsValBIn

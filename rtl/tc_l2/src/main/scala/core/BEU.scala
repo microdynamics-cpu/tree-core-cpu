@@ -7,7 +7,7 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 
 class BEU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val instAddrIn:    UInt = Input(UInt(BusWidth.W))
+    val exuOperNumIn:    UInt = Input(UInt(BusWidth.W))
     val exuOperTypeIn: UInt = Input(UInt(EXUOperTypeLen.W))
 
     // val rsValAIn: UInt = Input(UInt(BusWidth.W))
@@ -23,11 +23,15 @@ class BEU extends Module with InstConfig {
     io.exuOperTypeIn,
     false.B,
     Seq(
-      beuJALType -> true.B
+      beuJALType -> true.B,
+      beuJALRType -> true.B
     )
   )
 
   io.jumpTypeOut := uncJumpType
 
-  io.newInstAddrOut := io.instAddrIn + io.offsetIn
+  protected val newInstAddr:  UInt = Wire(UInt(BusWidth.W))
+
+  newInstAddr := io.exuOperNumIn + io.offsetIn
+  io.newInstAddrOut := Mux(io.exuOperTypeIn === beuJALRType, newInstAddr & (~(1.U(BusWidth.W))), newInstAddr)
 }

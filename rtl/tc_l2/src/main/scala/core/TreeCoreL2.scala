@@ -60,7 +60,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   id2exUnit.io.diffIfSkipInstIn := if2idUnit.io.diffIfSkipInstOut
   // ex
   // for jal and jalr inst(in execUnit's beu)
-  execUnit.io.instAddrIn          := instDecoder.io.instAddrIn
+  execUnit.io.exuOperNumIn          := instDecoder.io.exuOperNumOut
   execUnit.io.exuOperTypeInfromId := instDecoder.io.exuOperTypeOut
   execUnit.io.offsetIn            := instDecoder.io.exuOffsetOut // important!!!
 

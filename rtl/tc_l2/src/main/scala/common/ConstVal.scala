@@ -44,9 +44,11 @@ object ConstVal {
   val aluSRAWType = 29.U(EXUOperTypeLen.W)
 
   val beuJALType = 30.U(EXUOperTypeLen.W)
+  val beuJALRType = 31.U(EXUOperTypeLen.W)
 
   val aluNopType = 63.U(EXUOperTypeLen.W)
 
+  // jump type
   val JumpTypeLen  = 2
   val noJumpType   = 0.U(JumpTypeLen.W)
   val uncJumpType  = 1.U(JumpTypeLen.W)
