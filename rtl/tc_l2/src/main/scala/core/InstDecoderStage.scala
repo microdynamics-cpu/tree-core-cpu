@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 import treecorel2.common.ConstVal._
-import ALU._
-import BEU._
 import InstRegexPattern._
 
 object InstDecoderStage {
@@ -22,10 +20,11 @@ object InstDecoderStage {
   val jInstType   = 6.U(InstTypeLen.W)
 
   // ALU operation number type
-  protected val nopAluOperNumType   = 2.U(EXUOperNumTypeLen.W)
-  protected val regAluOperNumType   = 1.U(EXUOperNumTypeLen.W)
-  protected val immAluOperNumType   = 2.U(EXUOperNumTypeLen.W)
-  protected val shamtAluOperNumType = 3.U(EXUOperNumTypeLen.W)
+  protected val nopAluOperNumType    = 2.U(EXUOperNumTypeLen.W)
+  protected val regAluOperNumType    = 1.U(EXUOperNumTypeLen.W)
+  protected val immAluOperNumType    = 2.U(EXUOperNumTypeLen.W)
+  protected val shamtAluOperNumType  = 3.U(EXUOperNumTypeLen.W)
+  protected val offsetBeuOperNumType = 4.U(EXUOperNumTypeLen.W)
 
   protected val branchFalse = false.B
   protected val branchTrue  = true.B
@@ -80,7 +79,8 @@ object InstDecoderStage {
     // nop inst
     NOP -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
     // j type inst
-    JAL -> List(wtRegTrue, jInstType, regAluOperNumType, aluSRAWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType)
+    JAL -> List(wtRegTrue, jInstType, offsetBeuOperNumType, beuJALType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
+    JALR -> List(wtRegTrue, iInstType, offsetBeuOperNumType, beuJALRType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
   )
 }
 
@@ -92,6 +92,7 @@ class InstDecoderStage extends Module with InstConfig {
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
 
+    // forward
     val fwRsEnaAIn: Bool = Input(Bool())
     val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
     val fwRsEnaBIn: Bool = Input(Bool())
@@ -102,10 +103,13 @@ class InstDecoderStage extends Module with InstConfig {
     val rdEnaBOut:  Bool = Output(Bool())
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
 
-    val aluOperTypeOut: UInt = Output(UInt(EXUOperTypeLen.W))
+    // beu
+    val exuOperTypeOut: UInt = Output(UInt(EXUOperTypeLen.W))
+    val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
+    val exuOperNumOut: UInt = Output(UInt(BusWidth.W))
+
     val rsValAOut:      UInt = Output(UInt(BusWidth.W))
     val rsValBOut:      UInt = Output(UInt(BusWidth.W))
-
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
@@ -157,13 +161,29 @@ class InstDecoderStage extends Module with InstConfig {
     io.rdAddrBOut := 0.U
   }
 
-  io.aluOperTypeOut := decodeRes(3)
+  io.exuOperTypeOut := decodeRes(3)
+  // for jal and jalr offset
+  io.exuOffsetOut := Mux(decodeRes(3) === beuJALType || decodeRes(3) === beuJALRType, 
+                        immExtensionUnit.io.immOut, 0.U)
 
-  when(decodeRes(3) === aluAUIPCType) {
+  when (decodeRes(3) === beuJALType) {
+    io.exuOperNumOut := io.instAddrIn
+  }.elsewhen(decodeRes(3) === beuJALRType) {
+    io.exuOperNumOut := io.rdDataAIn
+  }.otherwise {
+    io.exuOperNumOut := 0.U
+  }
+
+  when(
+    decodeRes(3) === aluAUIPCType ||
+      decodeRes(3) === beuJALType ||
+      decodeRes(3) === beuJALRType
+  ) {
     io.rsValAOut := io.instAddrIn
   }.elsewhen(io.fwRsEnaAIn) {
     io.rsValAOut := io.fwRsValAIn
   }.otherwise {
+    // if oper don't need rsvalA(such as jal), set this val to 0
     io.rsValAOut := io.rdDataAIn
   }
 
@@ -173,6 +193,8 @@ class InstDecoderStage extends Module with InstConfig {
     io.rsValBOut := immExtensionUnit.io.immOut
   }.elsewhen(decodeRes(2) === InstDecoderStage.shamtAluOperNumType) {
     io.rsValBOut := io.instDataIn(25, 20)
+  }.elsewhen(decodeRes(3) === beuJALType || decodeRes(3) === beuJALRType) {
+    io.rsValBOut := 4.U
   }.elsewhen(io.fwRsEnaBIn) {
     io.rsValBOut := io.fwRsValBIn
   }.otherwise {
@@ -187,7 +209,7 @@ class InstDecoderStage extends Module with InstConfig {
   //@printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
   //@printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
 
-  //@printf(p"[id]io.aluOperTypeOut = 0x${Hexadecimal(io.aluOperTypeOut)}\n")
+  //@printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(io.exuOperTypeOut)}\n")
   //@printf(p"[id]io.rsValAOut = 0x${Hexadecimal(io.rsValAOut)}\n")
   //@printf(p"[id]io.rsValBOut = 0x${Hexadecimal(io.rsValBOut)}\n")
 
