@@ -28,7 +28,17 @@ The ancients once said: **it’s always shallow on paper, and you must do it you
 
 ## Usage
 
-### Enviroment setup
+### Enviroment setup(ubuntu 20.04 LTS)
+- 1. install verilator and mill
+- 2. install dep lib: 
+  - 1. sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
+- 3. ./setup -a
+- 4. change the sim memory from 8G to 256MB. need to enter 'make menuconfig' and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually
+- 5. cd in root rtl dir
+  - 1. make nemuBuild
+  - 2. make diffBuild
+  - 3. make difftestBuild
+  - 4. make demoTest
 
 ### Software test
 
