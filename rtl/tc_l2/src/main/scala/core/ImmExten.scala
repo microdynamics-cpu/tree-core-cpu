@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util.{Cat, MuxLookup}
 import treecorel2.common.ConstVal._
-import InstDecoderStage.{bInstType, iInstType, nopInstType, rInstType, sInstType, uInstType}
+import InstDecoderStage.{bInstType, iInstType, jInstType, nopInstType, rInstType, sInstType, uInstType}
 
 class ImmExten extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -18,6 +18,7 @@ class ImmExten extends Module with InstConfig {
   protected val sTypeImm: UInt = Cat(io.instDataIn(31, 25), io.instDataIn(11, 7))
   protected val bTypeImm: UInt = Cat(io.instDataIn(31), io.instDataIn(7), io.instDataIn(30, 25), io.instDataIn(11, 8))
   protected val uTypeImm: UInt = io.instDataIn(31, 12)
+  protected val jTypeImm: UInt = Cat(io.instDataIn(31), io.instDataIn(19, 12), io.instDataIn(20), io.instDataIn(30, 21), 0.U(1.W))
 
   io.immOut := MuxLookup(
     io.instTypeIn,
@@ -27,7 +28,8 @@ class ImmExten extends Module with InstConfig {
       iInstType -> iTypeImm,
       sInstType -> sTypeImm,
       bInstType -> bTypeImm,
-      uInstType -> uTypeImm
+      uInstType -> uTypeImm,
+      jInstType -> jTypeImm
     )
   )
 }

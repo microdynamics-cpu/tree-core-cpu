@@ -29,19 +29,18 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   protected val memAccess   = Module(new MemoryAccessStage)
   protected val ma2wbUnit   = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
+  protected val controlUnit = Module(new Control)
   //@printf(p"[TreeCoreL2]this.reset = ${Hexadecimal(this.reset.asBool())}\n\n\n")
 
   io.instAddrOut := pcUnit.io.instAddrOut
   io.instEnaOut  := pcUnit.io.instEnaOut
-  // instCacheUnit.io.instAddrIn := pcUnit.io.instAddrOut
-  // instCacheUnit.io.instEnaIn  := pcUnit.io.instEnaOut
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
-  // if2idUnit.io.ifInstDataIn := instCacheUnit.io.instDataOut
   if2idUnit.io.ifInstDataIn := io.instDataIn
+  if2idUnit.io.ifFlushIn    := controlUnit.io.flushIfOut
 
-  // inst decoder
+  // id
   instDecoder.io.instAddrIn := if2idUnit.io.idInstAddrOut
   instDecoder.io.instDataIn := if2idUnit.io.idInstDataOut
   instDecoder.io.rdDataAIn  := regFile.io.rdDataAOut
@@ -53,19 +52,30 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   regFile.io.rdAddrBIn := instDecoder.io.rdAddrBOut
 
   // id to ex
-  id2exUnit.io.idAluOperTypeIn := instDecoder.io.aluOperTypeOut
-  id2exUnit.io.idRsValAIn      := instDecoder.io.rsValAOut
-  id2exUnit.io.idRsValBIn      := instDecoder.io.rsValBOut
-  id2exUnit.io.idWtEnaIn       := instDecoder.io.wtEnaOut
-  id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
+  id2exUnit.io.idAluOperTypeIn  := instDecoder.io.exuOperTypeOut
+  id2exUnit.io.idRsValAIn       := instDecoder.io.rsValAOut
+  id2exUnit.io.idRsValBIn       := instDecoder.io.rsValBOut
+  id2exUnit.io.idWtEnaIn        := instDecoder.io.wtEnaOut
+  id2exUnit.io.idWtAddrIn       := instDecoder.io.wtAddrOut
+  id2exUnit.io.diffIfSkipInstIn := if2idUnit.io.diffIfSkipInstOut
   // ex
-  execUnit.io.aluOperTypeIn := id2exUnit.io.exAluOperTypeOut
+  // for jal and jalr inst(in execUnit's beu)
+  execUnit.io.instAddrIn          := instDecoder.io.instAddrIn
+  execUnit.io.exuOperTypeInfromId := instDecoder.io.exuOperTypeOut
+  execUnit.io.offsetIn            := instDecoder.io.exuOffsetOut // important!!!
+
+  execUnit.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
   execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
   execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
   // ex to ma
-  ex2maUnit.io.exDataIn   := execUnit.io.resOut
-  ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
-  ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
+  ex2maUnit.io.exDataIn         := execUnit.io.resOut
+  ex2maUnit.io.exWtEnaIn        := id2exUnit.io.exWtEnaOut
+  ex2maUnit.io.exWtAddrIn       := id2exUnit.io.exWtAddrOut
+  ex2maUnit.io.diffIfSkipInstIn := id2exUnit.io.diffIfSkipInstOut
+  // ex to pc
+  pcUnit.io.ifJumpIn      := execUnit.io.ifJumpOut
+  pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
+
   // ma
   memAccess.io.func3       := 0.U
   memAccess.io.resIn       := ex2maUnit.io.maDataOut
@@ -79,10 +89,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   io.memMaskOut   := memAccess.io.memMaskOut
   io.memValidOut  := memAccess.io.memValidOut
   // ma to wb
-  ma2wbUnit.io.maDataIn   := memAccess.io.resOut
-  ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
-  ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
-
+  ma2wbUnit.io.maDataIn         := memAccess.io.resOut
+  ma2wbUnit.io.maWtEnaIn        := memAccess.io.wtEnaOut
+  ma2wbUnit.io.maWtAddrIn       := memAccess.io.wtAddrOut
+  ma2wbUnit.io.diffIfSkipInstIn := ex2maUnit.io.diffIfSkipInstOut
   // wb
   regFile.io.wtDataIn := ma2wbUnit.io.wbDataOut
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
@@ -107,15 +117,19 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
   instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
+  // branch control
+  controlUnit.io.jumpTypeIn := execUnit.io.jumpTypeOut
+
   if (ifDiffTest) {
     // commit
     val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
     val instValidWire = pcUnit.io.instEnaOut && !this.reset.asBool() && (io.instDataIn =/= 0.U)
 
-    diffCommitState.io.clock    := this.clock
-    diffCommitState.io.coreid   := 0.U
-    diffCommitState.io.index    := 0.U
-    diffCommitState.io.skip     := false.B
+    diffCommitState.io.clock  := this.clock
+    diffCommitState.io.coreid := 0.U
+    diffCommitState.io.index  := 0.U
+    // skip the flush inst(nop)
+    diffCommitState.io.skip     := ma2wbUnit.io.diffIfSkipInstOut
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 

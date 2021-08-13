@@ -13,4 +13,6 @@ trait InstConfig {
 
   val PcRegStartAddr = "h80000000"
   val TrapInst       = "h0000006b"
+  // flush pipeline
+  val NopInst = "h00000013"
 }
