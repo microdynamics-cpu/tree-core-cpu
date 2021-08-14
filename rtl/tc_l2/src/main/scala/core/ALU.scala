@@ -7,7 +7,7 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 
 class ALU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val exuOperTypeIn: UInt = Input(UInt(EXUOperTypeLen.W))
+    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
 

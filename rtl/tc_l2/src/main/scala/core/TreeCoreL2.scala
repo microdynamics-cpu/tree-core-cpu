@@ -52,26 +52,27 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   regFile.io.rdAddrBIn := instDecoder.io.rdAddrBOut
 
   // id to ex
-  id2exUnit.io.idAluOperTypeIn  := instDecoder.io.exuOperTypeOut
-  id2exUnit.io.idRsValAIn       := instDecoder.io.rsValAOut
-  id2exUnit.io.idRsValBIn       := instDecoder.io.rsValBOut
-  id2exUnit.io.idWtEnaIn        := instDecoder.io.wtEnaOut
-  id2exUnit.io.idWtAddrIn       := instDecoder.io.wtAddrOut
-  id2exUnit.io.diffIfSkipInstIn := if2idUnit.io.diffIfSkipInstOut
+  id2exUnit.io.idAluOperTypeIn := instDecoder.io.exuOperTypeOut
+  id2exUnit.io.idRsValAIn      := instDecoder.io.rsValAOut
+  id2exUnit.io.idRsValBIn      := instDecoder.io.rsValBOut
+  id2exUnit.io.idWtEnaIn       := instDecoder.io.wtEnaOut
+  id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
   // ex
   // for jal and jalr inst(in execUnit's beu)
-  execUnit.io.exuOperNumIn          := instDecoder.io.exuOperNumOut
-  execUnit.io.exuOperTypeInfromId := instDecoder.io.exuOperTypeOut
+  execUnit.io.exuOperNumIn        := instDecoder.io.exuOperNumOut
+  execUnit.io.exuOperTypeFromIdIn := instDecoder.io.exuOperTypeOut
   execUnit.io.offsetIn            := instDecoder.io.exuOffsetOut // important!!!
 
-  execUnit.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
-  execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
-  execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
+  execUnit.io.exuOperTypeIn  := id2exUnit.io.exAluOperTypeOut
+  execUnit.io.rsValAIn       := id2exUnit.io.exRsValAOut
+  execUnit.io.rsValBIn       := id2exUnit.io.exRsValBOut
+  execUnit.io.rsValAFromIdIn := instDecoder.io.rsValAOut
+  execUnit.io.rsValBFromIdIn := instDecoder.io.rsValBOut
+
   // ex to ma
-  ex2maUnit.io.exDataIn         := execUnit.io.resOut
-  ex2maUnit.io.exWtEnaIn        := id2exUnit.io.exWtEnaOut
-  ex2maUnit.io.exWtAddrIn       := id2exUnit.io.exWtAddrOut
-  ex2maUnit.io.diffIfSkipInstIn := id2exUnit.io.diffIfSkipInstOut
+  ex2maUnit.io.exDataIn   := execUnit.io.resOut
+  ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
+  ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
   // ex to pc
   pcUnit.io.ifJumpIn      := execUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
@@ -89,10 +90,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   io.memMaskOut   := memAccess.io.memMaskOut
   io.memValidOut  := memAccess.io.memValidOut
   // ma to wb
-  ma2wbUnit.io.maDataIn         := memAccess.io.resOut
-  ma2wbUnit.io.maWtEnaIn        := memAccess.io.wtEnaOut
-  ma2wbUnit.io.maWtAddrIn       := memAccess.io.wtAddrOut
-  ma2wbUnit.io.diffIfSkipInstIn := ex2maUnit.io.diffIfSkipInstOut
+  ma2wbUnit.io.maDataIn   := memAccess.io.resOut
+  ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
+  ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
   // wb
   regFile.io.wtDataIn := ma2wbUnit.io.wbDataOut
   regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
@@ -129,17 +129,23 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.coreid := 0.U
     diffCommitState.io.index  := 0.U
     // skip the flush inst(nop)
-    diffCommitState.io.skip     := ma2wbUnit.io.diffIfSkipInstOut
+    diffCommitState.io.skip     := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
     diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire)))))
     diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
-    diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn)))))
+    // diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn))))) // important!!!
+    diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut)))) // important!!!
     diffCommitState.io.wen   := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtEnaOut)))))
     diffCommitState.io.wdata := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbDataOut)))))
     diffCommitState.io.wdest := RegNext(RegNext(RegNext(RegNext(RegNext(ma2wbUnit.io.wbWtAddrOut)))))
 
+    //@printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+    //@printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+    //@printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
+    //@printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+    //@printf("\n")
     // CSR State
     val diffCsrState = Module(new DifftestCSRState())
     diffCsrState.io.clock          := this.clock

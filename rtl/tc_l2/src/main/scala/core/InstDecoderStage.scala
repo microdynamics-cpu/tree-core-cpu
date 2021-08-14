@@ -79,8 +79,15 @@ object InstDecoderStage {
     // nop inst
     NOP -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
     // j type inst
-    JAL -> List(wtRegTrue, jInstType, offsetBeuOperNumType, beuJALType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
+    JAL  -> List(wtRegTrue, jInstType, offsetBeuOperNumType, beuJALType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
     JALR -> List(wtRegTrue, iInstType, offsetBeuOperNumType, beuJALRType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
+    // b type inst
+    BEQ -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBEQType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BNE -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBNEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+
+    // s type inst
+    SB  -> List(wtRegFalse, sInstType, offsetBeuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
+
   )
 }
 
@@ -104,12 +111,12 @@ class InstDecoderStage extends Module with InstConfig {
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
 
     // beu
-    val exuOperTypeOut: UInt = Output(UInt(EXUOperTypeLen.W))
+    val exuOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
-    val exuOperNumOut: UInt = Output(UInt(BusWidth.W))
+    val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
 
-    val rsValAOut:      UInt = Output(UInt(BusWidth.W))
-    val rsValBOut:      UInt = Output(UInt(BusWidth.W))
+    val rsValAOut: UInt = Output(UInt(BusWidth.W))
+    val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
   })
@@ -162,11 +169,14 @@ class InstDecoderStage extends Module with InstConfig {
   }
 
   io.exuOperTypeOut := decodeRes(3)
-  // for jal and jalr offset
-  io.exuOffsetOut := Mux(decodeRes(3) === beuJALType || decodeRes(3) === beuJALRType, 
-                        immExtensionUnit.io.immOut, 0.U)
+  // for jump inst
+  io.exuOffsetOut := Mux(decodeRes(4).asBool, immExtensionUnit.io.immOut, 0.U)
 
-  when (decodeRes(3) === beuJALType) {
+  when(
+    decodeRes(3) === beuJALType ||
+      decodeRes(3) === beuBEQType ||
+      decodeRes(3) === beuBNEType
+  ) {
     io.exuOperNumOut := io.instAddrIn
   }.elsewhen(decodeRes(3) === beuJALRType) {
     io.exuOperNumOut := io.rdDataAIn
@@ -186,8 +196,6 @@ class InstDecoderStage extends Module with InstConfig {
     // if oper don't need rsvalA(such as jal), set this val to 0
     io.rsValAOut := io.rdDataAIn
   }
-
-  // io.rsValAOut      := Mux(io.fwRsEnaAIn, io.fwRsValAIn, io.rdDataAIn)
 
   when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
     io.rsValBOut := immExtensionUnit.io.immOut
