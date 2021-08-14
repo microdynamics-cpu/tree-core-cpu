@@ -25,6 +25,7 @@ object InstDecoderStage {
   protected val immAluOperNumType    = 2.U(EXUOperNumTypeLen.W)
   protected val shamtAluOperNumType  = 3.U(EXUOperNumTypeLen.W)
   protected val offsetBeuOperNumType = 4.U(EXUOperNumTypeLen.W)
+  protected val offsetLsuOperNumType = 5.U(EXUOperNumTypeLen.W)
 
   protected val branchFalse = false.B
   protected val branchTrue  = true.B
@@ -84,10 +85,8 @@ object InstDecoderStage {
     // b type inst
     BEQ -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBEQType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     BNE -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBNEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
-
     // s type inst
-    SB  -> List(wtRegFalse, sInstType, offsetBeuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
-
+    SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
   )
 }
 
@@ -115,6 +114,11 @@ class InstDecoderStage extends Module with InstConfig {
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
     val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
 
+    // ma
+    val lsuFunc3Out: UInt = Output(UInt(3.W))
+    val lsuWtEnaOut: Bool = Output(Bool())
+
+    // regfile
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
@@ -145,6 +149,9 @@ class InstDecoderStage extends Module with InstConfig {
   immExtensionUnit.io.instDataIn := io.instDataIn
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
+  io.lsuFunc3Out := io.instDataIn(14, 12)
+  io.lsuWtEnaOut := decodeRes(6)
+
   when(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
       (decodeRes(1) =/= InstDecoderStage.jInstType)
@@ -169,8 +176,8 @@ class InstDecoderStage extends Module with InstConfig {
   }
 
   io.exuOperTypeOut := decodeRes(3)
-  // for jump inst
-  io.exuOffsetOut := Mux(decodeRes(4).asBool, immExtensionUnit.io.immOut, 0.U)
+  // 4 for jump inst, 6 for store inst
+  io.exuOffsetOut := Mux(decodeRes(4).asBool || decodeRes(6).asBool, immExtensionUnit.io.immOut, 0.U)
 
   when(
     decodeRes(3) === beuJALType ||

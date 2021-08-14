@@ -11,11 +11,17 @@ class IDToEX extends Module with InstConfig {
     val idWtEnaIn:       Bool = Input(Bool())
     val idWtAddrIn:      UInt = Input(UInt(RegAddrLen.W))
 
+    val lsuFunc3In:      UInt = Input(UInt(3.W))
+    val lsuWtEnaIn:      Bool = Input(Bool())
+
     val exAluOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exRsValAOut:      UInt = Output(UInt(BusWidth.W))
     val exRsValBOut:      UInt = Output(UInt(BusWidth.W))
     val exWtEnaOut:       Bool = Output(Bool())
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
+
+    val lsuFunc3Out:      UInt = Output(UInt(3.W))
+    val lsuWtEnaOut:      Bool = Output(Bool())
   })
 
   protected val aluOperTypeReg: UInt = RegInit(0.U(InstOperTypeLen.W))
@@ -23,6 +29,8 @@ class IDToEX extends Module with InstConfig {
   protected val rsValBReg:      UInt = RegInit(0.U(BusWidth.W))
   protected val wtEnaReg:       Bool = RegInit(false.B)
   protected val wtAddrReg:      UInt = RegInit(0.U(RegAddrLen.W))
+  protected val lsuFunc3Reg:    UInt = RegInit(0.U(3.W))
+  protected val lsuWtEnaReg:    Bool = RegInit(false.B)
 
   aluOperTypeReg := io.idAluOperTypeIn
   rsValAReg      := io.idRsValAIn
@@ -30,11 +38,17 @@ class IDToEX extends Module with InstConfig {
   wtEnaReg       := io.idWtEnaIn
   wtAddrReg      := io.idWtAddrIn
 
+  lsuFunc3Reg    := io.lsuFunc3In
+  lsuWtEnaReg    := io.lsuWtEnaIn
+
   io.exAluOperTypeOut := aluOperTypeReg
   io.exRsValAOut      := rsValAReg
   io.exRsValBOut      := rsValBReg
   io.exWtEnaOut       := wtEnaReg
   io.exWtAddrOut      := wtAddrReg
+
+  io.lsuFunc3Out      := lsuFunc3Reg
+  io.lsuWtEnaOut      := lsuWtEnaReg
 
   // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
   // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")

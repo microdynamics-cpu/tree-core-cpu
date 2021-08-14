@@ -15,7 +15,7 @@ class ExecutionStage extends Module with InstConfig {
     val rsValBFromIdIn:      UInt = Input(UInt(BusWidth.W))
     val offsetIn:            UInt = Input(UInt(BusWidth.W))
 
-    val resOut:         UInt = Output(UInt(BusWidth.W))
+    val wtDataOut:      UInt = Output(UInt(BusWidth.W))
     val ifJumpOut:      Bool = Output(Bool())
     val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
     val jumpTypeOut:    UInt = Output(UInt(JumpTypeLen.W))
@@ -25,7 +25,7 @@ class ExecutionStage extends Module with InstConfig {
   alu.io.exuOperTypeIn := io.exuOperTypeIn
   alu.io.rsValAIn      := io.rsValAIn
   alu.io.rsValBIn      := io.rsValBIn
-  io.resOut            := alu.io.resOut
+  io.wtDataOut         := alu.io.wtDataOut
 
   protected val beu = Module(new BEU)
   beu.io.exuOperNumIn  := io.exuOperNumIn
