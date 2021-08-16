@@ -39,6 +39,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
   // io.rdDataBOut := Mux(io.rdEnaBIn && (io.rdAddrBIn =/= 0.U), regFile.read(io.rdAddrBIn), 0.U)
   // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtDataIn, regFile(io.wtAddrIn)))
 
+  //@printf(p"[regfile]regile(6) = 0x${Hexadecimal(regFile(6.U))}\n")
   if (ifDiffTest) {
     val diffRegState: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     diffRegState.io.clock  := this.clock

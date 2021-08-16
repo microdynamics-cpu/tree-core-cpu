@@ -5,41 +5,50 @@ import treecorel2.common.ConstVal._
 
 class IDToEX extends Module with InstConfig {
   val io = IO(new Bundle {
-    val idAluOperTypeIn:  UInt = Input(UInt(EXUOperTypeLen.W))
-    val idRsValAIn:       UInt = Input(UInt(BusWidth.W))
-    val idRsValBIn:       UInt = Input(UInt(BusWidth.W))
-    val idWtEnaIn:        Bool = Input(Bool())
-    val idWtAddrIn:       UInt = Input(UInt(RegAddrLen.W))
-    val diffIfSkipInstIn: Bool = Input(Bool())
+    val idAluOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
+    val idRsValAIn:      UInt = Input(UInt(BusWidth.W))
+    val idRsValBIn:      UInt = Input(UInt(BusWidth.W))
+    val idWtEnaIn:       Bool = Input(Bool())
+    val idWtAddrIn:      UInt = Input(UInt(RegAddrLen.W))
 
-    val exAluOperTypeOut:  UInt = Output(UInt(EXUOperTypeLen.W))
-    val exRsValAOut:       UInt = Output(UInt(BusWidth.W))
-    val exRsValBOut:       UInt = Output(UInt(BusWidth.W))
-    val exWtEnaOut:        Bool = Output(Bool())
-    val exWtAddrOut:       UInt = Output(UInt(RegAddrLen.W))
-    val diffIfSkipInstOut: Bool = Output(Bool())
+    val lsuFunc3In: UInt = Input(UInt(3.W))
+    val lsuWtEnaIn: Bool = Input(Bool())
+
+    val exAluOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
+    val exRsValAOut:      UInt = Output(UInt(BusWidth.W))
+    val exRsValBOut:      UInt = Output(UInt(BusWidth.W))
+    val exWtEnaOut:       Bool = Output(Bool())
+    val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
+
+    val lsuFunc3Out: UInt = Output(UInt(3.W))
+    val lsuWtEnaOut: Bool = Output(Bool())
   })
 
-  protected val aluOperTypeReg:    UInt = RegInit(0.U(EXUOperTypeLen.W))
-  protected val rsValAReg:         UInt = RegInit(0.U(BusWidth.W))
-  protected val rsValBReg:         UInt = RegInit(0.U(BusWidth.W))
-  protected val wtEnaReg:          Bool = RegInit(false.B)
-  protected val wtAddrReg:         UInt = RegInit(0.U(RegAddrLen.W))
-  protected val diffIfSkipInstReg: Bool = RegInit(false.B)
+  protected val aluOperTypeReg: UInt = RegInit(0.U(InstOperTypeLen.W))
+  protected val rsValAReg:      UInt = RegInit(0.U(BusWidth.W))
+  protected val rsValBReg:      UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaReg:       Bool = RegInit(false.B)
+  protected val wtAddrReg:      UInt = RegInit(0.U(RegAddrLen.W))
+  protected val lsuFunc3Reg:    UInt = RegInit(0.U(3.W))
+  protected val lsuWtEnaReg:    Bool = RegInit(false.B)
 
-  aluOperTypeReg    := io.idAluOperTypeIn
-  rsValAReg         := io.idRsValAIn
-  rsValBReg         := io.idRsValBIn
-  wtEnaReg          := io.idWtEnaIn
-  wtAddrReg         := io.idWtAddrIn
-  diffIfSkipInstReg := io.diffIfSkipInstIn
+  aluOperTypeReg := io.idAluOperTypeIn
+  rsValAReg      := io.idRsValAIn
+  rsValBReg      := io.idRsValBIn
+  wtEnaReg       := io.idWtEnaIn
+  wtAddrReg      := io.idWtAddrIn
 
-  io.exAluOperTypeOut  := aluOperTypeReg
-  io.exRsValAOut       := rsValAReg
-  io.exRsValBOut       := rsValBReg
-  io.exWtEnaOut        := wtEnaReg
-  io.exWtAddrOut       := wtAddrReg
-  io.diffIfSkipInstOut := diffIfSkipInstReg
+  lsuFunc3Reg := io.lsuFunc3In
+  lsuWtEnaReg := io.lsuWtEnaIn
+
+  io.exAluOperTypeOut := aluOperTypeReg
+  io.exRsValAOut      := rsValAReg
+  io.exRsValBOut      := rsValBReg
+  io.exWtEnaOut       := wtEnaReg
+  io.exWtAddrOut      := wtAddrReg
+
+  io.lsuFunc3Out := lsuFunc3Reg
+  io.lsuWtEnaOut := lsuWtEnaReg
 
   // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
   // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")

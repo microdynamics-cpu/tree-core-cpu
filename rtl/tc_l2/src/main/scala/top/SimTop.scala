@@ -28,9 +28,8 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val instRam: RAMHelper = Module(new RAMHelper())
   protected val dataRam: RAMHelper = Module(new RAMHelper())
 
-  instRam.io.clk := this.clock
-  instRam.io.en  := !this.reset.asBool() && treeCoreL2.io.instEnaOut
-  // instRam.io.en            := true.B
+  instRam.io.clk           := this.clock
+  instRam.io.en            := !this.reset.asBool() && treeCoreL2.io.instEnaOut
   instRam.io.rIdx          := (treeCoreL2.io.instAddrOut - PcRegStartAddr.U) >> 3
   instRam.io.wIdx          := DontCare
   instRam.io.wen           := DontCare
