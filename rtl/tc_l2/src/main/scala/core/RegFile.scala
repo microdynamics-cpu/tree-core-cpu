@@ -24,8 +24,8 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   regFile.write(io.wtAddrIn, Mux(io.wtEnaIn, Mux(io.wtAddrIn === 0.U, 0.U, io.wtDataIn), regFile(io.wtAddrIn)))
 
-  io.rdDataAOut := Mux(io.rdEnaAIn, Mux(io.rdAddrAIn =/= 0.U, regFile(io.rdAddrAIn), 0.U), 0.U)
-  io.rdDataBOut := Mux(io.rdEnaBIn, Mux(io.rdAddrBIn =/= 0.U, regFile(io.rdAddrBIn), 0.U), 0.U)
+  io.rdDataAOut := Mux(io.rdEnaAIn, Mux(io.rdAddrAIn =/= 0.U, Mux(io.rdAddrAIn === io.wtAddrIn, io.wtDataIn, regFile(io.rdAddrAIn)), 0.U), 0.U)
+  io.rdDataBOut := Mux(io.rdEnaBIn, Mux(io.rdAddrBIn =/= 0.U, Mux(io.rdAddrBIn === io.wtAddrIn, io.wtDataIn, regFile(io.rdAddrBIn)), 0.U), 0.U)
 
   //@printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
   //@printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
