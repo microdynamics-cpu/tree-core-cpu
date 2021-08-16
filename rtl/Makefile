@@ -91,20 +91,14 @@ simpleRecursiveTest: $(logFile) $(testName)
 	@printf "[\033[0;33m%s\033[0m]\n" all-done
 
 $(testName): %: $(SIMPLETEST_HOME)/build/%-riscv64-nemu.bin 
-	@$(BUILD_DIR)/emu -i $< &> $(SIMPLETEST_HOME)/build/log/$@-log.txt
-	@grep 'HIT GOOD TRAP' $(SIMPLETEST_HOME)/build/log/$@-log.txt
-# if grep find the 'HIT GOOD TRAP', the return value is 0
-ifeq (0, 0)
-	@printf "[%-10s \033[0;32m%20s\033[0m]\n" $@ PASS
-else
-	@printf "[%-10s \033[0;31m%20s\033[0m]\n" $@ FAIL
-endif
+	-@$(BUILD_DIR)/emu -i $< &> $(SIMPLETEST_HOME)/build/log/$@-log.txt
+	@printf "[%30s] " $@
+	@if (grep 'HIT GOOD TRAP' $(SIMPLETEST_HOME)/build/log/$@-log.txt > /dev/null) then echo -e "\033[1;32mPASS!\033[0m"; else echo -e "\033[1;31mFAIL!\033[0m"; fi
 
-# @$(shell $(BUILD_DIR)/emu -i $(binFile) &> $(SIMPLETEST_HOME)/build/log/$1)
-# ifeq $(shell grep HIT GOOD TRAP $(logFile))
-# 	@printf "[%-10s \033[0;32m%20s\033[0m]\n" $@ PASS
+# ifeq ($$(difftestRes), "")
+# @printf "[%-10s \033[0;31m%20s\033[0m]\n" $@ FAIL
 # else
-# 	@printf "[%-10s \033[0;31m%20s\033[0m]\n" $@ FAIL
+# @printf "[%-10s \033[0;32m%20s\033[0m]\n" $@ PASS
 # endif
 
 $(logFile):
