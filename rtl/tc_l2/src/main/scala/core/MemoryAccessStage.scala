@@ -103,7 +103,6 @@ class MemoryAccessStage extends Module with InstConfig {
     Seq(
       lsuSBType -> (io.memValBIn(7, 0))
     )
-    
   )
   // io.memValidOut   := io.exeMemValid
   io.memValidOut := false.B

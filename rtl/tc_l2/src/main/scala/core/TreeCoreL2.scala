@@ -142,14 +142,16 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.clock  := this.clock
     diffCommitState.io.coreid := 0.U
     diffCommitState.io.index  := 0.U
-    // skip the flush inst(nop) maybe the skip oper only 
+    // skip the flush inst(nop) maybe the skip oper only
     // diffCommitState.io.skip     := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))
     diffCommitState.io.skip     := false.B
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
-    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) & (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut)))))
-    diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) & (!RegNext(
+      RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut)))
+    ))
+    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
     // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
 
     diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(io.instDataIn))))) // important!!!
@@ -158,12 +160,12 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdata := RegNext(ma2wbUnit.io.wbDataOut)
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
-    printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+    // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+    // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+    // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
-    printf("\n")
+    // printf("\n")
     // CSR State
     val diffCsrState = Module(new DifftestCSRState())
     diffCsrState.io.clock          := this.clock

@@ -51,8 +51,9 @@ class ALU extends Module with InstConfig {
       aluSRAType   -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
       aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
       // special jal and jalr oper
-      beuJALType -> (io.rsValAIn + io.rsValBIn),
-      aluNopType -> (io.rsValAIn + io.rsValBIn)
+      beuJALType  -> (io.rsValAIn + io.rsValBIn),
+      beuJALRType -> (io.rsValAIn + io.rsValBIn),
+      aluNopType  -> (io.rsValAIn + io.rsValBIn)
     )
   )
 

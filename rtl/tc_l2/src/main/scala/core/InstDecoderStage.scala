@@ -83,8 +83,12 @@ object InstDecoderStage {
     JAL  -> List(wtRegTrue, jInstType, offsetBeuOperNumType, beuJALType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
     JALR -> List(wtRegTrue, iInstType, offsetBeuOperNumType, beuJALRType, branchTrue, rdMemFalse, wtMemFalse, aluWtType),
     // b type inst
-    BEQ -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBEQType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
-    BNE -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBNEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BEQ  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBEQType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BNE  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBNEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BLT  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBLTType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BLTU -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBLTUType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BGE  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    BGEU -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEUType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     // s type inst
     SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
   )
@@ -182,11 +186,20 @@ class InstDecoderStage extends Module with InstConfig {
   when(
     decodeRes(3) === beuJALType ||
       decodeRes(3) === beuBEQType ||
-      decodeRes(3) === beuBNEType
+      decodeRes(3) === beuBNEType ||
+      decodeRes(3) === beuBLTType ||
+      decodeRes(3) === beuBLTUType ||
+      decodeRes(3) === beuBGEType ||
+      decodeRes(3) === beuBGEUType
   ) {
     io.exuOperNumOut := io.instAddrIn
   }.elsewhen(decodeRes(3) === beuJALRType) {
-    io.exuOperNumOut := io.rdDataAIn
+    // import: maybe this time rdDataA have not been writen to the reg
+    when(io.fwRsEnaAIn) {
+      io.exuOperNumOut := io.fwRsValAIn
+    }.otherwise {
+      io.exuOperNumOut := io.rdDataAIn
+    }
   }.otherwise {
     io.exuOperNumOut := 0.U
   }

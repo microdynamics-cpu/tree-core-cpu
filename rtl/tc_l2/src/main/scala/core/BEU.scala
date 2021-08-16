@@ -27,7 +27,11 @@ class BEU extends Module with InstConfig {
       beuJALType  -> true.B,
       beuJALRType -> true.B,
       beuBEQType  -> (io.rsValAIn === io.rsValBIn),
-      beuBNEType  -> (io.rsValAIn =/= io.rsValBIn)
+      beuBNEType  -> (io.rsValAIn =/= io.rsValBIn),
+      beuBLTType  -> (io.rsValAIn.asSInt() < io.rsValBIn.asSInt()),
+      beuBLTUType -> (io.rsValAIn < io.rsValBIn),
+      beuBGEType  -> (io.rsValAIn.asSInt() >= io.rsValBIn.asSInt()),
+      beuBGEUType -> (io.rsValAIn >= io.rsValBIn)
     )
   )
 
@@ -38,8 +42,12 @@ class BEU extends Module with InstConfig {
     Seq(
       beuJALType  -> uncJumpType,
       beuJALRType -> uncJumpType,
-      beuBEQType  -> condJumpType,
-      beuBNEType  -> condJumpType
+      beuBEQType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
+      beuBNEType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
+      beuBLTType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
+      beuBLTUType -> Mux(io.ifJumpOut, condJumpType, noJumpType),
+      beuBGEType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
+      beuBGEUType -> Mux(io.ifJumpOut, condJumpType, noJumpType)
     )
   )
   // io.jumpTypeOut := uncJumpType
@@ -52,5 +60,9 @@ class BEU extends Module with InstConfig {
 
   //@printf(p"[beu]io.ifJumpOut = 0x${Hexadecimal(io.ifJumpOut)}\n")
   //@printf(p"[beu]io.jumpTypeOut = 0x${Hexadecimal(io.jumpTypeOut)}\n")
-  //@printf(p"[beu]io.newInstAddrOut = 0x${Hexadecimal(io.newInstAddrOut)}\n")
+  // printf(p"[beu]~(1.U(BusWidth.W) = 0x${Hexadecimal(~(1.U(BusWidth.W)))}\n")
+  // printf(p"[beu]io.exuOperNumIn = 0x${Hexadecimal(io.exuOperNumIn)}\n")
+  // printf(p"[beu]io.offsetIn = 0x${Hexadecimal(io.offsetIn)}\n")
+  // printf(p"[beu]io.newInstAddrOut(pre) = 0x${Hexadecimal(io.exuOperNumIn + io.offsetIn)}\n")
+  // printf(p"[beu]io.newInstAddrOut(aft) = 0x${Hexadecimal(io.newInstAddrOut)}\n")
 }
