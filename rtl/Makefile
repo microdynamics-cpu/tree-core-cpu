@@ -19,7 +19,18 @@ CPUTEST_HOME     := $(AM_KERNEL_PATH)/tests/cpu-tests
 AMTEST_HOME      := $(AM_KERNEL_PATH)/tests/am-tests
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 
+define setRecursiveEnv
+simpleTestbinFile   = $(foreach dir, $(1)/build, $(wildcard $(dir)/*.bin))
+simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-nemu, %, $(basename $(notdir $(file)))))
+simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
+$(shell mkdir -p $(1)/build/log 1>/dev/null 2>&1)
+endef
 
+define getRecursiveTestRes
+	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
+	@printf "[%30s] " $@
+	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then echo -e "\033[1;32mPASS!\033[0m"; else echo -e "\033[1;31mFAIL!\033[0m"; fi
+endef
 
 ###### chisel target ######
 millTest:
@@ -79,30 +90,37 @@ amTestBuild:
 demoTest:
 	$(BUILD_DIR)/emu -i $(RISCVTEST_HOME)/build/addi-$(VERSION_ID).bin
 
-###### recursive test target ######
-binFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
-testName  = $(foreach file, $(binFile), $(patsubst %-riscv64-nemu, %, $(basename $(notdir $(file)))))
-logFile   = $(foreach file, $(testName), $(patsubst %, %-log.txt, $(file)))
-elfFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.elf))
-disasFile = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.txt))
+
+###### simple test recursive test target ######
+simpleTestbinFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
+simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-nemu, simpletest-%, $(basename $(notdir $(file)))))
+simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1)
 
-simpleRecursiveTest: $(logFile) $(testName)
+simpleRecursiveTest: $(simpleTestLogFile) $(simpleTestCaseName)
 	@printf "[\033[0;33m%s\033[0m]\n" all-done
 
-$(testName): %: $(SIMPLETEST_HOME)/build/%-riscv64-nemu.bin 
-	-@$(BUILD_DIR)/emu -i $< &> $(SIMPLETEST_HOME)/build/log/$@-log.txt
-	@printf "[%30s] " $@
-	@if (grep 'HIT GOOD TRAP' $(SIMPLETEST_HOME)/build/log/$@-log.txt > /dev/null) then echo -e "\033[1;32mPASS!\033[0m"; else echo -e "\033[1;31mFAIL!\033[0m"; fi
-
-# ifeq ($$(difftestRes), "")
-# @printf "[%-10s \033[0;31m%20s\033[0m]\n" $@ FAIL
-# else
-# @printf "[%-10s \033[0;32m%20s\033[0m]\n" $@ PASS
-# endif
-
-$(logFile):
+$(simpleTestLogFile):
 	$(shell touch $(SIMPLETEST_HOME)/build/log/$@)
+
+$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-nemu.bin 
+	@$(call getRecursiveTestRes, $(SIMPLETEST_HOME))
+
+
+###### riscv test recursive test target ######
+riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
+riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-nemu, riscvtest-%, $(basename $(notdir $(file)))))
+riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
+$(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
+
+riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
+	@printf "[\033[0;33m%s\033[0m]\n" all-done
+
+$(riscvTestLogFile):
+	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
+
+$(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-nemu.bin
+	$(call getRecursiveTestRes, $(RISCVTEST_HOME))
 
 
 ###### clean target ######
