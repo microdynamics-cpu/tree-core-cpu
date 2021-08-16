@@ -7,11 +7,11 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 
 class ALU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val exuOperTypeIn: UInt = Input(UInt(EXUOperTypeLen.W))
+    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
 
-    val resOut: UInt = Output(UInt(BusWidth.W))
+    val wtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val res: UInt = Wire(UInt(BusWidth.W))
@@ -51,8 +51,9 @@ class ALU extends Module with InstConfig {
       aluSRAType   -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
       aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
       // special jal and jalr oper
-      beuJALType -> (io.rsValAIn + io.rsValBIn),
-      aluNopType -> (io.rsValAIn + io.rsValBIn)
+      beuJALType  -> (io.rsValAIn + io.rsValBIn),
+      beuJALRType -> (io.rsValAIn + io.rsValBIn),
+      aluNopType  -> (io.rsValAIn + io.rsValBIn)
     )
   )
 
@@ -67,14 +68,14 @@ class ALU extends Module with InstConfig {
       io.exuOperTypeIn === aluSUBWType ||
       io.exuOperTypeIn === aluSRAWType
   ) {
-    io.resOut := getSignExtn(BusWidth, res(31, 0))
+    io.wtDataOut := getSignExtn(BusWidth, res(31, 0))
   }.otherwise {
-    io.resOut := res
+    io.wtDataOut := res
   }
 
   //@printf(p"[ex]io.exuOperTypeIn = 0x${Hexadecimal(io.exuOperTypeIn)}\n")
   //@printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
   //@printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
-  //@printf(p"[ex]io.resOut = 0x${Hexadecimal(io.resOut)}\n")
+  //@printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
   //@printf("\n")
 }

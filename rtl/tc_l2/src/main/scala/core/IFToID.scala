@@ -14,22 +14,27 @@ class IFToID extends Module with InstConfig {
     val diffIfSkipInstOut: Bool = Output(Bool())
   })
 
-  protected val pcReg:   UInt = RegInit(0.U(BusWidth.W))
-  protected val instReg: UInt = RegInit(0.U(InstWidth.W))
+  protected val pcReg:             UInt = RegInit(0.U(BusWidth.W))
+  protected val instReg:           UInt = RegInit(0.U(InstWidth.W))
+  protected val diffIfSkipInstReg: Bool = RegInit(false.B)
 
   pcReg := io.ifInstAddrIn
 
   when(io.ifFlushIn) {
-    instReg              := NopInst.U
-    io.diffIfSkipInstOut := true.B
+    instReg           := NopInst.U
+    diffIfSkipInstReg := true.B
   }.otherwise {
-    instReg              := io.ifInstDataIn
-    io.diffIfSkipInstOut := false.B
+    instReg           := io.ifInstDataIn
+    diffIfSkipInstReg := false.B
   }
 
-  io.idInstAddrOut := pcReg
-  io.idInstDataOut := instReg
+  io.idInstAddrOut     := pcReg
+  io.idInstDataOut     := instReg
+  io.diffIfSkipInstOut := diffIfSkipInstReg // RegNext is important!!!
 
+  //@printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(io.ifFlushIn)}\n")
+  //@printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(io.diffIfSkipInstOut)}\n")
   //@printf(p"[if2id]io.idInstAddrOut = 0x${Hexadecimal(io.idInstAddrOut)}\n")
   //@printf(p"[if2id]io.idInstDataOut = 0x${Hexadecimal(io.idInstDataOut)}\n")
+
 }
