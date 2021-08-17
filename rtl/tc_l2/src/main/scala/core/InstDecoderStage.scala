@@ -89,64 +89,70 @@ object InstDecoderStage {
     BLTU -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBLTUType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     BGE  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     BGEU -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEUType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
+    // special i type inst
+    LB  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLBType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LBU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLBUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LH  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLHType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LHU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLHUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LW  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLWType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LWU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLWUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LD  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLDType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
     // s type inst
-    SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
+    SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    SH -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSHType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    SW -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSWType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
   )
 }
 
 class InstDecoderStage extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from pc
     val instAddrIn: UInt = Input(UInt(BusWidth.W))
     val instDataIn: UInt = Input(UInt(InstWidth.W))
-
+    // to id2ex
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
 
-    // forward
+    // from ex
+    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
+    val exuWtAddrIn:   UInt = Input(UInt(RegAddrLen.W))
+    // from forward
     val fwRsEnaAIn: Bool = Input(Bool())
     val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
     val fwRsEnaBIn: Bool = Input(Bool())
     val fwRsValBIn: UInt = Input(UInt(BusWidth.W))
 
+    // to regfile
     val rdEnaAOut:  Bool = Output(Bool())
     val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
     val rdEnaBOut:  Bool = Output(Bool())
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
 
-    // beu
+    // to beu
     val exuOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
     val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
 
-    // ma
+    // to ma
     val lsuFunc3Out: UInt = Output(UInt(3.W))
     val lsuWtEnaOut: Bool = Output(Bool())
 
-    // regfile
+    // to regfile
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
+
+    // to control
+    val stallReqFromIDOut: Bool = Output(Bool())
   })
 
   protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
   protected val rsRegAddrB: UInt = io.instDataIn(24, 20)
   protected val rdRegAddr:  UInt = io.instDataIn(11, 7)
-  //@printf(p"[id]rsRegAddrA = 0x${Hexadecimal(rsRegAddrA)}\n")
-  //@printf(p"[id]rsRegAddrB = 0x${Hexadecimal(rsRegAddrB)}\n")
-  //@printf(p"[id]rdRegAddr = 0x${Hexadecimal(rdRegAddr)}\n")
 
   protected val decodeRes = ListLookup(io.instDataIn, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
-
-  //@printf(p"[id]io.instDataIn = 0x${Hexadecimal(io.instDataIn)}\n")
-  //@printf(p"[id]decodeRes(0) = 0x${Hexadecimal(decodeRes(0))}\n")
-  //@printf(p"[id]decodeRes(1) = 0x${Hexadecimal(decodeRes(1))}\n")
-  //@printf(p"[id]decodeRes(2) = 0x${Hexadecimal(decodeRes(2))}\n")
-  //@printf(p"[id]decodeRes(3) = 0x${Hexadecimal(decodeRes(3))}\n")
-  //@printf(p"[id]decodeRes(4) = 0x${Hexadecimal(decodeRes(4))}\n")
-  //@printf(p"[id]decodeRes(5) = 0x${Hexadecimal(decodeRes(5))}\n")
-  //@printf(p"[id]decodeRes(6) = 0x${Hexadecimal(decodeRes(6))}\n")
-  //@printf(p"[id]decodeRes(7) = 0x${Hexadecimal(decodeRes(7))}\n")
 
   // acoording the inst type to construct the imm
   protected val immExtensionUnit = Module(new ImmExten)
@@ -180,8 +186,9 @@ class InstDecoderStage extends Module with InstConfig {
   }
 
   io.exuOperTypeOut := decodeRes(3)
-  // 4 for jump inst, 6 for store inst
-  io.exuOffsetOut := Mux(decodeRes(4).asBool || decodeRes(6).asBool, immExtensionUnit.io.immOut, 0.U)
+  // 4 for jump inst, 5 for load inst, 6 for store inst
+  // because load/store inst both need to calc the mem addr, so have below code
+  io.exuOffsetOut := Mux(decodeRes(4).asBool || decodeRes(5).asBool || decodeRes(6).asBool, immExtensionUnit.io.immOut, 0.U)
 
   when(
     decodeRes(3) === beuJALType ||
@@ -232,12 +239,26 @@ class InstDecoderStage extends Module with InstConfig {
   io.wtEnaOut  := decodeRes(0)
   io.wtAddrOut := rdRegAddr
 
+  // if exist load correlation
+  when(
+    io.exuOperTypeIn >= lsuLBType && io.exuOperTypeIn <= lsuLDType &&
+      ((io.rdEnaAOut && io.exuWtAddrIn === io.rdAddrAOut) ||
+        (io.rdEnaBOut && io.exuWtAddrIn === io.rdAddrBOut))
+  ) {
+    io.stallReqFromIDOut := true.B
+  }.otherwise {
+    io.stallReqFromIDOut := false.B
+  }
+
+  printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
+
   //@printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
   //@printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
   //@printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
   //@printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
 
-  //@printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(io.exuOperTypeOut)}\n")
+  // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(io.exuOperTypeOut)}\n")
+  // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
   //@printf(p"[id]io.rsValAOut = 0x${Hexadecimal(io.rsValAOut)}\n")
   //@printf(p"[id]io.rsValBOut = 0x${Hexadecimal(io.rsValBOut)}\n")
 

@@ -46,6 +46,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.rdDataAIn  := regFile.io.rdDataAOut
   instDecoder.io.rdDataBIn  := regFile.io.rdDataBOut
 
+  // for load correlation
+  instDecoder.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
+  instDecoder.io.exuWtAddrIn   := id2exUnit.io.exWtAddrOut
+
   regFile.io.rdEnaAIn  := instDecoder.io.rdEnaAOut
   regFile.io.rdAddrAIn := instDecoder.io.rdAddrAOut
   regFile.io.rdEnaBIn  := instDecoder.io.rdEnaBOut
@@ -59,6 +63,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
   id2exUnit.io.lsuFunc3In      := instDecoder.io.lsuFunc3Out
   id2exUnit.io.lsuWtEnaIn      := instDecoder.io.lsuWtEnaOut
+  id2exUnit.io.ifFlushIn       := controlUnit.io.flushIdOut
   // ex
   // for jal and jalr inst(in execUnit's beu)
   execUnit.io.exuOperNumIn        := instDecoder.io.exuOperNumOut
@@ -81,7 +86,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   ex2maUnit.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
   ex2maUnit.io.lsuValAIn     := execUnit.io.rsValAIn
   ex2maUnit.io.lsuValBIn     := execUnit.io.rsValBIn
-  ex2maUnit.io.lsuOffsetIn   := execUnit.io.offsetIn
+  ex2maUnit.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
   // ex to pc
   pcUnit.io.ifJumpIn      := execUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
@@ -117,6 +122,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   forwardUnit.io.exWtEnaIn  := ex2maUnit.io.exWtEnaIn
   forwardUnit.io.exWtAddrIn := ex2maUnit.io.exWtAddrIn
 
+  // maDataIn only come from regfile and imm
+  // maDataOut have right data include load/store inst and alu calc
   forwardUnit.io.maDataIn   := ma2wbUnit.io.maDataIn
   forwardUnit.io.maWtEnaIn  := ma2wbUnit.io.maWtEnaIn
   forwardUnit.io.maWtAddrIn := ma2wbUnit.io.maWtAddrIn
@@ -132,7 +139,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch control
-  controlUnit.io.jumpTypeIn := execUnit.io.jumpTypeOut
+  controlUnit.io.jumpTypeIn       := execUnit.io.jumpTypeOut
+  controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
+  pcUnit.io.stallIfIn             := controlUnit.io.stallIfOut
 
   if (ifDiffTest) {
     // commit
@@ -148,9 +157,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
-    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) & (!RegNext(
-      RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut)))
-    ))
+    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
+      (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))) &
+      (!RegNext(RegNext(RegNext(id2exUnit.io.diffIdSkipInstOut))))
+
     diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
     // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
 
@@ -161,8 +171,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
     // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
     // printf("\n")

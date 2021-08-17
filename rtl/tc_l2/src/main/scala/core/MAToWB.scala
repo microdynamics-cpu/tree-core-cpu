@@ -1,6 +1,7 @@
 package treecorel2
 
 import chisel3._
+import treecorel2.common.ConstVal._
 
 class MAToWB extends Module with InstConfig {
   val io = IO(new Bundle {

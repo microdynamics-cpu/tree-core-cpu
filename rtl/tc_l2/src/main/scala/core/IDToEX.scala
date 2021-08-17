@@ -5,6 +5,8 @@ import treecorel2.common.ConstVal._
 
 class IDToEX extends Module with InstConfig {
   val io = IO(new Bundle {
+    val ifFlushIn: Bool = Input(Bool())
+
     val idAluOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val idRsValAIn:      UInt = Input(UInt(BusWidth.W))
     val idRsValBIn:      UInt = Input(UInt(BusWidth.W))
@@ -20,43 +22,65 @@ class IDToEX extends Module with InstConfig {
     val exWtEnaOut:       Bool = Output(Bool())
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
 
-    val lsuFunc3Out: UInt = Output(UInt(3.W))
-    val lsuWtEnaOut: Bool = Output(Bool())
+    val lsuFunc3Out:       UInt = Output(UInt(3.W))
+    val lsuWtEnaOut:       Bool = Output(Bool())
+    val diffIdSkipInstOut: Bool = Output(Bool())
   })
 
-  protected val aluOperTypeReg: UInt = RegInit(0.U(InstOperTypeLen.W))
-  protected val rsValAReg:      UInt = RegInit(0.U(BusWidth.W))
-  protected val rsValBReg:      UInt = RegInit(0.U(BusWidth.W))
-  protected val wtEnaReg:       Bool = RegInit(false.B)
-  protected val wtAddrReg:      UInt = RegInit(0.U(RegAddrLen.W))
-  protected val lsuFunc3Reg:    UInt = RegInit(0.U(3.W))
-  protected val lsuWtEnaReg:    Bool = RegInit(false.B)
+  protected val aluOperTypeReg:    UInt = RegInit(0.U(InstOperTypeLen.W))
+  protected val rsValAReg:         UInt = RegInit(0.U(BusWidth.W))
+  protected val rsValBReg:         UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaReg:          Bool = RegInit(false.B)
+  protected val wtAddrReg:         UInt = RegInit(0.U(RegAddrLen.W))
+  protected val lsuFunc3Reg:       UInt = RegInit(0.U(3.W))
+  protected val lsuWtEnaReg:       Bool = RegInit(false.B)
+  protected val diffIdSkipInstReg: Bool = RegInit(false.B)
 
-  aluOperTypeReg := io.idAluOperTypeIn
-  rsValAReg      := io.idRsValAIn
-  rsValBReg      := io.idRsValBIn
-  wtEnaReg       := io.idWtEnaIn
-  wtAddrReg      := io.idWtAddrIn
+  when(io.ifFlushIn) {
+    diffIdSkipInstReg := true.B
+    aluOperTypeReg    := aluNopType
+    rsValAReg         := 0.U
+    rsValBReg         := 0.U
+    wtEnaReg          := 0.U
+    wtAddrReg         := 0.U
+    lsuFunc3Reg       := 0.U
+    lsuWtEnaReg       := 0.U
+  }.otherwise {
+    diffIdSkipInstReg := false.B
+    aluOperTypeReg    := io.idAluOperTypeIn
+    rsValAReg         := io.idRsValAIn
+    rsValBReg         := io.idRsValBIn
+    wtEnaReg          := io.idWtEnaIn
+    wtAddrReg         := io.idWtAddrIn
+    lsuFunc3Reg       := io.lsuFunc3In
+    lsuWtEnaReg       := io.lsuWtEnaIn
+  }
 
-  lsuFunc3Reg := io.lsuFunc3In
-  lsuWtEnaReg := io.lsuWtEnaIn
+  // aluOperTypeReg := io.idAluOperTypeIn
+  // rsValAReg      := io.idRsValAIn
+  // rsValBReg      := io.idRsValBIn
+  // wtEnaReg       := io.idWtEnaIn
+  // wtAddrReg      := io.idWtAddrIn
+  // lsuFunc3Reg    := io.lsuFunc3In
+  // lsuWtEnaReg    := io.lsuWtEnaIn
 
-  io.exAluOperTypeOut := aluOperTypeReg
-  io.exRsValAOut      := rsValAReg
-  io.exRsValBOut      := rsValBReg
-  io.exWtEnaOut       := wtEnaReg
-  io.exWtAddrOut      := wtAddrReg
-
-  io.lsuFunc3Out := lsuFunc3Reg
-  io.lsuWtEnaOut := lsuWtEnaReg
-
+  io.exAluOperTypeOut  := aluOperTypeReg
+  io.exRsValAOut       := rsValAReg
+  io.exRsValBOut       := rsValBReg
+  io.exWtEnaOut        := wtEnaReg
+  io.exWtAddrOut       := wtAddrReg
+  io.lsuFunc3Out       := lsuFunc3Reg
+  io.lsuWtEnaOut       := lsuWtEnaReg
+  io.diffIdSkipInstOut := diffIdSkipInstReg
   // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
   // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
 
   //@printf(p"[id2ex]io.idWtEnaIn  = 0x${Hexadecimal(io.idWtEnaIn)}\n")
   //@printf(p"[id2ex]io.idWtAddrIn = 0x${Hexadecimal(io.idWtAddrIn)}\n")
 
-  //@printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
+  printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
+  printf(p"[id2ex]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
+
   //@printf(p"[id2ex]io.exWtEnaOut  = 0x${Hexadecimal(io.exWtEnaOut)}\n")
   //@printf(p"[id2ex]io.exWtAddrOut = 0x${Hexadecimal(io.exWtAddrOut)}\n")
 }

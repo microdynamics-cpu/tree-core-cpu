@@ -54,6 +54,8 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   io.uart.in.valid  := false.B
   io.uart.out.valid := false.B
   io.uart.out.ch    := 0.U
+
+  printf(p"[top] dataRam.io.wen = 0x${Hexadecimal(dataRam.io.wen)}\n")
 }
 
 object SimTop extends App {

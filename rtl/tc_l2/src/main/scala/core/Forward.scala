@@ -23,10 +23,11 @@ class ForWard extends Module with InstConfig {
     val fwRsValBOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  when(io.idRdAddrAIn === io.exWtAddrIn && io.idRdEnaAIn && io.exWtEnaIn) {
+  //  =/= for addi x0, x1, 0x30 bypass can cause error
+  when(io.idRdAddrAIn === io.exWtAddrIn && io.idRdAddrAIn =/= 0.U && io.idRdEnaAIn && io.exWtEnaIn) {
     io.fwRsValAOut := io.exDataIn
     io.fwRsEnaAOut := true.B
-  }.elsewhen(io.idRdAddrAIn === io.maWtAddrIn && io.idRdEnaAIn && io.maWtEnaIn) {
+  }.elsewhen(io.idRdAddrAIn === io.maWtAddrIn && io.idRdAddrAIn =/= 0.U && io.idRdEnaAIn && io.maWtEnaIn) {
     io.fwRsValAOut := io.maDataIn
     io.fwRsEnaAOut := true.B
   }.otherwise {
@@ -34,10 +35,10 @@ class ForWard extends Module with InstConfig {
     io.fwRsEnaAOut := false.B
   }
 
-  when(io.idRdAddrBIn === io.exWtAddrIn && io.idRdEnaBIn && io.exWtEnaIn) {
+  when(io.idRdAddrBIn === io.exWtAddrIn && io.idRdAddrBIn =/= 0.U && io.idRdEnaBIn && io.exWtEnaIn) {
     io.fwRsValBOut := io.exDataIn
     io.fwRsEnaBOut := true.B
-  }.elsewhen(io.idRdAddrBIn === io.maWtAddrIn && io.idRdEnaBIn && io.maWtEnaIn) {
+  }.elsewhen(io.idRdAddrBIn === io.maWtAddrIn && io.idRdAddrBIn =/= 0.U && io.idRdEnaBIn && io.maWtEnaIn) {
     io.fwRsValBOut := io.maDataIn
     io.fwRsEnaBOut := true.B
   }.otherwise {
