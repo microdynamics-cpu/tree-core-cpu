@@ -19,12 +19,9 @@ CPUTEST_HOME     := $(AM_KERNEL_PATH)/tests/cpu-tests
 AMTEST_HOME      := $(AM_KERNEL_PATH)/tests/am-tests
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 
-define setRecursiveEnv
-simpleTestbinFile   = $(foreach dir, $(1)/build, $(wildcard $(dir)/*.bin))
-simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-nemu, %, $(basename $(notdir $(file)))))
-simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
-$(shell mkdir -p $(1)/build/log 1>/dev/null 2>&1)
-endef
+AllTestCaseNum  := 0
+PassTestCaseNum := 0
+FailTestCaseNum := 0
 
 define getRecursiveTestRes
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
@@ -112,15 +109,31 @@ riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*
 riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-nemu, riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
-
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
-	@printf "[\033[0;33m%s\033[0m]\n" all-done
+	@printf "[\033[0;33mall-done\033[0m]\n"
+	@printf "[\033[0;33mAll: %s  \033[0;32mPASS: %s \033[0;31mFAIL: %s \033[0m]\n" $(AllTestCaseNum) $(PassTestCaseNum) $(FailTestCaseNum)
 
 $(riscvTestLogFile):
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
 
 $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-nemu.bin
 	$(call getRecursiveTestRes, $(RISCVTEST_HOME))
+
+
+###### cpu test recursive test target ######
+cpuTestbinFile   = $(foreach dir, $(CPUTEST_HOME)/build, $(wildcard $(dir)/*.bin))
+cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-nemu, cputest-%, $(basename $(notdir $(file)))))
+cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, $(file)))
+$(shell mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1)
+cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
+	@printf "[\033[0;33mall-done\033[0m]\n"
+	@printf "[\033[0;33mAll: %s  \033[0;32mPASS: %s \033[0;31mFAIL: %s \033[0m]\n" $(AllTestCaseNum) $(PassTestCaseNum) $(FailTestCaseNum)
+
+$(cpuTestLogFile):
+	$(shell touch $(CPUTEST_HOME)/build/log/$@)
+
+$(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-nemu.bin
+	$(call getRecursiveTestRes, $(CPUTEST_HOME))
 
 
 ###### clean target ######
