@@ -90,10 +90,13 @@ object InstDecoderStage {
     BGE  -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     BGEU -> List(wtRegFalse, bInstType, offsetBeuOperNumType, beuBGEUType, branchTrue, rdMemFalse, wtMemFalse, nopWtType),
     // special i type inst
-    LB -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLBType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
-    LH -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLHType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
-    LW -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLWType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
-    LD -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLDType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LB  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLBType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LBU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLBUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LH  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLHType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LHU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLHUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LW  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLWType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LWU -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLWUType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
+    LD  -> List(wtRegTrue, iInstType, offsetLsuOperNumType, lsuLDType, branchFalse, rdMemTrue, wtMemFalse, nopWtType),
     // s type inst
     SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SH -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSHType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
@@ -104,12 +107,16 @@ object InstDecoderStage {
 
 class InstDecoderStage extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from pc
     val instAddrIn: UInt = Input(UInt(BusWidth.W))
     val instDataIn: UInt = Input(UInt(InstWidth.W))
-
+    // to id2ex
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
 
+    // from ex
+    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
+    val exuWtAddrIn:   UInt = Input(UInt(RegAddrLen.W))
     // from forward
     val fwRsEnaAIn: Bool = Input(Bool())
     val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
@@ -136,6 +143,9 @@ class InstDecoderStage extends Module with InstConfig {
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
+
+    // to control
+    val stallReqFromIDOut: Bool = Output(Bool())
   })
 
   protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
@@ -228,6 +238,19 @@ class InstDecoderStage extends Module with InstConfig {
 
   io.wtEnaOut  := decodeRes(0)
   io.wtAddrOut := rdRegAddr
+
+  // if exist load correlation
+  when(
+    io.exuOperTypeIn >= lsuLBType && io.exuOperTypeIn <= lsuLDType &&
+      ((io.rdEnaAOut && io.exuWtAddrIn === io.rdAddrAOut) ||
+        (io.rdEnaBOut && io.exuWtAddrIn === io.rdAddrBOut))
+  ) {
+    io.stallReqFromIDOut := true.B
+  }.otherwise {
+    io.stallReqFromIDOut := false.B
+  }
+
+  printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
 
   //@printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
   //@printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
