@@ -46,6 +46,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.rdDataAIn  := regFile.io.rdDataAOut
   instDecoder.io.rdDataBIn  := regFile.io.rdDataBOut
 
+  // for load correlation
+  instDecoder.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
+  instDecoder.io.exuWtAddrIn   := id2exUnit.io.exWtAddrOut
+
   regFile.io.rdEnaAIn  := instDecoder.io.rdEnaAOut
   regFile.io.rdAddrAIn := instDecoder.io.rdAddrAOut
   regFile.io.rdEnaBIn  := instDecoder.io.rdEnaBOut
@@ -59,6 +63,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
   id2exUnit.io.lsuFunc3In      := instDecoder.io.lsuFunc3Out
   id2exUnit.io.lsuWtEnaIn      := instDecoder.io.lsuWtEnaOut
+  id2exUnit.io.ifFlushIn       := controlUnit.io.flushIdOut
   // ex
   // for jal and jalr inst(in execUnit's beu)
   execUnit.io.exuOperNumIn        := instDecoder.io.exuOperNumOut
@@ -134,7 +139,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch control
-  controlUnit.io.jumpTypeIn := execUnit.io.jumpTypeOut
+  controlUnit.io.jumpTypeIn       := execUnit.io.jumpTypeOut
+  controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
+  pcUnit.io.stallIfIn             := controlUnit.io.stallIfOut
 
   if (ifDiffTest) {
     // commit
@@ -150,9 +157,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
-    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) & (!RegNext(
-      RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut)))
-    ))
+    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
+      (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))) &
+      (!RegNext(RegNext(RegNext(id2exUnit.io.diffIdSkipInstOut))))
+
     diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
     // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
 
@@ -163,8 +171,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
     // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
     // printf("\n")

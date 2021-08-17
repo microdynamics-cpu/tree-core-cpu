@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 import treecorel2.common.ConstVal._
-import treecorel2.common.getSignExtn
+import treecorel2.common.{getSignExtn, getZeroExtn}
 
 object MemoryAccessStage {
   protected val defMaskRes = List(BitPat.bitPatToUInt(BitPat("b" + "1" * 64)))
@@ -109,7 +109,16 @@ class MemoryAccessStage extends Module with InstConfig {
   io.wtAddrOut := io.wtAddrIn
 
   // for load and store inst
-  io.memAddrOut := io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)
+  when(
+    io.memOperTypeIn === lsuLBUType ||
+      io.memOperTypeIn === lsuLHUType ||
+      io.memOperTypeIn === lsuLWUType
+  ) {
+    io.memAddrOut := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+  }.otherwise {
+    io.memAddrOut := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+  }
+
   io.memWtDataOut := MuxLookup(
     io.memOperTypeIn,
     0.U,
@@ -135,9 +144,9 @@ class MemoryAccessStage extends Module with InstConfig {
   printf(p"[ma]io.wtDataIn = 0x${Hexadecimal(io.wtDataIn)}\n")
 
   printf(p"[ma] io.memOperTypeIn = 0x${Hexadecimal(io.memOperTypeIn)}\n")
-  printf(p"[ma] io.memValAIn = 0x${Hexadecimal(io.memValAIn)}\n")
+  // printf(p"[ma] io.memValAIn = 0x${Hexadecimal(io.memValAIn)}\n")
   printf(p"[ma] io.memValBIn = 0x${Hexadecimal(io.memValBIn)}\n")
-  printf(p"[ma] io.memOffsetIn = 0x${Hexadecimal(io.memOffsetIn)}\n")
+  // printf(p"[ma] io.memOffsetIn = 0x${Hexadecimal(io.memOffsetIn)}\n")
   printf(p"[ma] io.memAddrOut = 0x${Hexadecimal(io.memAddrOut)}\n")
   printf(p"[ma] io.memWtDataOut = 0x${Hexadecimal(io.memWtDataOut)}\n")
 
