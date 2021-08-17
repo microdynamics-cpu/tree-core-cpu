@@ -63,6 +63,8 @@ class BEU extends Module with InstConfig {
   // printf(p"[beu]~(1.U(BusWidth.W) = 0x${Hexadecimal(~(1.U(BusWidth.W)))}\n")
   // printf(p"[beu]io.exuOperNumIn = 0x${Hexadecimal(io.exuOperNumIn)}\n")
   // printf(p"[beu]io.offsetIn = 0x${Hexadecimal(io.offsetIn)}\n")
-  // printf(p"[beu]io.newInstAddrOut(pre) = 0x${Hexadecimal(io.exuOperNumIn + io.offsetIn)}\n")
-  // printf(p"[beu]io.newInstAddrOut(aft) = 0x${Hexadecimal(io.newInstAddrOut)}\n")
+  // printf(p"[beu]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
+  // printf(p"[beu]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
+  // printf(p"[beu]io.newInstAddrOut = 0x${Hexadecimal(io.newInstAddrOut)}\n")
+  // printf("\n")
 }
