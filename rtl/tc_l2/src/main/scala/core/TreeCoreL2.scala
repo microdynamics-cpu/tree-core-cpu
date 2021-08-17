@@ -81,7 +81,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   ex2maUnit.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
   ex2maUnit.io.lsuValAIn     := execUnit.io.rsValAIn
   ex2maUnit.io.lsuValBIn     := execUnit.io.rsValBIn
-  ex2maUnit.io.lsuOffsetIn   := execUnit.io.offsetIn
+  ex2maUnit.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
   // ex to pc
   pcUnit.io.ifJumpIn      := execUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
@@ -117,6 +117,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   forwardUnit.io.exWtEnaIn  := ex2maUnit.io.exWtEnaIn
   forwardUnit.io.exWtAddrIn := ex2maUnit.io.exWtAddrIn
 
+  // maDataIn only come from regfile and imm
+  // maDataOut have right data include load/store inst and alu calc
   forwardUnit.io.maDataIn   := ma2wbUnit.io.maDataIn
   forwardUnit.io.maWtEnaIn  := ma2wbUnit.io.maWtEnaIn
   forwardUnit.io.maWtAddrIn := ma2wbUnit.io.maWtAddrIn
