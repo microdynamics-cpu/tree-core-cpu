@@ -2,6 +2,7 @@ package treecorel2
 
 import chisel3._
 import difftest._
+import treecorel2.common.ConstVal._
 
 class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -21,11 +22,20 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   protected val regFile = Mem(RegNum, UInt(BusWidth.W))
   protected val wtAddr: UInt = io.wtAddrIn
+  protected val wtData: UInt = io.wtDataIn
 
-  regFile.write(io.wtAddrIn, Mux(io.wtEnaIn, Mux(io.wtAddrIn === 0.U, 0.U, io.wtDataIn), regFile(io.wtAddrIn)))
+  regFile.write(io.wtAddrIn, Mux(io.wtEnaIn, Mux(io.wtAddrIn === 0.U, 0.U, wtData), regFile(io.wtAddrIn)))
 
-  io.rdDataAOut := Mux(io.rdEnaAIn, Mux(io.rdAddrAIn =/= 0.U, Mux(io.rdAddrAIn === io.wtAddrIn, io.wtDataIn, regFile(io.rdAddrAIn)), 0.U), 0.U)
-  io.rdDataBOut := Mux(io.rdEnaBIn, Mux(io.rdAddrBIn =/= 0.U, Mux(io.rdAddrBIn === io.wtAddrIn, io.wtDataIn, regFile(io.rdAddrBIn)), 0.U), 0.U)
+  io.rdDataAOut := Mux(
+    io.rdEnaAIn,
+    Mux(io.rdAddrAIn =/= 0.U, Mux(io.rdAddrAIn === io.wtAddrIn, wtData, regFile(io.rdAddrAIn)), 0.U),
+    0.U
+  )
+  io.rdDataBOut := Mux(
+    io.rdEnaBIn,
+    Mux(io.rdAddrBIn =/= 0.U, Mux(io.rdAddrBIn === io.wtAddrIn, wtData, regFile(io.rdAddrBIn)), 0.U),
+    0.U
+  )
 
   //@printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
   //@printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
@@ -37,7 +47,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
   // TODO: need to solve the when rdAddr* === wtAddrIn(the forward circuit)
   // io.rdDataAOut := Mux(io.rdEnaAIn && (io.rdAddrAIn =/= 0.U), regFile.read(io.rdAddrAIn), 0.U)
   // io.rdDataBOut := Mux(io.rdEnaBIn && (io.rdAddrBIn =/= 0.U), regFile.read(io.rdAddrBIn), 0.U)
-  // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtDataIn, regFile(io.wtAddrIn)))
+  // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtData, regFile(io.wtAddrIn)))
 
   //@printf(p"[regfile]regile(6) = 0x${Hexadecimal(regFile(6.U))}\n")
   if (ifDiffTest) {
