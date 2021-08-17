@@ -236,8 +236,13 @@ class InstDecoderStage extends Module with InstConfig {
     io.rsValBOut := io.rdDataBIn
   }
 
-  io.wtEnaOut  := decodeRes(0)
-  io.wtAddrOut := rdRegAddr
+  io.wtEnaOut := decodeRes(0)
+  // very important!!! otherwise maybe exist bypass error in wb stage!
+  when(io.wtEnaOut) {
+    io.wtAddrOut := rdRegAddr
+  }.otherwise {
+    io.wtAddrOut := 0.U
+  }
 
   // if exist load correlation
   when(
@@ -251,9 +256,10 @@ class InstDecoderStage extends Module with InstConfig {
   }
 
   printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
+  printf(p"[id]io.instAddrIn = 0x${Hexadecimal(io.instAddrIn)}\n")
 
-  //@printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
-  //@printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
+  printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
+  printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
   //@printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
   //@printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
 
@@ -262,6 +268,6 @@ class InstDecoderStage extends Module with InstConfig {
   //@printf(p"[id]io.rsValAOut = 0x${Hexadecimal(io.rsValAOut)}\n")
   //@printf(p"[id]io.rsValBOut = 0x${Hexadecimal(io.rsValBOut)}\n")
 
-  //@printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
-  //@printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
+  printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
+  printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
 }

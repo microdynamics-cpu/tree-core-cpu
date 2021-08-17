@@ -80,7 +80,7 @@ class IDToEX extends Module with InstConfig {
 
   printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
   printf(p"[id2ex]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
-
+  printf("\n")
   //@printf(p"[id2ex]io.exWtEnaOut  = 0x${Hexadecimal(io.exWtEnaOut)}\n")
   //@printf(p"[id2ex]io.exWtAddrOut = 0x${Hexadecimal(io.exWtAddrOut)}\n")
 }
