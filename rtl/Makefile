@@ -69,15 +69,15 @@ difftestBuild:
 diffAllBuild: diffBuild difftestBuild
 
 simpleTestBuild:
-	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-nemu
+	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
 
 ###### riscv-tests target ######
 riscvTestBuild:
-	$(MAKE) -C $(RISCVTEST_HOME) ARCH=riscv64-nemu
+	$(MAKE) -C $(RISCVTEST_HOME) ARCH=riscv64-mycpu
 
 ###### (am)cpu-tests target ######
 cpuTestBuild:
-	$(MAKE) -C $(CPUTEST_HOME) ARCH=riscv64-nemu
+	$(MAKE) -C $(CPUTEST_HOME) ARCH=riscv64-mycpu
 
 ###### (am)am-tests target ######
 amTestBuild:
@@ -90,7 +90,7 @@ demoTest:
 
 ###### simple test recursive test target ######
 simpleTestbinFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
-simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-nemu, simpletest-%, $(basename $(notdir $(file)))))
+simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-mycpu, simpletest-%, $(basename $(notdir $(file)))))
 simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1)
 
@@ -100,13 +100,13 @@ simpleRecursiveTest: $(simpleTestLogFile) $(simpleTestCaseName)
 $(simpleTestLogFile):
 	$(shell touch $(SIMPLETEST_HOME)/build/log/$@)
 
-$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-nemu.bin 
+$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bin 
 	@$(call getRecursiveTestRes, $(SIMPLETEST_HOME))
 
 
 ###### riscv test recursive test target ######
 riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
-riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-nemu, riscvtest-%, $(basename $(notdir $(file)))))
+riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-mycpu, riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
@@ -116,13 +116,13 @@ riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 $(riscvTestLogFile):
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
 
-$(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-nemu.bin
+$(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(RISCVTEST_HOME))
 
 
 ###### cpu test recursive test target ######
 cpuTestbinFile   = $(foreach dir, $(CPUTEST_HOME)/build, $(wildcard $(dir)/*.bin))
-cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-nemu, cputest-%, $(basename $(notdir $(file)))))
+cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-mycpu, cputest-%, $(basename $(notdir $(file)))))
 cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1)
 cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
@@ -132,7 +132,7 @@ cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
 $(cpuTestLogFile):
 	$(shell touch $(CPUTEST_HOME)/build/log/$@)
 
-$(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-nemu.bin
+$(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME))
 
 
