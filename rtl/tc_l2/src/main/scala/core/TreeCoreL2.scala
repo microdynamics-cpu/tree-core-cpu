@@ -88,7 +88,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   ex2maUnit.io.lsuValBIn     := execUnit.io.rsValBIn
   ex2maUnit.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
   // ex to pc
-  pcUnit.io.ifJumpIn      := execUnit.io.ifJumpOut
+  pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
 
   // ma
@@ -138,7 +138,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
   instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
-  // branch control
+  // branch and load/store control
   controlUnit.io.jumpTypeIn       := execUnit.io.jumpTypeOut
   controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
   pcUnit.io.stallIfIn             := controlUnit.io.stallIfOut

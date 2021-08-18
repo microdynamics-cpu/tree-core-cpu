@@ -14,13 +14,13 @@ class BEU extends Module with InstConfig {
     val rsValBIn: UInt = Input(UInt(BusWidth.W))
     val offsetIn: UInt = Input(UInt(BusWidth.W))
 
-    val ifJumpOut:      Bool = Output(Bool())
     val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
     val jumpTypeOut:    UInt = Output(UInt(JumpTypeLen.W))
   })
 
+  protected val ifJump: Bool = Wire(Bool())
   // pass it to if stage to set new pc
-  io.ifJumpOut := MuxLookup(
+  ifJump := MuxLookup(
     io.exuOperTypeIn,
     false.B,
     Seq(
@@ -42,12 +42,12 @@ class BEU extends Module with InstConfig {
     Seq(
       beuJALType  -> uncJumpType,
       beuJALRType -> uncJumpType,
-      beuBEQType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
-      beuBNEType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
-      beuBLTType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
-      beuBLTUType -> Mux(io.ifJumpOut, condJumpType, noJumpType),
-      beuBGEType  -> Mux(io.ifJumpOut, condJumpType, noJumpType),
-      beuBGEUType -> Mux(io.ifJumpOut, condJumpType, noJumpType)
+      beuBEQType  -> Mux(ifJump, condJumpType, noJumpType),
+      beuBNEType  -> Mux(ifJump, condJumpType, noJumpType),
+      beuBLTType  -> Mux(ifJump, condJumpType, noJumpType),
+      beuBLTUType -> Mux(ifJump, condJumpType, noJumpType),
+      beuBGEType  -> Mux(ifJump, condJumpType, noJumpType),
+      beuBGEUType -> Mux(ifJump, condJumpType, noJumpType)
     )
   )
   // io.jumpTypeOut := uncJumpType

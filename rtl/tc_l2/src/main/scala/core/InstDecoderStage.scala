@@ -260,8 +260,8 @@ class InstDecoderStage extends Module with InstConfig {
 
   printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
   printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
-  //@printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
-  //@printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
+  printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
+  printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
 
   // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(io.exuOperTypeOut)}\n")
   // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")

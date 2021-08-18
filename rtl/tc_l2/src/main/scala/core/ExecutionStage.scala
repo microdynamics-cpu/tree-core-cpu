@@ -16,7 +16,6 @@ class ExecutionStage extends Module with InstConfig {
     val offsetIn:            UInt = Input(UInt(BusWidth.W))
 
     val wtDataOut:      UInt = Output(UInt(BusWidth.W))
-    val ifJumpOut:      Bool = Output(Bool())
     val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
     val jumpTypeOut:    UInt = Output(UInt(JumpTypeLen.W))
   })
@@ -34,7 +33,6 @@ class ExecutionStage extends Module with InstConfig {
   beu.io.rsValBIn      := io.rsValBFromIdIn
   beu.io.offsetIn      := io.offsetIn
 
-  io.ifJumpOut      := beu.io.ifJumpOut
   io.newInstAddrOut := beu.io.newInstAddrOut
   io.jumpTypeOut    := beu.io.jumpTypeOut
 }

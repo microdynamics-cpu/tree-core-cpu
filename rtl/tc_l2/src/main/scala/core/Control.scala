@@ -13,23 +13,28 @@ class Control extends Module with InstConfig {
     val flushIfOut: Bool = Output(Bool())
     val stallIfOut: Bool = Output(Bool())
     val flushIdOut: Bool = Output(Bool())
+    val ifJumpOut:  Bool = Output(Bool())
     // val flushExOut: Bool = Output(Bool())
   })
 
   io.flushIfOut := false.B
   io.stallIfOut := false.B
   io.flushIdOut := false.B
+  io.ifJumpOut  := false.B
   // io.flushExOut := false.B
 
-  // if branch type is jal or jalr, flush id stage
+  // 1. if branch type is jal or jalr, flush id stage
   // because the bsu is in id stage now, so unc/cond jump is same
-  when(io.jumpTypeIn === uncJumpType) {
-    io.flushIfOut := true.B
-  }.elsewhen(io.jumpTypeIn === condJumpType) {
-    io.flushIfOut := true.B
-  }.elsewhen(io.stallReqFromIDIn) {
+  // 2. when jump and load correlation genearte in one time
+  // load corrleation has higher priority, so io.stallReqFromIDIn is
+  // in the first check statement
+  when(io.stallReqFromIDIn) {
     io.flushIfOut := true.B
     io.flushIdOut := true.B
     io.stallIfOut := true.B
+    io.ifJumpOut  := false.B // a case: when branch inst is after a load/store inst
+  }.elsewhen(io.jumpTypeIn === uncJumpType || io.jumpTypeIn === condJumpType) {
+    io.flushIfOut := true.B
+    io.ifJumpOut  := true.B
   }.otherwise {}
 }
