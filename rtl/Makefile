@@ -80,8 +80,9 @@ cpuTestBuild:
 	$(MAKE) -C $(CPUTEST_HOME) ARCH=riscv64-mycpu
 
 ###### (am)am-tests target ######
+# now only test the rtl-time
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-nemu
+	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=t
 
 ###### demo test target ######
 demoTest:
