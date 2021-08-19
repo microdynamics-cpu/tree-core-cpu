@@ -18,6 +18,8 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
     val rdDataAOut: UInt = Output(UInt(BusWidth.W))
     val rdDataBOut: UInt = Output(UInt(BusWidth.W))
+
+    val charDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val regFile = Mem(RegNum, UInt(BusWidth.W))
@@ -36,6 +38,9 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     Mux(io.rdAddrBIn =/= 0.U, Mux(io.rdAddrBIn === io.wtAddrIn, wtData, regFile(io.rdAddrBIn)), 0.U),
     0.U
   )
+
+  // for custom inst output
+  io.charDataOut := regFile(10.U)
 
   printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
   printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")

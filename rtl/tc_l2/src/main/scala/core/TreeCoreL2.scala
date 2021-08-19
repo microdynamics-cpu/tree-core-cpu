@@ -151,9 +151,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.clock  := this.clock
     diffCommitState.io.coreid := 0.U
     diffCommitState.io.index  := 0.U
-    // skip the flush inst(nop) maybe the skip oper only
-    // diffCommitState.io.skip     := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))
-    diffCommitState.io.skip     := false.B
+    // skip the flush inst(nop) maybe the skip cust oper only
+    diffCommitState.io.skip     := Mux(diffCommitState.io.instr === 0x0000007b.U, true.B, false.B)
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
@@ -173,6 +172,14 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
     printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
     printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+    printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+    printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
+
+    // output custom putch oper for 0x7B
+    when(diffCommitState.io.instr === 0x0000007b.U) {
+      printf("custom inst ouput: %c\n", regFile.io.charDataOut)
+    }
+
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
     // printf("\n")

@@ -101,7 +101,9 @@ object InstDecoderStage {
     SB -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSBType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SH -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSHType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SW -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSWType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
-    SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType)
+    SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    // custom inst
+    CUST -> List(wtRegFalse, nopInstType, nopAluOperNumType, custInstType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
   )
 }
 
