@@ -73,9 +73,9 @@ class ALU extends Module with InstConfig {
     io.wtDataOut := res
   }
 
-  //@printf(p"[ex]io.exuOperTypeIn = 0x${Hexadecimal(io.exuOperTypeIn)}\n")
-  //@printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
-  //@printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
-  //@printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
-  //@printf("\n")
+  printf(p"[ex]io.exuOperTypeIn = 0x${Hexadecimal(io.exuOperTypeIn)}\n")
+  printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
+  printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
+  printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
+  // printf("\n")
 }

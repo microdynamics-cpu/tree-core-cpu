@@ -56,14 +56,6 @@ class IDToEX extends Module with InstConfig {
     lsuWtEnaReg       := io.lsuWtEnaIn
   }
 
-  // aluOperTypeReg := io.idAluOperTypeIn
-  // rsValAReg      := io.idRsValAIn
-  // rsValBReg      := io.idRsValBIn
-  // wtEnaReg       := io.idWtEnaIn
-  // wtAddrReg      := io.idWtAddrIn
-  // lsuFunc3Reg    := io.lsuFunc3In
-  // lsuWtEnaReg    := io.lsuWtEnaIn
-
   io.exAluOperTypeOut  := aluOperTypeReg
   io.exRsValAOut       := rsValAReg
   io.exRsValBOut       := rsValBReg
@@ -72,15 +64,15 @@ class IDToEX extends Module with InstConfig {
   io.lsuFunc3Out       := lsuFunc3Reg
   io.lsuWtEnaOut       := lsuWtEnaReg
   io.diffIdSkipInstOut := diffIdSkipInstReg
-  // //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
-  // //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
+  //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
+  //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
 
   //@printf(p"[id2ex]io.idWtEnaIn  = 0x${Hexadecimal(io.idWtEnaIn)}\n")
   //@printf(p"[id2ex]io.idWtAddrIn = 0x${Hexadecimal(io.idWtAddrIn)}\n")
 
   printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
   printf(p"[id2ex]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
-
+  printf("\n")
   //@printf(p"[id2ex]io.exWtEnaOut  = 0x${Hexadecimal(io.exWtEnaOut)}\n")
   //@printf(p"[id2ex]io.exWtAddrOut = 0x${Hexadecimal(io.exWtAddrOut)}\n")
 }
