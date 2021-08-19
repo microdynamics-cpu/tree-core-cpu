@@ -64,7 +64,8 @@ object ConstVal {
   val lsuSWType = 47.U(InstOperTypeLen.W)
   val lsuSDType = 48.U(InstOperTypeLen.W)
 
-  val aluNopType = 63.U(InstOperTypeLen.W)
+  val custInstType = 49.U(InstOperTypeLen.W)
+  val aluNopType   = 63.U(InstOperTypeLen.W)
 
   // jump type
   val JumpTypeLen  = 2

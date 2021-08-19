@@ -145,13 +145,13 @@ class MemoryAccessStage extends Module with InstConfig {
 
   printf(p"[ma] io.memOperTypeIn = 0x${Hexadecimal(io.memOperTypeIn)}\n")
   // printf(p"[ma] io.memValAIn = 0x${Hexadecimal(io.memValAIn)}\n")
-  printf(p"[ma] io.memValBIn = 0x${Hexadecimal(io.memValBIn)}\n")
+  // printf(p"[ma] io.memValBIn = 0x${Hexadecimal(io.memValBIn)}\n")
   // printf(p"[ma] io.memOffsetIn = 0x${Hexadecimal(io.memOffsetIn)}\n")
-  printf(p"[ma] io.memAddrOut = 0x${Hexadecimal(io.memAddrOut)}\n")
-  printf(p"[ma] io.memWtDataOut = 0x${Hexadecimal(io.memWtDataOut)}\n")
+  // printf(p"[ma] io.memAddrOut = 0x${Hexadecimal(io.memAddrOut)}\n")
+  // printf(p"[ma] io.memWtDataOut = 0x${Hexadecimal(io.memWtDataOut)}\n")
 
   printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
-  printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
-  printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
-  printf("\n")
+  // printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
+  // printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
+  // printf("\n")
 }

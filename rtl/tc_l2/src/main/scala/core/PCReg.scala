@@ -26,5 +26,8 @@ class PCReg extends Module with InstConfig {
   io.instEnaOut  := !this.reset.asBool()
 
   printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(io.instAddrOut)}\n")
+  printf(p"[pc]io.stallIfIn = 0x${Hexadecimal(io.stallIfIn)}\n")
+  printf(p"[pc]io.ifJumpIn = 0x${Hexadecimal(io.ifJumpIn)}\n")
+
   //@printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(io.instEnaOut)}\n")
 }

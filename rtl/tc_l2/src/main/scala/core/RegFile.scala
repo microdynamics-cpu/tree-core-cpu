@@ -18,6 +18,8 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
     val rdDataAOut: UInt = Output(UInt(BusWidth.W))
     val rdDataBOut: UInt = Output(UInt(BusWidth.W))
+
+    val charDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val regFile = Mem(RegNum, UInt(BusWidth.W))
@@ -37,19 +39,22 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     0.U
   )
 
-  //@printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
-  //@printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
+  // for custom inst output
+  io.charDataOut := regFile(10.U)
+
+  printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
+  printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
   //@printf(p"[regFile]io.rdEnaBIn = 0x${Hexadecimal(io.rdEnaBIn)}\n")
   //@printf(p"[regFile]io.rdAddrBIn = 0x${Hexadecimal(io.rdAddrBIn)}\n")
-  //@printf(p"[regFile]io.rdDataAOut = 0x${Hexadecimal(io.rdDataAOut)}\n")
+  printf(p"[regFile]io.wtAddrIn = 0x${Hexadecimal(io.wtAddrIn)}\n")
+  printf(p"[regFile]io.wtDataIn = 0x${Hexadecimal(io.wtDataIn)}\n")
+  printf(p"[regFile]io.rdDataAOut = 0x${Hexadecimal(io.rdDataAOut)}\n")
   //@printf(p"[regFile]io.rdDataBOut = 0x${Hexadecimal(io.rdDataBOut)}\n")
-  // protected val regFile = Mem(RegNum, UInt(BusWidth.W))
-  // TODO: need to solve the when rdAddr* === wtAddrIn(the forward circuit)
-  // io.rdDataAOut := Mux(io.rdEnaAIn && (io.rdAddrAIn =/= 0.U), regFile.read(io.rdAddrAIn), 0.U)
-  // io.rdDataBOut := Mux(io.rdEnaBIn && (io.rdAddrBIn =/= 0.U), regFile.read(io.rdAddrBIn), 0.U)
-  // regFile.write(io.wtAddrIn, Mux(io.wtEnaIn && (io.wtAddrIn =/= 0.U), io.wtData, regFile(io.wtAddrIn)))
 
-  //@printf(p"[regfile]regile(6) = 0x${Hexadecimal(regFile(6.U))}\n")
+  printf(p"[regfile]s0 = 0x${Hexadecimal(regFile(8.U))}\n")
+  printf(p"[regfile]s5 = 0x${Hexadecimal(regFile(21.U))}\n")
+  printf(p"[regfile]s9 = 0x${Hexadecimal(regFile(25.U))}\n")
+
   if (ifDiffTest) {
     val diffRegState: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     diffRegState.io.clock  := this.clock
