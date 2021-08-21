@@ -102,6 +102,8 @@ object InstDecoderStage {
     SH -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSHType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SW -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSWType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    // csr inst
+    CSRRS -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // custom inst
     CUST -> List(wtRegFalse, nopInstType, nopAluOperNumType, custInstType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
   )
@@ -148,6 +150,9 @@ class InstDecoderStage extends Module with InstConfig {
 
     // to control
     val stallReqFromIDOut: Bool = Output(Bool())
+
+    // to csr
+    val csrAddrOut: UInt = Output(UInt(CSRAddrLen.W))
   })
 
   protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
@@ -255,6 +260,12 @@ class InstDecoderStage extends Module with InstConfig {
     io.stallReqFromIDOut := true.B
   }.otherwise {
     io.stallReqFromIDOut := false.B
+  }
+
+  when(decodeRes(3) === csrRSType) {
+    io.csrAddrOut := io.instDataIn(31, 20)
+  }.otherwise {
+    io.csrAddrOut := 0.U
   }
 
   // printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
