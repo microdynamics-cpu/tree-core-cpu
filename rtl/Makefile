@@ -17,6 +17,9 @@ SIMPLETEST_HOME  := $(AM_FOLDER_PATH)/simple-tests
 RISCVTEST_HOME   := $(AM_FOLDER_PATH)/riscv-tests
 CPUTEST_HOME     := $(AM_KERNEL_PATH)/tests/cpu-tests
 AMTEST_HOME      := $(AM_KERNEL_PATH)/tests/am-tests
+COREMARK_HOME    := $(AM_KERNEL_PATH)/benchmarks/coremark
+DHRYSTONE_HOME   := $(AM_KERNEL_PATH)/benchmarks/dhrystone
+MICROBENCH_HOME  := $(AM_KERNEL_PATH)/benchmarks/microbench
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 
 AllTestCaseNum  := 0
@@ -83,6 +86,20 @@ cpuTestBuild:
 # now only test the rtl-time
 amTestBuild:
 	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=t
+
+###### (am)coremark target ######
+coremarkTestBuild:
+	$(MAKE) -C $(COREMARK_HOME) ARCH=riscv64-mycpu
+
+###### (am)dhrystone target ######
+dhrystoneTestBuild:
+	$(MAKE) -C $(DHRYSTONE_HOME) ARCH=riscv64-mycpu
+
+
+###### (am)microbench target ######
+microbenchTestBuild:
+	$(MAKE) -C $(MICROBENCH_HOME) ARCH=riscv64-mycpu mainargs=test
+
 
 ###### demo test target ######
 demoTest:
