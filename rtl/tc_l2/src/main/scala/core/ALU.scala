@@ -10,8 +10,13 @@ class ALU extends Module with InstConfig {
     val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
+    // from csr
+    val csrRdDataIn: UInt = Input(UInt(BusWidth.W))
 
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
+    // to csr
+    val csrwtEnaOut:  Bool = Output(Bool())
+    val csrWtDataOut: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val res: UInt = Wire(UInt(BusWidth.W))
@@ -53,7 +58,9 @@ class ALU extends Module with InstConfig {
       // special jal and jalr oper
       beuJALType  -> (io.rsValAIn + io.rsValBIn),
       beuJALRType -> (io.rsValAIn + io.rsValBIn),
-      aluNopType  -> (io.rsValAIn + io.rsValBIn)
+      aluNopType  -> (io.rsValAIn + io.rsValBIn),
+      // csr inst
+      csrRSType -> io.csrRdDataIn
     )
   )
 
@@ -73,9 +80,16 @@ class ALU extends Module with InstConfig {
     io.wtDataOut := res
   }
 
-  printf(p"[ex]io.exuOperTypeIn = 0x${Hexadecimal(io.exuOperTypeIn)}\n")
-  printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
-  printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
-  printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
+  when(io.exuOperTypeIn === csrRSType) {
+    io.csrwtEnaOut  := true.B
+    io.csrWtDataOut := io.wtDataOut | io.rsValAIn
+  }.otherwise {
+    io.csrwtEnaOut  := false.B
+    io.csrWtDataOut := 0.U
+  }
+  // printf(p"[ex]io.exuOperTypeIn = 0x${Hexadecimal(io.exuOperTypeIn)}\n")
+  // printf(p"[ex]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
+  // printf(p"[ex]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
+  // printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
   // printf("\n")
 }

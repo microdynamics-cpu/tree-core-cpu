@@ -20,6 +20,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     val rdDataBOut: UInt = Output(UInt(BusWidth.W))
 
     val charDataOut: UInt = Output(UInt(BusWidth.W))
+    val debugOut:    UInt = Output(UInt(BusWidth.W))
   })
 
   protected val regFile = Mem(RegNum, UInt(BusWidth.W))
@@ -41,19 +42,19 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   // for custom inst output
   io.charDataOut := regFile(10.U)
-
-  printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
-  printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
+  io.debugOut    := regFile(5.U)
+  // printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
+  // printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
   //@printf(p"[regFile]io.rdEnaBIn = 0x${Hexadecimal(io.rdEnaBIn)}\n")
   //@printf(p"[regFile]io.rdAddrBIn = 0x${Hexadecimal(io.rdAddrBIn)}\n")
-  printf(p"[regFile]io.wtAddrIn = 0x${Hexadecimal(io.wtAddrIn)}\n")
-  printf(p"[regFile]io.wtDataIn = 0x${Hexadecimal(io.wtDataIn)}\n")
-  printf(p"[regFile]io.rdDataAOut = 0x${Hexadecimal(io.rdDataAOut)}\n")
+  // printf(p"[regFile]io.wtAddrIn = 0x${Hexadecimal(io.wtAddrIn)}\n")
+  // printf(p"[regFile]io.wtDataIn = 0x${Hexadecimal(io.wtDataIn)}\n")
+  // printf(p"[regFile]io.rdDataAOut = 0x${Hexadecimal(io.rdDataAOut)}\n")
   //@printf(p"[regFile]io.rdDataBOut = 0x${Hexadecimal(io.rdDataBOut)}\n")
 
-  printf(p"[regfile]s0 = 0x${Hexadecimal(regFile(8.U))}\n")
-  printf(p"[regfile]s5 = 0x${Hexadecimal(regFile(21.U))}\n")
-  printf(p"[regfile]s9 = 0x${Hexadecimal(regFile(25.U))}\n")
+  // printf(p"[regfile]s0 = 0x${Hexadecimal(regFile(8.U))}\n")
+  // printf(p"[regfile]s5 = 0x${Hexadecimal(regFile(21.U))}\n")
+  // printf(p"[regfile]s9 = 0x${Hexadecimal(regFile(25.U))}\n")
 
   if (ifDiffTest) {
     val diffRegState: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
