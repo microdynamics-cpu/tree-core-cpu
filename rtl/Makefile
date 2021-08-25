@@ -15,6 +15,7 @@ export NOOP_HOME := $(ROOT_PATH)
 
 SIMPLETEST_HOME  := $(AM_FOLDER_PATH)/simple-tests
 RISCVTEST_HOME   := $(AM_FOLDER_PATH)/riscv-tests
+FCEMUX_HOME      := $(AM_FOLDER_PATH)/fceux-am
 CPUTEST_HOME     := $(AM_KERNEL_PATH)/tests/cpu-tests
 AMTEST_HOME      := $(AM_KERNEL_PATH)/tests/am-tests
 COREMARK_HOME    := $(AM_KERNEL_PATH)/benchmarks/coremark
@@ -100,6 +101,10 @@ dhrystoneTestBuild:
 microbenchTestBuild:
 	$(MAKE) -C $(MICROBENCH_HOME) ARCH=riscv64-mycpu mainargs=test
 
+
+###### (am)fcemux target ######
+fecmuxTestBuild:
+	$(MAKE) -C $(FCEMUX_HOME) ARCH=riscv64-mycpu mainargs=mario
 
 ###### demo test target ######
 demoTest:
