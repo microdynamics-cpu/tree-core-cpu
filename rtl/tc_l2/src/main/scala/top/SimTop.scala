@@ -37,10 +37,10 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   instRam.io.wmask         := DontCare
   treeCoreL2.io.instDataIn := Mux(treeCoreL2.io.instAddrOut(2), instRam.io.rdata(63, 32), instRam.io.rdata(31, 0))
 
-  // //@printf(p"[simtop]instRam.io.en = 0x${Hexadecimal(instRam.io.en)}\n")
-  // //@printf(p"[simtop]treeCoreL2.io.instAddrOut = 0x${Hexadecimal(treeCoreL2.io.instAddrOut)}\n")
-  // //@printf(p"[simtop]instRam.io.rIdx = 0x${Hexadecimal(instRam.io.rIdx)}\n")
-  // //@printf(p"[simtop]instRam.io.rdata = 0x${Hexadecimal(instRam.io.rdata)}\n")
+  // @printf(p"[simtop]instRam.io.en = 0x${Hexadecimal(instRam.io.en)}\n")
+  // @printf(p"[simtop]treeCoreL2.io.instAddrOut = 0x${Hexadecimal(treeCoreL2.io.instAddrOut)}\n")
+  // @printf(p"[simtop]instRam.io.rIdx = 0x${Hexadecimal(instRam.io.rIdx)}\n")
+  // @printf(p"[simtop]instRam.io.rdata = 0x${Hexadecimal(instRam.io.rdata)}\n")
 
   dataRam.io.clk            := this.clock
   dataRam.io.en             := !this.reset.asBool() && treeCoreL2.io.memValidOut
@@ -55,7 +55,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   io.uart.out.valid := false.B
   io.uart.out.ch    := 0.U
 
-  printf(p"[top] dataRam.io.wen = 0x${Hexadecimal(dataRam.io.wen)}\n")
+  // printf(p"[top] dataRam.io.wen = 0x${Hexadecimal(dataRam.io.wen)}\n")
 }
 
 object SimTop extends App {

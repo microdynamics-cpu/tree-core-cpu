@@ -30,6 +30,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   protected val ma2wbUnit   = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
+  protected val csrUnit     = Module(new CSRReg)
   //@printf(p"[TreeCoreL2]this.reset = ${Hexadecimal(this.reset.asBool())}\n\n\n")
 
   io.instAddrOut := pcUnit.io.instAddrOut
@@ -75,7 +76,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   execUnit.io.rsValBIn       := id2exUnit.io.exRsValBOut
   execUnit.io.rsValAFromIdIn := instDecoder.io.rsValAOut
   execUnit.io.rsValBFromIdIn := instDecoder.io.rsValBOut
-
+  execUnit.io.csrRdDataIn    := RegNext(csrUnit.io.rdDataOut) // TODO: need to refactor
   // ex to ma
   ex2maUnit.io.exDataIn   := execUnit.io.wtDataOut
   ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
@@ -143,6 +144,11 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
   pcUnit.io.stallIfIn             := controlUnit.io.stallIfOut
 
+  // csr
+  csrUnit.io.rdAddrIn := instDecoder.io.csrAddrOut
+  csrUnit.io.wtEnaIn  := execUnit.io.csrwtEnaOut
+  csrUnit.io.wtDataIn := execUnit.io.csrWtDataOut
+
   if (ifDiffTest) {
     // commit
     val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
@@ -152,7 +158,12 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.coreid := 0.U
     diffCommitState.io.index  := 0.U
     // skip the flush inst(nop) maybe the skip cust oper only
-    diffCommitState.io.skip     := Mux(diffCommitState.io.instr === 0x0000007b.U, true.B, false.B)
+    diffCommitState.io.skip := Mux(
+      diffCommitState.io.instr === 0x0000007b.U ||
+        RegNext(RegNext(RegNext(RegNext(csrUnit.io.ifNeedSkip)))),
+      true.B,
+      false.B
+    )
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
@@ -169,16 +180,19 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdata := RegNext(ma2wbUnit.io.wbDataOut)
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
+    // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+    // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
     // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
-    printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
+    // printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
 
     // output custom putch oper for 0x7B
     when(diffCommitState.io.instr === 0x0000007b.U) {
-      printf("custom inst ouput: %c\n", regFile.io.charDataOut)
+      printf("%c", regFile.io.charDataOut)
     }
+
+    // when(diffCommitState.io.skip) {
+    //   printf("t0: %d\n", regFile.io.debugOut)
+    // }
 
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")

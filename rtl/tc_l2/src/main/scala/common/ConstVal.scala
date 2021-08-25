@@ -7,6 +7,7 @@ object ConstVal {
   val EXUOperNumTypeLen = 3
   val wtDataSrcTypeLen  = 2
   val InstOperTypeLen   = 6
+  val CSRAddrLen        = 12
 
   // exu inst type
   val aluADDIType  = 0.U(InstOperTypeLen.W)
@@ -64,7 +65,9 @@ object ConstVal {
   val lsuSWType = 47.U(InstOperTypeLen.W)
   val lsuSDType = 48.U(InstOperTypeLen.W)
 
-  val custInstType = 49.U(InstOperTypeLen.W)
+  val csrRSType = 49.U(InstOperTypeLen.W)
+
+  val custInstType = 62.U(InstOperTypeLen.W)
   val aluNopType   = 63.U(InstOperTypeLen.W)
 
   // jump type
@@ -72,4 +75,7 @@ object ConstVal {
   val noJumpType   = 0.U(JumpTypeLen.W)
   val uncJumpType  = 1.U(JumpTypeLen.W)
   val condJumpType = 2.U(JumpTypeLen.W)
+
+  // csr addr
+  val mCycleAddr = 0xb00.U(CSRAddrLen.W)
 }

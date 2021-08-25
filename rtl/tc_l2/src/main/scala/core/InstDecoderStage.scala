@@ -102,6 +102,8 @@ object InstDecoderStage {
     SH -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSHType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SW -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSWType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
+    // csr inst
+    CSRRS -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // custom inst
     CUST -> List(wtRegFalse, nopInstType, nopAluOperNumType, custInstType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
   )
@@ -148,6 +150,9 @@ class InstDecoderStage extends Module with InstConfig {
 
     // to control
     val stallReqFromIDOut: Bool = Output(Bool())
+
+    // to csr
+    val csrAddrOut: UInt = Output(UInt(CSRAddrLen.W))
   })
 
   protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
@@ -257,19 +262,25 @@ class InstDecoderStage extends Module with InstConfig {
     io.stallReqFromIDOut := false.B
   }
 
-  printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
-  printf(p"[id]io.instAddrIn = 0x${Hexadecimal(io.instAddrIn)}\n")
+  when(decodeRes(3) === csrRSType) {
+    io.csrAddrOut := io.instDataIn(31, 20)
+  }.otherwise {
+    io.csrAddrOut := 0.U
+  }
 
-  printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
-  printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
-  printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
-  printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
+  // printf(p"[id]io.stallReqFromIDOut = 0x${Hexadecimal(io.stallReqFromIDOut)}\n")
+  // printf(p"[id]io.instAddrIn = 0x${Hexadecimal(io.instAddrIn)}\n")
+
+  // printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(io.rdEnaAOut)}\n")
+  // printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(io.rdAddrAOut)}\n")
+  // printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(io.rdEnaBOut)}\n")
+  // printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(io.rdAddrBOut)}\n")
 
   // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(io.exuOperTypeOut)}\n")
   // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
   //@printf(p"[id]io.rsValAOut = 0x${Hexadecimal(io.rsValAOut)}\n")
   //@printf(p"[id]io.rsValBOut = 0x${Hexadecimal(io.rsValBOut)}\n")
 
-  printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
-  printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
+  // printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
+  // printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
 }
