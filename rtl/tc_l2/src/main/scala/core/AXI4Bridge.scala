@@ -60,157 +60,157 @@ object AXI4Bridge {
 
 class AXI4Bridge extends Module with InstConfig {
   val io = IO(new Bundle {
-    val rw_valid_i:   Bool = Input(Bool())
-    val rw_req_i:     Bool = Input(Bool())
-    val data_write_i: UInt = Input(UInt(BusWidth.W))
-    val rw_addr_i:    UInt = Input(UInt(AxiDataWidth.W))
-    val rw_size_i:    UInt = Input(UInt(AxiSizeLen.W))
+    val rwValidIn: Bool = Input(Bool())
+    val rwReqIn:   Bool = Input(Bool())
+    val wtDataIn:  UInt = Input(UInt(BusWidth.W))
+    val rwAddrIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val rwSizeIn:  UInt = Input(UInt(AxiSizeLen.W))
 
-    val rw_ready_o:  Bool = Output(Bool())
-    val data_read_o: UInt = Output(UInt(BusWidth.W))
-    val rw_resp_o:   UInt = Output(UInt(AxiRespLen.W))
+    val rwReadyOut: Bool = Output(Bool())
+    val rdDataOut:  UInt = Output(UInt(BusWidth.W))
+    val rwRespOut:  UInt = Output(UInt(AxiRespLen.W))
 
     // write addr
-    val axi_aw_ready_i: Bool = Input(Bool())
+    val axiAwReadyIn: Bool = Input(Bool())
 
-    val axi_aw_valid_o:  Bool = Output(Bool())
-    val axi_aw_addr_o:   UInt = Output(UInt(AxiAddrWidth.W))
-    val axi_aw_prot_o:   UInt = Output(UInt(AxiProtLen.W))
-    val axi_aw_id_o:     UInt = Output(UInt(AxiIdLen.W))
-    val axi_aw_user_o:   UInt = Output(UInt(AxiUserLen.W))
-    val axi_aw_len_o:    UInt = Output(UInt(8.W))
-    val axi_aw_size_o:   UInt = Output(UInt(3.W))
-    val axi_aw_burst_o:  UInt = Output(UInt(2.W))
-    val axi_aw_lock_o:   Bool = Output(Bool())
-    val axi_aw_cache_o:  UInt = Output(UInt(4.W))
-    val axi_aw_qos_o:    UInt = Output(UInt(4.W))
-    val axi_aw_region_o: UInt = Output(UInt(4.W))
+    val axiAwValidOut:  Bool = Output(Bool())
+    val axiAwAddrOut:   UInt = Output(UInt(AxiAddrWidth.W))
+    val axiAwProtOut:   UInt = Output(UInt(AxiProtLen.W))
+    val axiAwIdOut:     UInt = Output(UInt(AxiIdLen.W))
+    val axiAwUserOut:   UInt = Output(UInt(AxiUserLen.W))
+    val axiAwLenOut:    UInt = Output(UInt(8.W))
+    val axiAwSizeOut:   UInt = Output(UInt(3.W))
+    val axiAwBurstOut:  UInt = Output(UInt(2.W))
+    val axiAwLockOut:   Bool = Output(Bool())
+    val axiAwCacheOut:  UInt = Output(UInt(4.W))
+    val axiAwQosOut:    UInt = Output(UInt(4.W))
+    val axiAwRegionOut: UInt = Output(UInt(4.W))
 
     // write data
-    val axi_w_ready_i: Bool = Input(Bool())
+    val axiWtReadyIn: Bool = Input(Bool())
 
-    val axi_w_valid_o: Bool = Output(Bool())
-    val axi_w_data_o:  UInt = Output(UInt(AxiDataWidth.W))
-    val axi_w_strb_o:  UInt = Output(UInt((AxiDataWidth / 8).W))
-    val axi_w_last_o:  Bool = Output(Bool())
-    val axi_w_user_o:  UInt = Output(UInt(AxiUserLen.W))
+    val axiWtValidOut: Bool = Output(Bool())
+    val axiWtDataOut:  UInt = Output(UInt(AxiDataWidth.W))
+    val axiWtStrbOut:  UInt = Output(UInt((AxiDataWidth / 8).W))
+    val axiWtLastOut:  Bool = Output(Bool())
+    val axiWtUserOut:  UInt = Output(UInt(AxiUserLen.W))
 
     // write resp
-    val axi_b_valid_i: Bool = Input(Bool())
-    val axi_b_resp_i:  UInt = Input(UInt(AxiRespLen.W))
-    val axi_b_id_i:    UInt = Input(UInt(AxiIdLen.W))
-    val axi_b_user_i:  UInt = Input(UInt(AxiUserLen.W))
+    val axiWtbValidIn: Bool = Input(Bool())
+    val axiWtbRespIn:  UInt = Input(UInt(AxiRespLen.W))
+    val axWtbIdIn:     UInt = Input(UInt(AxiIdLen.W))
+    val axiWtbUserIn:  UInt = Input(UInt(AxiUserLen.W))
 
-    val axi_b_ready_o: Bool = Output(Bool())
+    val axiWtbReadyOut: Bool = Output(Bool())
 
     // read addr
-    val axi_ar_ready_i: Bool = Input(Bool())
+    val axiArReadyIn: Bool = Input(Bool())
 
-    val axi_ar_valid_o:  Bool = Output(Bool())
-    val axi_ar_addr_o:   UInt = Output(UInt(AxiAddrWidth.W))
-    val axi_ar_prot_o:   UInt = Output(UInt(AxiProtLen.W))
-    val axi_ar_id_o:     UInt = Output(UInt(AxiIdLen.W))
-    val axi_ar_user_o:   UInt = Output(UInt(AxiUserLen.W))
-    val axi_ar_len_o:    UInt = Output(UInt(8.W))
-    val axi_ar_size_o:   UInt = Output(UInt(3.W))
-    val axi_ar_burst_o:  UInt = Output(UInt(2.W))
-    val axi_ar_lock_o:   Bool = Output(Bool())
-    val axi_ar_cache_o:  UInt = Output(UInt(4.W))
-    val axi_ar_qos_o:    UInt = Output(UInt(4.W))
-    val axi_ar_region_o: UInt = Output(UInt(4.W))
+    val axiArValidOut:  Bool = Output(Bool())
+    val axiArAddrOut:   UInt = Output(UInt(AxiAddrWidth.W))
+    val axiArProtOut:   UInt = Output(UInt(AxiProtLen.W))
+    val axiArIdOut:     UInt = Output(UInt(AxiIdLen.W))
+    val axiArUserOut:   UInt = Output(UInt(AxiUserLen.W))
+    val axiArLenOut:    UInt = Output(UInt(8.W))
+    val axiArSizeOut:   UInt = Output(UInt(3.W))
+    val axiArBurstOut:  UInt = Output(UInt(2.W))
+    val axiArLockOut:   Bool = Output(Bool())
+    val axiArCacheOut:  UInt = Output(UInt(4.W))
+    val axiArQosOut:    UInt = Output(UInt(4.W))
+    val axiArRegionOut: UInt = Output(UInt(4.W))
 
     // read data
-    val axi_r_valid_i: Bool = Input(Bool())
-    val axi_r_resp_i:  UInt = Input(UInt(AxiRespLen.W))
-    val axi_r_data_i:  UInt = Input(UInt(AxiDataWidth.W))
-    val axi_r_last_i:  Bool = Input(Bool())
-    val axi_r_id_i:    UInt = Input(UInt(AxiIdLen.W))
-    val axi_r_user_i:  UInt = Input(UInt(AxiUserLen.W))
+    val axiRdValidIn: Bool = Input(Bool())
+    val axiRdRespIn:  UInt = Input(UInt(AxiRespLen.W))
+    val axiRdDataIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val axiRdLastIn:  Bool = Input(Bool())
+    val axiRdIdIn:    UInt = Input(UInt(AxiIdLen.W))
+    val axiRdUserIn:  UInt = Input(UInt(AxiUserLen.W))
 
-    val axi_r_ready_o: Bool = Output(Bool())
+    val axiRdReadyOut: Bool = Output(Bool())
   })
 
-  protected val w_trans = WireDefault(io.rw_req_i === AxiReqWt.U)
-  protected val r_trans = WireDefault(io.rw_req_i === AxiReqRd.U)
-  protected val w_valid = WireDefault(io.rw_valid_i & w_trans)
-  protected val r_valid = WireDefault(io.rw_valid_i & r_trans)
+  protected val wtTrans = WireDefault(io.rwReqIn === AxiReqWt.U)
+  protected val rdTrans = WireDefault(io.rwReqIn === AxiReqRd.U)
+  protected val wtValid = WireDefault(io.rwValidIn && wtTrans)
+  protected val rdValid = WireDefault(io.rwValidIn && rdTrans)
 
   // handshake
-  protected val aw_hs = WireDefault(io.axi_aw_ready_i & io.axi_aw_valid_o)
-  protected val w_hs  = WireDefault(io.axi_w_ready_i & io.axi_w_valid_o)
-  protected val b_hs  = WireDefault(io.axi_b_ready_o & io.axi_b_valid_i)
-  protected val ar_hs = WireDefault(io.axi_ar_ready_i & io.axi_ar_valid_o)
-  protected val r_hs  = WireDefault(io.axi_r_ready_o & io.axi_r_valid_i)
+  protected val awHdShk  = WireDefault(io.axiAwReadyIn && io.axiAwValidOut)
+  protected val wtHdShk  = WireDefault(io.axiWtReadyIn && io.axiWtValidOut)
+  protected val wtbHdShk = WireDefault(io.axiWtbReadyOut && io.axiWtbValidIn)
+  protected val arHdShk  = WireDefault(io.axiArReadyIn && io.axiArValidOut)
+  protected val rdHdShk  = WireDefault(io.axiRdReadyOut && io.axiRdValidIn)
 
-  protected val w_done     = WireDefault(w_hs & io.axi_w_last_o)
-  protected val r_done     = WireDefault(r_hs & io.axi_r_last_i)
-  protected val trans_done = Mux(w_trans, b_hs, r_done)
+  protected val wtDone    = WireDefault(wtHdShk & io.axiWtLastOut)
+  protected val rdDone    = WireDefault(rdHdShk & io.axiRdLastIn)
+  protected val transDone = Mux(wtTrans, wtbHdShk, rdDone)
 
   // FSM for read/write
-  protected val wtIDLE :: wtADDR :: wtWRITE :: wtRESP :: Nil = Enum(2)
-  protected val rdIDLE :: rdADDR :: rdREAD :: Nil            = Enum(2)
+  protected val fsmWtIDLE :: fsmWtADDR :: fsmWtWRITE :: fsmWtRESP :: Nil = Enum(2)
+  protected val fsmRdIDLE :: fsmRdADDR :: fsmRdREAD :: Nil               = Enum(2)
 
-  protected val wtStateReg = RegInit(wtIDLE)
-  protected val rdStateReg = RegInit(rdIDLE)
+  protected val wtStateReg = RegInit(fsmWtIDLE)
+  protected val rdStateReg = RegInit(fsmRdIDLE)
 
-  protected val w_state_idle  = WireDefault(wtStateReg === wtIDLE)
-  protected val r_state_idle  = WireDefault(rdStateReg === rdIDLE)
-  protected val w_state_addr  = WireDefault(wtStateReg === wtADDR)
-  protected val r_state_addr  = WireDefault(rdStateReg === rdADDR)
-  protected val w_state_write = WireDefault(wtStateReg === wtWRITE)
-  protected val w_state_resp  = WireDefault(wtStateReg === wtRESP)
-  protected val r_state_read  = WireDefault(rdStateReg === rdREAD)
+  protected val wtStateIdle  = WireDefault(wtStateReg === fsmWtIDLE)
+  protected val rdStateIdle  = WireDefault(rdStateReg === fsmRdIDLE)
+  protected val wtStateAddr  = WireDefault(wtStateReg === fsmWtADDR)
+  protected val rdStateAddr  = WireDefault(rdStateReg === fsmRdADDR)
+  protected val wtStateWrite = WireDefault(wtStateReg === fsmWtWRITE)
+  protected val wtStateResp  = WireDefault(wtStateReg === fsmWtRESP)
+  protected val rdStateRead  = WireDefault(rdStateReg === fsmRdREAD)
 
   switch(wtStateReg) {
-    is(wtIDLE) {
-      when(w_valid) {
-        wtStateReg := wtADDR
+    is(fsmWtIDLE) {
+      when(wtValid) {
+        wtStateReg := fsmWtADDR
       }
     }
-    is(wtADDR) {
-      when(w_valid && aw_hs) {
-        wtStateReg := wtWRITE
+    is(fsmWtADDR) {
+      when(wtValid && awHdShk) {
+        wtStateReg := fsmWtWRITE
       }
     }
-    is(wtWRITE) {
-      when(w_valid && w_done) {
-        wtStateReg := wtRESP
+    is(fsmWtWRITE) {
+      when(wtValid && wtDone) {
+        wtStateReg := fsmWtRESP
       }
     }
-    is(wtRESP) {
-      when(w_valid && b_hs) {
-        wtStateReg := wtIDLE
+    is(fsmWtRESP) {
+      when(wtValid && wtbHdShk) {
+        wtStateReg := fsmWtIDLE
       }
     }
   }
 
   switch(rdStateReg) {
-    is(rdIDLE) {
-      when(r_valid) {
-        rdStateReg := rdADDR
+    is(fsmRdIDLE) {
+      when(rdValid) {
+        rdStateReg := fsmRdADDR
       }
     }
-    is(rdADDR) {
-      when(r_valid && ar_hs) {
-        rdStateReg := rdREAD
+    is(fsmRdADDR) {
+      when(rdValid && arHdShk) {
+        rdStateReg := fsmRdREAD
       }
     }
-    is(rdREAD) {
-      when(r_valid && r_done) {
-        rdStateReg := rdIDLE
+    is(fsmRdREAD) {
+      when(rdValid && rdDone) {
+        rdStateReg := fsmRdIDLE
       }
     }
   }
 
   // ------------------Number of transmission------------------
-  protected val len         = RegInit(0.U(8.W))
-  protected val len_reset   = WireDefault(this.reset.asBool() || (w_trans && w_state_idle) || (r_trans && r_state_idle))
-  protected val len_incr_en = WireDefault((len =/= axi_len) && (w_hs || r_hs))
+  protected val transLen        = RegInit(0.U(8.W))
+  protected val transLenReset   = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (rdTrans && rdStateIdle))
+  protected val transLenIncrEna = WireDefault((transLen =/= axiLen) && (wtHdShk || rdHdShk))
 
-  when(len_reset) {
-    len := 0.U;
-  }.elsewhen(len_incr_en) {
-    len := len + 1.U
+  when(transLenReset) {
+    transLen := 0.U;
+  }.elsewhen(transLenIncrEna) {
+    transLen := transLen + 1.U
   }
 
 // ------------------Process Data------------------
@@ -221,96 +221,96 @@ class AXI4Bridge extends Module with InstConfig {
   protected val TRANS_LEN     = BusWidth / AxiDataWidth
   protected val BLOCK_TRANS   = Mux((TRANS_LEN > 1).asBool(), true.B, false.B)
 
-  protected val aligned  = WireDefault(BLOCK_TRANS || io.rw_addr_i(ALIGNED_WIDTH - 1, 0) === 0.U)
-  protected val size_b   = WireDefault(io.rw_size_i === AXI4Bridge.SIZE_B)
-  protected val size_h   = WireDefault(io.rw_size_i === AXI4Bridge.SIZE_H)
-  protected val size_w   = WireDefault(io.rw_size_i === AXI4Bridge.SIZE_W)
-  protected val size_d   = WireDefault(io.rw_size_i === AXI4Bridge.SIZE_D)
-  protected val addr_op1 = WireDefault(Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.rw_addr_i(ALIGNED_WIDTH - 1, 0)))
-  protected val addr_op2 = WireDefault(
-    (Fill(4, size_b) & "b0".U(4.W))
-      | (Fill(4, size_h) & "b1".U(4.W))
-      | (Fill(4, size_w) & "b11".U(4.W))
-      | (Fill(4, size_d) & "b111".U(4.W))
+  protected val transAligned = WireDefault(BLOCK_TRANS || io.rwAddrIn(ALIGNED_WIDTH - 1, 0) === 0.U)
+  protected val sizeByte     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_B)
+  protected val sizeHalf     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_H)
+  protected val sizeWord     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_W)
+  protected val sizeDouble   = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_D)
+  protected val addrOpA      = WireDefault(Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)))
+  protected val addrOpB = WireDefault(
+    (Fill(4, sizeByte) & "b0".U(4.W))
+      | (Fill(4, sizeHalf) & "b1".U(4.W))
+      | (Fill(4, sizeWord) & "b11".U(4.W))
+      | (Fill(4, sizeDouble) & "b111".U(4.W))
   )
 
-  protected val addr_end = WireDefault(addr_op1 + addr_op2)
-  protected val overstep = WireDefault(addr_end(3, ALIGNED_WIDTH) =/= 0.U)
+  protected val addrEnd  = WireDefault(addrOpA + addrOpB)
+  protected val overstep = WireDefault(addrEnd(3, ALIGNED_WIDTH) =/= 0.U)
 
-  protected val axi_len  = Mux(aligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), overstep))
-  protected val axi_size = AXI_SIZE(2, 0);
+  protected val axiLen  = Mux(transAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), overstep))
+  protected val axiSize = AXI_SIZE(2, 0);
 
-  protected val axi_addr         = Cat(io.rw_addr_i(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
-  protected val aligned_offset_l = Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.rw_addr_i(ALIGNED_WIDTH - 1, 0)) << 3
-  protected val aligned_offset_h = BusWidth.U - aligned_offset_l
+  protected val axiAddr          = Cat(io.rwAddrIn(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
+  protected val alignedOffsetLow = Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)) << 3
+  protected val alignedOffsetHig = BusWidth.U - alignedOffsetLow
   protected val mask             = 0.U(AxiDataWidth.W)
   // protected val mask              = (
-  //                                   (Fill(MASK_WIDTH, size_b) & Cat(MASK_WIDTH.U - Fill(8,  "b0".U(1.W)), 8'hff))
-  //                                 | (Fill(MASK_WIDTH, size_h) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), 16'hffff))
-  //                                 | (Fill(MASK_WIDTH, size_w) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), 32'hffffffff))
-  //                                 | (Fill(MASK_WIDTH, size_d) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), 64'hffffffff_ffffffff))
-  //                                 ) << aligned_offset_l
+  //                                   (Fill(MASK_WIDTH, sizeByte) & Cat(MASK_WIDTH.U - Fill(8,  "b0".U(1.W)), 8'hff))
+  //                                 | (Fill(MASK_WIDTH, sizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), 16'hffff))
+  //                                 | (Fill(MASK_WIDTH, sizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), 32'hffffffff))
+  //                                 | (Fill(MASK_WIDTH, sizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), 64'hffffffff_ffffffff))
+  //                                 ) << alignedOffsetLow
 
-  protected val mask_l = mask(AxiDataWidth - 1, 0)
-  protected val mask_h = mask(MASK_WIDTH - 1, AxiDataWidth)
+  protected val maskLow = mask(AxiDataWidth - 1, 0)
+  protected val maskHig = mask(MASK_WIDTH - 1, AxiDataWidth)
 
-  protected val axi_id   = Fill(AxiIdLen, "b0".U(1.W))
-  protected val axi_user = Fill(AxiUserLen, "b0".U(1.W))
+  protected val axiId   = Fill(AxiIdLen, "b0".U(1.W))
+  protected val axiUser = Fill(AxiUserLen, "b0".U(1.W))
 
-  protected val rw_ready = RegInit(false.B)
+  protected val rwReady = RegInit(false.B)
 
-  protected val rw_ready_nxt = WireDefault(trans_done)
-  protected val rw_ready_en  = WireDefault(trans_done | rw_ready)
+  protected val rwReadyNxt = WireDefault(transDone)
+  protected val rwReadyEna = WireDefault(transDone | rwReady)
 
-  when(rw_ready_en) {
-    rw_ready := rw_ready_nxt
+  when(rwReadyEna) {
+    rwReady := rwReadyNxt
   }
-  io.rw_ready_o := rw_ready
+  io.rwReadyOut := rwReady
 
-  protected val rw_resp     = RegInit(0.U(2.W))
-  protected val rw_resp_nxt = Mux(w_trans, io.axi_b_resp_i, io.axi_r_resp_i)
-  protected val resp_en     = WireDefault(trans_done)
+  protected val rwResp    = RegInit(0.U(2.W))
+  protected val rwRespNxt = Mux(wtTrans, io.axiWtbRespIn, io.axiRdRespIn)
+  protected val respEna   = WireDefault(transDone)
 
-  when(resp_en) {
-    rw_resp := rw_resp_nxt
+  when(respEna) {
+    rwResp := rwRespNxt
   }
-  io.rw_resp_o := rw_resp
+  io.rwRespOut := rwResp
 
   // ------------------Write Transaction------------------
 
   // ------------------Read Transaction------------------
 
   // Read address channel signals
-  io.axi_ar_valid_o := r_state_addr
-  io.axi_ar_addr_o  := axi_addr
-  io.axi_ar_prot_o  := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axi_ar_id_o    := axi_id
-  io.axi_ar_user_o  := axi_user
-  io.axi_ar_len_o   := axi_len
-  io.axi_ar_size_o  := axi_size
-  io.axi_ar_burst_o := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axi_ar_lock_o  := "b0".U(1.W)
-  io.axi_ar_cache_o := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axi_ar_qos_o   := "h0".U(4.W)
+  io.axiArValidOut := rdStateAddr
+  io.axiArAddrOut  := axiAddr
+  io.axiArProtOut  := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+  io.axiArIdOut    := axiId
+  io.axiArUserOut  := axiUser
+  io.axiArLenOut   := axiLen
+  io.axiArSizeOut  := axiSize
+  io.axiArBurstOut := AXI4Bridge.AXI_BURST_TYPE_INCR
+  io.axiArLockOut  := "b0".U(1.W)
+  io.axiArCacheOut := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+  io.axiArQosOut   := "h0".U(4.W)
 
   // Read data channel signals
-  io.axi_r_ready_o := r_state_read
+  io.axiRdReadyOut := rdStateRead
 
-  protected val axi_r_data_l = WireDefault((io.axi_r_data_i & mask_l) >> aligned_offset_l)
-  protected val axi_r_data_h = WireDefault((io.axi_r_data_i & mask_h) << aligned_offset_h)
+  protected val axiRdDataLow = WireDefault((io.axiRdDataIn & maskLow) >> alignedOffsetLow)
+  protected val axiRdDataHig = WireDefault((io.axiRdDataIn & maskHig) << alignedOffsetHig)
 
   protected val dataReadReg = RegInit(0.U(AxiDataWidth.W))
-  io.data_read_o := dataReadReg
+  io.rdDataOut := dataReadReg
   for (i <- 0 until TRANS_LEN) {
-    when(io.axi_r_ready_o && io.axi_r_valid_i) {
-      when(~aligned && overstep) {
-        when(len(0) =/= 0.U) {
-          io.data_read_o(AxiDataWidth - 1, 0) := io.data_read_o(AxiDataWidth - 1, 0) | axi_r_data_h
+    when(io.axiRdReadyOut && io.axiRdValidIn) {
+      when(~transAligned && overstep) {
+        when(transLen(0) =/= 0.U) {
+          io.rdDataOut(AxiDataWidth - 1, 0) := io.rdDataOut(AxiDataWidth - 1, 0) | axiRdDataHig
         }.otherwise {
-          io.data_read_o(AxiDataWidth - 1, 0) := axi_r_data_l
+          io.rdDataOut(AxiDataWidth - 1, 0) := axiRdDataLow
         }
-      }.elsewhen(len === i.U) {
-        io.data_read_o((i + 1) * AxiDataWidth, i * AxiDataWidth) := axi_r_data_l
+      }.elsewhen(transLen === i.U) {
+        io.rdDataOut((i + 1) * AxiDataWidth, i * AxiDataWidth) := axiRdDataLow
       }
     }
   }
