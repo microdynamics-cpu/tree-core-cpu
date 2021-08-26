@@ -22,6 +22,7 @@ COREMARK_HOME    := $(AM_KERNEL_PATH)/benchmarks/coremark
 DHRYSTONE_HOME   := $(AM_KERNEL_PATH)/benchmarks/dhrystone
 MICROBENCH_HOME  := $(AM_KERNEL_PATH)/benchmarks/microbench
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
+DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
 
 AllTestCaseNum  := 0
 PassTestCaseNum := 0
@@ -65,6 +66,12 @@ checkformat:
 ###### NEMU target ######
 nemuBuild:
 	$(MAKE) -C $(NEMU_HOME)
+
+###### DRAMsim3 target ######
+dramsim3Build:
+	mkdir -p $(DRAMSIM3_HOME)/build
+	cd $(DRAMSIM3_HOME)/build && cmake -D COSIM=1 ..
+	$(MAKE) -C $(DRAMSIM3_HOME)/build
 
 ###### difftest target ######
 difftestBuild:
