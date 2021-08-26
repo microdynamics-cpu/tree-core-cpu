@@ -15,7 +15,7 @@ AM_KERNELS_FOLDER_PATH=${AM_FOLDER_PATH}"/am-kernels"
 
 DIFFTEST_FOLDER_PATH=${ROOT_PATH}"/difftest"
 NEMU_FOLDER_PATH=${ROOT_PATH}"/NEMU"
-
+DRAMSIM3_FOLDER_PATH=${ROOT_PATH}"/DRAMsim3"
 
 # download the am repo from the github
 ###### abstract-machine ######
@@ -113,7 +113,7 @@ configDiffTest() {
     fi
 
     cd ${DIFFTEST_FOLDER_PATH}
-    git checkout 086c891828d1f8a1a2738c90e0b10c1f98cc61e0
+    git checkout 0d666c3ef08190cc7cebab753c1b3b8709c4418c
     # change the ram size from 8G to 256MB
     sed -i 's/^\/\/\s\+\(#define\s\+EMU_RAM_SIZE\s\+(256\)/\1/' src/test/csrc/common/ram.h
     sed -i 's/^#define\s\+EMU_RAM_SIZE\s\+(8/\/\/ &/' src/test/csrc/common/ram.h
@@ -136,7 +136,7 @@ configNemu() {
     fi
 
     cd ${NEMU_FOLDER_PATH}
-    git checkout 1e6883d271e48d2412bc46af852a093d7a7fdde7
+    git checkout b5375505a157ae8bd0d945ffbc90915727133a43
 
     if [[ -z $NEMU_HOME ]]; then
         echo -e "${INFO}NEMU_HOME is empty, set NEMU_HOME...${END}"
@@ -163,6 +163,28 @@ configNemu() {
     cd ${ROOT_PATH}
 }
 
+# the commit id is same as the https://github.com/OSCPU/oscpu-framework.git
+###### dramsim3 ######
+configDramSim3() {
+    cd ${ROOT_PATH}
+
+    if [[ -d ${DRAMSIM3_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}dramsim3 exist!${END}"
+        # if git fsck --full != 0; then
+        #     echo "[download error]: remove the dir and git clone"
+        #     rm -rf am-kernels
+        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
+        # fi
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+        git clone https://github.com/OpenXiangShan/DRAMsim3.git
+    fi
+
+    cd ${DRAMSIM3_FOLDER_PATH}
+    git checkout 5723f6b1cc157ac2d7b4154b50fd1799c9cf54aa
+    cd ${ROOT_PATH}
+}
+
 helpInfo() {
     echo -e "${INFO}Usage: setup.sh [-a][-n][-d][-m][-r][-k][-s repo][-h]${END}"
     echo -e "Description - set up the build env of the treecore riscv processor"
@@ -186,10 +208,13 @@ configSpecRepo() {
         configAMKernels
         configDiffTest
         configNemu
+        configDramSim3
     elif [[ -n $1 && $1 == "nemu" ]]; then
         configNemu
     elif [[ -n $1 && $1 == "difftest" ]]; then
         configDiffTest
+    elif [[ -n $1 && $1 == "dramsim3" ]]; then
+        configDramSim3
     elif [[ -n $1 && $1 == "am" ]]; then
         configAbstractMachine
     elif [[ -n $1 && $1 == "riscv-tests" ]]; then
@@ -202,11 +227,12 @@ configSpecRepo() {
 }
 
 # Check parameters
-while getopts 'andmrks:h' OPT; do
+while getopts 'andimrks:h' OPT; do
     case $OPT in
         a) configSpecRepo "all";;
         n) configNemu;;
         d) configDiffTest;;
+        i) configDramSim3;;
         m) configAbstractMachine;;
         r) configRiscvTests;;
         k) configAMKernels;;
