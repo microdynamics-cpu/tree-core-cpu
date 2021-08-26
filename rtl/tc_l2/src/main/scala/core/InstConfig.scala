@@ -13,6 +13,8 @@ trait InstConfig {
   val AxiProtLen   = 3
   val AxiIdLen     = 4
   val AxiUserLen   = 1
+  val AxiReqRd     = 0
+  val AxiReqWt     = 1
   val InstCacheLen = 128
 
   val RegAddrLen = 5
