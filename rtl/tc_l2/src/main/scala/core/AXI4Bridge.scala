@@ -142,8 +142,8 @@ class AXI4Bridge extends Module with InstConfig {
   protected val arHdShk  = WireDefault(io.axiArReadyIn && io.axiArValidOut)
   protected val rdHdShk  = WireDefault(io.axiRdReadyOut && io.axiRdValidIn)
 
-  protected val wtDone    = WireDefault(wtHdShk & io.axiWtLastOut)
-  protected val rdDone    = WireDefault(rdHdShk & io.axiRdLastIn)
+  protected val wtDone    = WireDefault(wtHdShk && io.axiWtLastOut)
+  protected val rdDone    = WireDefault(rdHdShk && io.axiRdLastIn)
   protected val transDone = Mux(wtTrans, wtbHdShk, rdDone)
 
   // FSM for read/write
@@ -221,12 +221,15 @@ class AXI4Bridge extends Module with InstConfig {
   protected val TRANS_LEN     = BusWidth / AxiDataWidth
   protected val BLOCK_TRANS   = Mux((TRANS_LEN > 1).asBool(), true.B, false.B)
 
+  // no-aligned visit
   protected val transAligned = WireDefault(BLOCK_TRANS || io.rwAddrIn(ALIGNED_WIDTH - 1, 0) === 0.U)
   protected val sizeByte     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_B)
   protected val sizeHalf     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_H)
   protected val sizeWord     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_W)
   protected val sizeDouble   = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_D)
+  // 0100 + xxx
   protected val addrOpA      = WireDefault(Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)))
+  // 1111 & 0011
   protected val addrOpB = WireDefault(
     (Fill(4, sizeByte) & "b0".U(4.W))
       | (Fill(4, sizeHalf) & "b1".U(4.W))
@@ -238,18 +241,19 @@ class AXI4Bridge extends Module with InstConfig {
   protected val overstep = WireDefault(addrEnd(3, ALIGNED_WIDTH) =/= 0.U)
 
   protected val axiLen  = Mux(transAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), overstep))
+  // TODO: bug?
   protected val axiSize = AXI_SIZE(2, 0);
 
   protected val axiAddr          = Cat(io.rwAddrIn(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val alignedOffsetLow = Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)) << 3
   protected val alignedOffsetHig = BusWidth.U - alignedOffsetLow
-  protected val mask             = 0.U(AxiDataWidth.W)
-  // protected val mask              = (
-  //                                   (Fill(MASK_WIDTH, sizeByte) & Cat(MASK_WIDTH.U - Fill(8,  "b0".U(1.W)), 8'hff))
-  //                                 | (Fill(MASK_WIDTH, sizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), 16'hffff))
-  //                                 | (Fill(MASK_WIDTH, sizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), 32'hffffffff))
-  //                                 | (Fill(MASK_WIDTH, sizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), 64'hffffffff_ffffffff))
-  //                                 ) << alignedOffsetLow
+  // protected val mask             = 0.U(AxiDataWidth.W)
+  protected val mask              = (
+                                    (Fill(MASK_WIDTH, sizeByte) & Cat(MASK_WIDTH.U - Fill(8,  "b0".U(1.W)), 8'hff))
+                                  | (Fill(MASK_WIDTH, sizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), 16'hffff))
+                                  | (Fill(MASK_WIDTH, sizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), 32'hffffffff))
+                                  | (Fill(MASK_WIDTH, sizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), 64'hffffffff_ffffffff))
+                                  ) << alignedOffsetLow
 
   protected val maskLow = mask(AxiDataWidth - 1, 0)
   protected val maskHig = mask(MASK_WIDTH - 1, AxiDataWidth)
@@ -260,7 +264,7 @@ class AXI4Bridge extends Module with InstConfig {
   protected val rwReady = RegInit(false.B)
 
   protected val rwReadyNxt = WireDefault(transDone)
-  protected val rwReadyEna = WireDefault(transDone | rwReady)
+  protected val rwReadyEna = WireDefault(transDone || rwReady)
 
   when(rwReadyEna) {
     rwReady := rwReadyNxt
