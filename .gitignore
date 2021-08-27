@@ -8,3 +8,5 @@ am
 NEMU
 difftest
 DRAMsim3
+dramsim3.json
+dramsim3.txt
