@@ -9,10 +9,6 @@ AM_FOLDER_PATH   := $(ROOT_PATH)/am
 AM_KERNEL_PATH   := $(AM_FOLDER_PATH)/am-kernels
 VERSION_ID       := riscv64-nemu
 
-export AM_HOME   := $(AM_FOLDER_PATH)/abstract-machine
-export NEMU_HOME := $(ROOT_PATH)/NEMU
-export NOOP_HOME := $(ROOT_PATH)
-
 SIMPLETEST_HOME  := $(AM_FOLDER_PATH)/simple-tests
 RISCVTEST_HOME   := $(AM_FOLDER_PATH)/riscv-tests
 FCEMUX_HOME      := $(AM_FOLDER_PATH)/fceux-am
@@ -22,6 +18,12 @@ COREMARK_HOME    := $(AM_KERNEL_PATH)/benchmarks/coremark
 DHRYSTONE_HOME   := $(AM_KERNEL_PATH)/benchmarks/dhrystone
 MICROBENCH_HOME  := $(AM_KERNEL_PATH)/benchmarks/microbench
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
+DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
+
+export AM_HOME       := $(AM_FOLDER_PATH)/abstract-machine
+export NEMU_HOME     := $(ROOT_PATH)/NEMU
+export NOOP_HOME     := $(ROOT_PATH)
+export DRAMSIM3_HOME := $(DRAMSIM3_HOME)
 
 AllTestCaseNum  := 0
 PassTestCaseNum := 0
@@ -66,9 +68,16 @@ checkformat:
 nemuBuild:
 	$(MAKE) -C $(NEMU_HOME)
 
+###### DRAMsim3 target ######
+dramsim3Build:
+	mkdir -p $(DRAMSIM3_HOME)/build
+	cd $(DRAMSIM3_HOME)/build && cmake -D COSIM=1 ..
+	$(MAKE) -C $(DRAMSIM3_HOME)/build
+
 ###### difftest target ######
+# if want to use the RamHelper, need to remove the 'WITH_DRAMSIM3=1'
 difftestBuild:
-	$(MAKE) -C $(DIFFTEST_HOME)
+	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
 
 diffAllBuild: diffBuild difftestBuild
 
