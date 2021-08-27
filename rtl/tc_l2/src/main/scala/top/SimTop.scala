@@ -85,7 +85,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   })
 
   protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge())
-  io.memAXI_0_aw_ready      := axiBridge.io.axiAwReadyIn
+  axiBridge.io.axiAwReadyIn := io.memAXI_0_aw_ready
   io.memAXI_0_aw_valid      := axiBridge.io.axiAwValidOut
   io.memAXI_0_aw_bits_addr  := axiBridge.io.axiAwAddrOut
   io.memAXI_0_aw_bits_prot  := axiBridge.io.axiAwProtOut
@@ -98,40 +98,45 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   io.memAXI_0_aw_bits_cache := axiBridge.io.axiAwCacheOut
   io.memAXI_0_aw_bits_qos   := axiBridge.io.axiAwQosOut
 
-  io.memAXI_0_w_ready     := axiBridge.io.axiWtReadyIn
-  io.memAXI_0_w_valid     := axiBridge.io.axiWtValidOut
-  io.memAXI_0_w_bits_data := axiBridge.io.axiWtDataOut
-  io.memAXI_0_w_bits_strb := axiBridge.io.axiWtStrbOut
-  io.memAXI_0_w_bits_last := axiBridge.io.axiWtLastOut
+  axiBridge.io.axiWtReadyIn := io.memAXI_0_w_ready
+  io.memAXI_0_w_valid       := axiBridge.io.axiWtValidOut
+  io.memAXI_0_w_bits_data   := axiBridge.io.axiWtDataOut
+  io.memAXI_0_w_bits_strb   := axiBridge.io.axiWtStrbOut
+  io.memAXI_0_w_bits_last   := axiBridge.io.axiWtLastOut
 
-  io.memAXI_0_b_valid     := axiBridge.io.axiWtbValidIn
-  io.memAXI_0_b_bits_resp := axiBridge.io.axiWtbRespIn
-  io.memAXI_0_b_bits_id   := axiBridge.io.axWtbIdIn
-  io.memAXI_0_b_bits_user := axiBridge.io.axiWtbUserIn
-  io.memAXI_0_b_ready     := axiBridge.io.axiWtbReadyOut
+  axiBridge.io.axiWtbValidIn := io.memAXI_0_b_valid
+  axiBridge.io.axiWtbRespIn  := io.memAXI_0_b_bits_resp
+  axiBridge.io.axWtbIdIn     := io.memAXI_0_b_bits_id
+  axiBridge.io.axiWtbUserIn  := io.memAXI_0_b_bits_user
+  io.memAXI_0_b_ready        := axiBridge.io.axiWtbReadyOut
 
-  io.memAXI_0_ar_ready     := axiBridge.io.axiArReadyIn
-  io.memAXI_0_ar_valid     := axiBridge.io.axiArValidOut
-  io.memAXI_0_ar_bits_addr := axiBridge.io.axiArAddrOut
-  io.memAXI_0_ar_bits_prot := axiBridge.io.axiArProtOut
-  io.memAXI_0_ar_bits_id   := axiBridge.io.axiArIdOut
-  io.memAXI_0_ar_bits_user := axiBridge.io.axiArUserOut
-  io.memAXI_0_ar_bits_len  := axiBridge.io.axiArLenOut
-  io.memAXI_0_ar_bits_size := axiBridge.io.axiArSizeOut
-  io.memAXI_0_ar_bits_burst:= axiBridge.io.axiArBurstOut
-  io.memAXI_0_ar_bits_lock := axiBridge.io.axiArLockOut
-  io.memAXI_0_ar_bits_cache:= axiBridge.io.axiArCacheOut
-  io.memAXI_0_ar_bits_qos  := axiBridge.io.axiArQosOut
+  axiBridge.io.axiArReadyIn := io.memAXI_0_ar_ready
+  io.memAXI_0_ar_valid      := axiBridge.io.axiArValidOut
+  io.memAXI_0_ar_bits_addr  := axiBridge.io.axiArAddrOut
+  io.memAXI_0_ar_bits_prot  := axiBridge.io.axiArProtOut
+  io.memAXI_0_ar_bits_id    := axiBridge.io.axiArIdOut
+  io.memAXI_0_ar_bits_user  := axiBridge.io.axiArUserOut
+  io.memAXI_0_ar_bits_len   := axiBridge.io.axiArLenOut
+  io.memAXI_0_ar_bits_size  := axiBridge.io.axiArSizeOut
+  io.memAXI_0_ar_bits_burst := axiBridge.io.axiArBurstOut
+  io.memAXI_0_ar_bits_lock  := axiBridge.io.axiArLockOut
+  io.memAXI_0_ar_bits_cache := axiBridge.io.axiArCacheOut
+  io.memAXI_0_ar_bits_qos   := axiBridge.io.axiArQosOut
 
-  io.memAXI_0_r_valid     := axiBridge.io.axiRdValidIn
-  io.memAXI_0_r_bits_resp := axiBridge.io.axiRdRespIn
-  io.memAXI_0_r_bits_data := axiBridge.io.axiRdDataIn
-  io.memAXI_0_r_bits_last := axiBridge.io.axiRdLastIn
-  io.memAXI_0_r_bits_id   := axiBridge.io.axiRdIdIn
-  io.memAXI_0_r_bits_use  := axiBridge.io.axiRdUserIn
-  io.memAXI_0_r_ready     := axiBridge.io.axiRdReadyOut
+  axiBridge.io.axiRdValidIn := io.memAXI_0_r_valid
+  axiBridge.io.axiRdRespIn  := io.memAXI_0_r_bits_resp
+  axiBridge.io.axiRdDataIn  := io.memAXI_0_r_bits_data
+  axiBridge.io.axiRdLastIn  := io.memAXI_0_r_bits_last
+  axiBridge.io.axiRdIdIn    := io.memAXI_0_r_bits_id
+  axiBridge.io.axiRdUserIn  := io.memAXI_0_r_bits_use
+  io.memAXI_0_r_ready       := axiBridge.io.axiRdReadyOut
 
-
+  // tmp
+  axiBridge.io.rwValidIn := DontCare
+  axiBridge.io.rwReqIn   := DontCare
+  axiBridge.io.wtDataIn  := DontCare
+  axiBridge.io.rwAddrIn  := DontCare
+  axiBridge.io.rwSizeIn  := DontCare
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
   protected val instRam: RAMHelper = Module(new RAMHelper())
