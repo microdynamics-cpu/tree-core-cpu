@@ -52,16 +52,17 @@ object AXI4Bridge {
   protected val AXI_SIZE_BYTES_64  = "b110".U(3.W)
   protected val AXI_SIZE_BYTES_128 = "b111".U(3.W)
 
-  protected val SIZE_B = "b00".U(2.W)
-  protected val SIZE_H = "b01".U(2.W)
-  protected val SIZE_W = "b10".U(2.W)
-  protected val SIZE_D = "b11".U(2.W)
+  // need to access by PCReg module
+  val SIZE_B = "b00".U(2.W)
+  val SIZE_H = "b01".U(2.W)
+  val SIZE_W = "b10".U(2.W)
+  val SIZE_D = "b11".U(2.W)
 }
 
 class AXI4Bridge extends Module with InstConfig {
   val io = IO(new Bundle {
     val rwValidIn: Bool = Input(Bool())
-    val rwReqIn:   Bool = Input(Bool())
+    val rwReqIn:   UInt = Input(UInt(2.W))
     val wtDataIn:  UInt = Input(UInt(BusWidth.W))
     val rwAddrIn:  UInt = Input(UInt(AxiDataWidth.W))
     val rwSizeIn:  UInt = Input(UInt(AxiSizeLen.W))
@@ -142,8 +143,9 @@ class AXI4Bridge extends Module with InstConfig {
   protected val arHdShk  = WireDefault(io.axiArReadyIn && io.axiArValidOut)
   protected val rdHdShk  = WireDefault(io.axiRdReadyOut && io.axiRdValidIn)
 
-  protected val wtDone    = WireDefault(wtHdShk && io.axiWtLastOut)
-  protected val rdDone    = WireDefault(rdHdShk && io.axiRdLastIn)
+  protected val wtDone = WireDefault(wtHdShk && io.axiWtLastOut)
+  protected val rdDone = WireDefault(rdHdShk && io.axiRdLastIn)
+  // TODO: 'transDone' is good name?
   protected val transDone = Mux(wtTrans, wtbHdShk, rdDone)
 
   // FSM for read/write
@@ -160,12 +162,13 @@ class AXI4Bridge extends Module with InstConfig {
   protected val rdStateReg = RegInit(fsmRdIDLE)
 
   protected val wtStateIdle  = WireDefault(wtStateReg === fsmWtIDLE)
-  protected val rdStateIdle  = WireDefault(rdStateReg === fsmRdIDLE)
   protected val wtStateAddr  = WireDefault(wtStateReg === fsmWtADDR)
-  protected val rdStateAddr  = WireDefault(rdStateReg === fsmRdADDR)
   protected val wtStateWrite = WireDefault(wtStateReg === fsmWtWRITE)
   protected val wtStateResp  = WireDefault(wtStateReg === fsmWtRESP)
-  protected val rdStateRead  = WireDefault(rdStateReg === fsmRdREAD)
+
+  protected val rdStateIdle = WireDefault(rdStateReg === fsmRdIDLE)
+  protected val rdStateAddr = WireDefault(rdStateReg === fsmRdADDR)
+  protected val rdStateRead = WireDefault(rdStateReg === fsmRdREAD)
 
   switch(wtStateReg) {
     is(fsmWtIDLE) {
@@ -234,17 +237,21 @@ class AXI4Bridge extends Module with InstConfig {
   protected val sizeHalf     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_H)
   protected val sizeWord     = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_W)
   protected val sizeDouble   = WireDefault(io.rwSizeIn === AXI4Bridge.SIZE_D)
-  // 0100 + xxx
-  protected val addrOpA = WireDefault(Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)))
-  // 1111 & 0011
+  // 0100xxx
+  protected val addrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)))
+  // b: 0000
+  // h: 0001
+  // w: 0011
+  // d: 0111
   protected val addrOpB = WireDefault(
+    UInt(4.W),
     (Fill(4, sizeByte) & "b0".U(4.W))
       | (Fill(4, sizeHalf) & "b1".U(4.W))
       | (Fill(4, sizeWord) & "b11".U(4.W))
       | (Fill(4, sizeDouble) & "b111".U(4.W))
   )
 
-  protected val addrEnd  = WireDefault(addrOpA + addrOpB)
+  protected val addrEnd  = WireDefault(UInt(4.W), addrOpA + addrOpB)
   protected val overstep = WireDefault(addrEnd(3, ALIGNED_WIDTH) =/= 0.U)
 
   axiLen := Mux(transAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), overstep))
@@ -252,9 +259,13 @@ class AXI4Bridge extends Module with InstConfig {
   protected val axiSize = AXI_SIZE(2, 0);
 
   protected val axiAddr          = Cat(io.rwAddrIn(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
-  protected val alignedOffsetLow = Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)) << 3
-  protected val alignedOffsetHig = BusWidth.U - alignedOffsetLow
-  protected val mask = (
+  protected val alignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
+  protected val alignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
+  protected val mask             = Wire(UInt(MASK_WIDTH.W))
+
+  alignedOffsetLow := Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.rwAddrIn(ALIGNED_WIDTH - 1, 0)) << 3
+  alignedOffsetHig := BusWidth.U - alignedOffsetLow
+  mask := (
     (Fill(MASK_WIDTH, sizeByte) & Cat(MASK_WIDTH.U - Fill(8, "b0".U(1.W)), "hff".U(8.W)))
       | (Fill(MASK_WIDTH, sizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
       | (Fill(MASK_WIDTH, sizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
@@ -332,14 +343,14 @@ class AXI4Bridge extends Module with InstConfig {
   // Read data channel signals
   io.axiRdReadyOut := rdStateRead
 
-  protected val axiRdDataLow = WireDefault((io.axiRdDataIn & maskLow) >> alignedOffsetLow)
-  protected val axiRdDataHig = WireDefault((io.axiRdDataIn & maskHig) << alignedOffsetHig)
+  protected val axiRdDataLow = WireDefault(UInt(AxiDataWidth.W), (io.axiRdDataIn & maskLow) >> alignedOffsetLow)
+  protected val axiRdDataHig = WireDefault(UInt(AxiDataWidth.W), (io.axiRdDataIn & maskHig) << alignedOffsetHig)
 
   protected val dataReadReg = RegInit(0.U(AxiDataWidth.W))
   io.rdDataOut := dataReadReg
   for (i <- 0 until TRANS_LEN) {
     when(io.axiRdReadyOut && io.axiRdValidIn) {
-      when(~transAligned && overstep) {
+      when((~transAligned) && overstep) {
         when(transLen(0) =/= 0.U) {
           dataReadReg := dataReadReg | axiRdDataHig
         }.otherwise {
