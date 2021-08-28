@@ -84,6 +84,11 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
     val memAXI_0_r_ready: Bool = Output(Bool())
   })
 
+  // uart io
+  io.uart.in.valid  := false.B
+  io.uart.out.valid := false.B
+  io.uart.out.ch    := 0.U
+
   protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge())
   axiBridge.io.axiAwReadyIn := io.memAXI_0_aw_ready
   io.memAXI_0_aw_valid      := axiBridge.io.axiAwValidOut
@@ -131,45 +136,18 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   axiBridge.io.axiRdUserIn  := io.memAXI_0_r_bits_use
   io.memAXI_0_r_ready       := axiBridge.io.axiRdReadyOut
 
-  // tmp
-  axiBridge.io.rwValidIn := DontCare
-  axiBridge.io.rwReqIn   := DontCare
-  axiBridge.io.wtDataIn  := DontCare
-  axiBridge.io.rwAddrIn  := DontCare
-  axiBridge.io.rwSizeIn  := DontCare
-
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
-  protected val instRam: RAMHelper = Module(new RAMHelper())
-  protected val dataRam: RAMHelper = Module(new RAMHelper())
 
-  instRam.io.clk           := this.clock
-  instRam.io.en            := !this.reset.asBool() && treeCoreL2.io.instEnaOut
-  instRam.io.rIdx          := (treeCoreL2.io.instAddrOut - PcRegStartAddr.U) >> 3
-  instRam.io.wIdx          := DontCare
-  instRam.io.wen           := DontCare
-  instRam.io.wdata         := DontCare
-  instRam.io.wmask         := DontCare
-  treeCoreL2.io.instDataIn := Mux(treeCoreL2.io.instAddrOut(2), instRam.io.rdata(63, 32), instRam.io.rdata(31, 0))
+  axiBridge.io.rwValidIn := treeCoreL2.io.rwValidOut
+  // tmp
+  axiBridge.io.rwReqIn  := 0.U
+  axiBridge.io.wtDataIn := DontCare
+  axiBridge.io.rwAddrIn := treeCoreL2.io.instAddrOut
+  axiBridge.io.rwSizeIn := treeCoreL2.io.rwSizeOut
 
-  // @printf(p"[simtop]instRam.io.en = 0x${Hexadecimal(instRam.io.en)}\n")
-  // @printf(p"[simtop]treeCoreL2.io.instAddrOut = 0x${Hexadecimal(treeCoreL2.io.instAddrOut)}\n")
-  // @printf(p"[simtop]instRam.io.rIdx = 0x${Hexadecimal(instRam.io.rIdx)}\n")
-  // @printf(p"[simtop]instRam.io.rdata = 0x${Hexadecimal(instRam.io.rdata)}\n")
-
-  dataRam.io.clk            := this.clock
-  dataRam.io.en             := !this.reset.asBool() && treeCoreL2.io.memValidOut
-  dataRam.io.rIdx           := (treeCoreL2.io.memAddrOut - PcRegStartAddr.U) >> 3
-  treeCoreL2.io.memRdDataIn := dataRam.io.rdata
-  dataRam.io.wen            := treeCoreL2.io.memWtEnaOut
-  dataRam.io.wIdx           := (treeCoreL2.io.memAddrOut - PcRegStartAddr.U) >> 3
-  dataRam.io.wdata          := treeCoreL2.io.memWtDataOut
-  dataRam.io.wmask          := treeCoreL2.io.memMaskOut
-
-  io.uart.in.valid  := false.B
-  io.uart.out.valid := false.B
-  io.uart.out.ch    := 0.U
-
-  // printf(p"[top] dataRam.io.wen = 0x${Hexadecimal(dataRam.io.wen)}\n")
+  treeCoreL2.io.rwReadyIn := axiBridge.io.rwReadyOut
+  treeCoreL2.io.rdDataIn  := axiBridge.io.rdDataOut
+  treeCoreL2.io.rwRespIn  := axiBridge.io.rwRespOut
 }
 
 object SimTop extends App {
