@@ -77,6 +77,10 @@ dramsim3Build:
 ###### difftest target ######
 # if want to use the RamHelper, need to remove the 'WITH_DRAMSIM3=1'
 difftestBuild:
+	sed -i 's/io_memAXI_0_w_bits_data,/io_memAXI_0_w_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
+	sed -i 's/io_memAXI_0_r_bits_data,/io_memAXI_0_r_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
+	sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
+	sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
 
 diffAllBuild: diffBuild difftestBuild
