@@ -22,14 +22,12 @@ class PCReg extends Module with InstConfig {
   })
 
   protected val hdShkDone = WireDefault(io.rwReadyIn && io.rwValidOut)
-  protected val pc:         UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
-  protected val dirty:      Bool = RegInit(false.B)
-  // protected val instEnaReg: Bool = RegInit(false.B)
+  protected val pc: UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
+  val dirty:        Bool = RegInit(false.B)
 
   io.rwRespIn    := DontCare
   io.instAddrOut := pc
   io.rwValidOut  := true.B
-  // io.instEnaOut  := instEnaReg
   io.rwSizeOut   := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {
@@ -41,21 +39,18 @@ class PCReg extends Module with InstConfig {
   }
 
   when(hdShkDone) {
-    // instEnaReg     := true.B
-    io.instEnaOut := true.B
-    io.instDataOut := io.rdDataIn(31, 0)
-    when(!dirty) {
-      pc := pc + 4.U
-    }.otherwise {
-      dirty := false.B
-    }
 
-    printf(p"[pc]io.instDataOut = 0x${Hexadecimal(io.instDataOut)}\n")
-    printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(io.instAddrOut)}\n")
-    printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(io.instEnaOut)}\n")
+    when(!dirty) {
+      pc             := pc + 4.U
+      io.instEnaOut  := true.B
+      io.instDataOut := io.rdDataIn(31, 0)
+    }.otherwise {
+      dirty          := false.B
+      io.instEnaOut  := false.B
+      io.instDataOut := NopInst.U
+    }
   }.otherwise {
-    // instEnaReg     := false.B
-    io.instEnaOut := false.B
-    io.instDataOut := 0.U
+    io.instEnaOut  := false.B
+    io.instDataOut := NopInst.U
   }
 }
