@@ -138,16 +138,16 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
 
-  axiBridge.io.rwValidIn := treeCoreL2.io.rwValidOut
+  axiBridge.io.instValidIn := treeCoreL2.io.rwValidOut
   // tmp
-  axiBridge.io.rwReqIn  := 0.U
-  axiBridge.io.wtDataIn := DontCare
-  axiBridge.io.rwAddrIn := treeCoreL2.io.instAddrOut
-  axiBridge.io.rwSizeIn := treeCoreL2.io.rwSizeOut
+  axiBridge.io.instReqIn  := 0.U
+  axiBridge.io.wtDataIn   := DontCare
+  axiBridge.io.instAddrIn := treeCoreL2.io.instAddrOut
+  axiBridge.io.instSizeIn := treeCoreL2.io.rwSizeOut
 
-  treeCoreL2.io.rwReadyIn := axiBridge.io.rwReadyOut
-  treeCoreL2.io.rdDataIn  := axiBridge.io.rdDataOut
-  treeCoreL2.io.rwRespIn  := axiBridge.io.rwRespOut
+  treeCoreL2.io.rwReadyIn := axiBridge.io.instReadyOut
+  treeCoreL2.io.rdDataIn  := axiBridge.io.instRdDataOut
+  treeCoreL2.io.rwRespIn  := axiBridge.io.instRespOut
 }
 
 object SimTop extends App {
