@@ -181,14 +181,54 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdata := RegNext(ma2wbUnit.io.wbDataOut)
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
-    when(diffCommitState.io.instr =/= 0.U) {
-    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
-    printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
-    printf("\n")
+    val debugCnt: UInt = RegInit(0.U(5.W))
+    when(pcUnit.io.instAddrOut === "h80000014".U) {
+      printf(p"[pc]io.instAddrOut[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
     }
 
+    when(pcUnit.io.instDataOut =/= NopInst.U) {
+      debugCnt := 5.U
+    }
+
+    when(debugCnt =/= 0.U) {
+      debugCnt := debugCnt - 1.U
+      printf("debugCnt: %d\n", debugCnt)
+      printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
+      printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
+      // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
+
+      printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2idUnit.io.ifFlushIn)}\n")
+      printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2idUnit.io.diffIfSkipInstOut)}\n")
+      printf(p"[if2id]io.idInstAddrOut = 0x${Hexadecimal(if2idUnit.io.idInstAddrOut)}\n")
+      printf(p"[if2id]io.idInstDataOut = 0x${Hexadecimal(if2idUnit.io.idInstDataOut)}\n")
+
+      printf(p"[id]io.instDataIn = 0x${Hexadecimal(instDecoder.io.instDataIn)}\n")
+      printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(instDecoder.io.rdEnaAOut)}\n")
+      printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(instDecoder.io.rdAddrAOut)}\n")
+      printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(instDecoder.io.rdEnaBOut)}\n")
+      printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(instDecoder.io.rdAddrBOut)}\n")
+      // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(instDecoder.io.exuOperTypeOut)}\n")
+      // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(instDecoder.io.lsuWtEnaOut)}\n")
+      printf(p"[id]io.rsValAOut = 0x${Hexadecimal(instDecoder.io.rsValAOut)}\n")
+      printf(p"[id]io.rsValBOut = 0x${Hexadecimal(instDecoder.io.rsValBOut)}\n")
+
+      printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(instDecoder.io.wtEnaOut)}\n")
+      printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(instDecoder.io.wtAddrOut)}\n")
+
+      printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
+
+      printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.wtDataOut)}\n")
+      printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(memAccess.io.wtEnaOut)}\n")
+      printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(memAccess.io.wtAddrOut)}\n")
+
+      printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+      printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+      printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+      printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
+      printf(p"[main]t1 = 0x${Hexadecimal(regFile.io.debugOut)}\n")
+      printf("\n")
+    }
 
     // output custom putch oper for 0x7B
     when(diffCommitState.io.instr === 0x0000007b.U) {
