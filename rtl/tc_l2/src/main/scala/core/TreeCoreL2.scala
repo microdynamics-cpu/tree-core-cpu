@@ -5,14 +5,21 @@ import difftest._
 
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
   val io = IO(new Bundle {
-    // val instDataIn:  UInt = Input(UInt(InstWidth.W))
-    val rwReadyIn: Bool = Input(Bool())
-    val rwRespIn:  UInt = Input(UInt(AxiRespLen.W))
-    val rdDataIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val instReadyIn:  Bool = Input(Bool())
+    val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
+    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
+    val memReadyIn:   Bool = Input(Bool())
+    val memRdDataIn:  UInt = Input(UInt(BusWidth.W))
+    val memRespIn:    UInt = Input(UInt(AxiRespLen.W))
 
-    val rwValidOut:  Bool = Output(Bool())
-    val rwSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
-    val instAddrOut: UInt = Output(UInt(BusWidth.W))
+    val instValidOut: Bool = Output(Bool())
+    val instAddrOut:  UInt = Output(UInt(BusWidth.W))
+    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+    val memValidOut:  Bool = Output(Bool())
+    val memReqOut:    UInt = Output(UInt(2.W)) // read or write
+    val memDataOut:   UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
+    val memAddrOut:   UInt = Output(UInt(AxiDataWidth.W))
+    val memSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -28,18 +35,23 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
-  io.rwValidOut  := pcUnit.io.rwValidOut
-  io.rwSizeOut   := pcUnit.io.rwSizeOut
-  io.instAddrOut := pcUnit.io.instAddrOut
+  io.instValidOut := pcUnit.io.instValidOut
+  io.instSizeOut  := pcUnit.io.instSizeOut
+  io.instAddrOut  := pcUnit.io.instAddrOut
+  io.memValidOut  := memAccess.io.memValidOut
+  io.memReqOut    := memAccess.io.memReqOut
+  io.memDataOut   := memAccess.io.memDataOut
+  io.memAddrOut   := memAccess.io.memAddrOut
+  io.memSizeOut   := memAccess.io.memSizeOut
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
-  pcUnit.io.rwReadyIn := io.rwReadyIn
-  pcUnit.io.rwRespIn  := io.rwRespIn
-  pcUnit.io.rdDataIn  := io.rdDataIn
+  pcUnit.io.instReadyIn  := io.instReadyIn
+  pcUnit.io.instRdDataIn := io.instRdDataIn
+  pcUnit.io.instRespIn   := io.instRespIn
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
@@ -101,16 +113,15 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   memAccess.io.memValBIn     := ex2maUnit.io.lsuValBOut
   memAccess.io.memOffsetIn   := ex2maUnit.io.lsuOffsetOut
 
-  memAccess.io.wtDataIn    := ex2maUnit.io.maDataOut
-  memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
-  memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
-  memAccess.io.memRdDataIn := 0.U
+  memAccess.io.wtDataIn := ex2maUnit.io.maDataOut
+  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
 
-  memAccess.io.memAddrOut   := DontCare
-  ex2maUnit.io.lsuWtEnaOut  := DontCare
-  memAccess.io.memWtDataOut := DontCare
-  memAccess.io.memMaskOut   := DontCare
-  memAccess.io.memValidOut  := DontCare
+  memAccess.io.memReadyIn  := io.memReadyIn
+  memAccess.io.memRdDataIn := io.memRdDataIn
+  memAccess.io.memRespIn   := io.memRespIn
+  ex2maUnit.io.lsuWtEnaOut := DontCare
+
   // ma to wb
   ma2wbUnit.io.maDataIn   := memAccess.io.wtDataOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
@@ -181,14 +192,54 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdata := RegNext(ma2wbUnit.io.wbDataOut)
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
-    when(diffCommitState.io.instr =/= 0.U) {
-    printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-    printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
-    printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-    printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
-    printf("\n")
+    val debugCnt: UInt = RegInit(0.U(5.W))
+    when(pcUnit.io.instAddrOut === "h80000014".U) {
+      printf(p"[pc]io.instAddrOut[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
     }
 
+    when(pcUnit.io.instDataOut =/= NopInst.U) {
+      debugCnt := 5.U
+    }
+
+    when(debugCnt =/= 0.U) {
+      debugCnt := debugCnt - 1.U
+      printf("debugCnt: %d\n", debugCnt)
+      printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
+      printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
+      // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
+
+      printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2idUnit.io.ifFlushIn)}\n")
+      printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2idUnit.io.diffIfSkipInstOut)}\n")
+      printf(p"[if2id]io.idInstAddrOut = 0x${Hexadecimal(if2idUnit.io.idInstAddrOut)}\n")
+      printf(p"[if2id]io.idInstDataOut = 0x${Hexadecimal(if2idUnit.io.idInstDataOut)}\n")
+
+      printf(p"[id]io.instDataIn = 0x${Hexadecimal(instDecoder.io.instDataIn)}\n")
+      printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(instDecoder.io.rdEnaAOut)}\n")
+      printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(instDecoder.io.rdAddrAOut)}\n")
+      printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(instDecoder.io.rdEnaBOut)}\n")
+      printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(instDecoder.io.rdAddrBOut)}\n")
+      // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(instDecoder.io.exuOperTypeOut)}\n")
+      // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(instDecoder.io.lsuWtEnaOut)}\n")
+      printf(p"[id]io.rsValAOut = 0x${Hexadecimal(instDecoder.io.rsValAOut)}\n")
+      printf(p"[id]io.rsValBOut = 0x${Hexadecimal(instDecoder.io.rsValBOut)}\n")
+
+      printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(instDecoder.io.wtEnaOut)}\n")
+      printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(instDecoder.io.wtAddrOut)}\n")
+
+      printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
+
+      printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.wtDataOut)}\n")
+      printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(memAccess.io.wtEnaOut)}\n")
+      printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(memAccess.io.wtAddrOut)}\n")
+
+      printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+      printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+      printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+      printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
+      printf(p"[main]t1 = 0x${Hexadecimal(regFile.io.debugOut)}\n")
+      printf("\n")
+    }
 
     // output custom putch oper for 0x7B
     when(diffCommitState.io.instr === 0x0000007b.U) {

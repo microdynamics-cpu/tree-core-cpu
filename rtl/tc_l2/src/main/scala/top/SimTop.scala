@@ -138,16 +138,23 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
 
-  axiBridge.io.rwValidIn := treeCoreL2.io.rwValidOut
-  // tmp
-  axiBridge.io.rwReqIn  := 0.U
-  axiBridge.io.wtDataIn := DontCare
-  axiBridge.io.rwAddrIn := treeCoreL2.io.instAddrOut
-  axiBridge.io.rwSizeIn := treeCoreL2.io.rwSizeOut
+  axiBridge.io.instValidIn := treeCoreL2.io.instValidOut
+  axiBridge.io.instReqIn   := 0.U // 0: read 1: write
+  axiBridge.io.instAddrIn  := treeCoreL2.io.instAddrOut
+  axiBridge.io.instSizeIn  := treeCoreL2.io.instSizeOut
 
-  treeCoreL2.io.rwReadyIn := axiBridge.io.rwReadyOut
-  treeCoreL2.io.rdDataIn  := axiBridge.io.rdDataOut
-  treeCoreL2.io.rwRespIn  := axiBridge.io.rwRespOut
+  axiBridge.io.memValidIn := treeCoreL2.io.memValidOut
+  axiBridge.io.memReqIn   := treeCoreL2.io.memReqOut
+  axiBridge.io.memDataIn  := treeCoreL2.io.memDataOut
+  axiBridge.io.memAddrIn  := treeCoreL2.io.memAddrOut
+  axiBridge.io.memSizeIn  := treeCoreL2.io.memSizeOut
+
+  treeCoreL2.io.instReadyIn  := axiBridge.io.instReadyOut
+  treeCoreL2.io.instRdDataIn := axiBridge.io.instRdDataOut
+  treeCoreL2.io.instRespIn   := axiBridge.io.instRespOut
+  treeCoreL2.io.memReadyIn   := axiBridge.io.memReadyOut
+  treeCoreL2.io.memRdDataIn  := axiBridge.io.memRdDataOut
+  treeCoreL2.io.memRespIn    := axiBridge.io.memRespOut
 }
 
 object SimTop extends App {

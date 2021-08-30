@@ -43,23 +43,25 @@ class MemoryAccessStage extends Module with InstConfig {
     val memValBIn:     UInt = Input(UInt(BusWidth.W))
     val memOffsetIn:   UInt = Input(UInt(BusWidth.W))
 
-    val memRdDataIn: UInt = Input(UInt(BusWidth.W))
-
     // from alu?
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
     val wtEnaIn:  Bool = Input(Bool())
     val wtAddrIn: UInt = Input(UInt(RegAddrLen.W))
+    // from axibridge
+    val memReadyIn:  Bool = Input(Bool())
+    val memRdDataIn: UInt = Input(UInt(BusWidth.W))
+    val memRespIn:   UInt = Input(UInt(AxiRespLen.W))
 
     // to regfile
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
-
-    // to mem
-    val memAddrOut:   UInt = Output(UInt(BusWidth.W))
-    val memWtDataOut: UInt = Output(UInt(BusWidth.W))
-    val memMaskOut:   UInt = Output(UInt(BusWidth.W))
-    val memValidOut:  Bool = Output(Bool())
+    // to axibridge
+    val memValidOut: Bool = Output(Bool())
+    val memReqOut:   UInt = Output(UInt(2.W)) // read or write
+    val memDataOut:  UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
+    val memAddrOut:  UInt = Output(UInt(AxiDataWidth.W))
+    val memSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
   })
 
   protected val lwData: UInt = Mux(io.memAddrOut(2), io.memRdDataIn(63, 32), io.memRdDataIn(31, 0))
@@ -119,7 +121,7 @@ class MemoryAccessStage extends Module with InstConfig {
     io.memAddrOut := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
-  io.memWtDataOut := MuxLookup(
+  io.memDataOut := MuxLookup(
     io.memOperTypeIn,
     0.U,
     Seq(
@@ -136,22 +138,7 @@ class MemoryAccessStage extends Module with InstConfig {
   )
 
   io.memValidOut := true.B
-  io.memMaskOut  := wMask
-
-  // printf(p"[ma] io.memMaskOut = 0x${Hexadecimal(io.memMaskOut)}\n")
-  // printf(p"[ma] io.memRdDataIn = 0x${Hexadecimal(io.memRdDataIn)}\n")
-  // printf(p"[ma] loadData = 0x${Hexadecimal(loadData)}\n")
-  // printf(p"[ma]io.wtDataIn = 0x${Hexadecimal(io.wtDataIn)}\n")
-
-  // printf(p"[ma] io.memOperTypeIn = 0x${Hexadecimal(io.memOperTypeIn)}\n")
-  // printf(p"[ma] io.memValAIn = 0x${Hexadecimal(io.memValAIn)}\n")
-  // printf(p"[ma] io.memValBIn = 0x${Hexadecimal(io.memValBIn)}\n")
-  // printf(p"[ma] io.memOffsetIn = 0x${Hexadecimal(io.memOffsetIn)}\n")
-  // printf(p"[ma] io.memAddrOut = 0x${Hexadecimal(io.memAddrOut)}\n")
-  // printf(p"[ma] io.memWtDataOut = 0x${Hexadecimal(io.memWtDataOut)}\n")
-
-  // printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
-  // printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(io.wtEnaOut)}\n")
-  // printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(io.wtAddrOut)}\n")
-  // printf("\n")
+  // io.memMaskOut  := wMask
+  io.memReqOut := DontCare
+  io.memSizeOut := DontCare
 }
