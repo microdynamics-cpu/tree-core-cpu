@@ -11,6 +11,7 @@ class Control extends Module with InstConfig {
     // from id(solve load coop)
     val stallReqFromIDIn: Bool = Input(Bool())
 
+    // to if and id
     val flushIfOut: Bool = Output(Bool())
     val stallIfOut: Bool = Output(Bool())
     val flushIdOut: Bool = Output(Bool())

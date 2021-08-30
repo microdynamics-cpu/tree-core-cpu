@@ -7,12 +7,14 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 
 class ALU extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from id
     val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
     // from csr
     val csrRdDataIn: UInt = Input(UInt(BusWidth.W))
 
+    // to ex2ma
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
     // to csr
     val csrwtEnaOut:  Bool = Output(Bool())
@@ -23,7 +25,7 @@ class ALU extends Module with InstConfig {
 
   res := MuxLookup(
     io.exuOperTypeIn,
-    0.U,
+    0.U((BusWidth.W)),
     Seq(
       aluADDIType  -> (io.rsValAIn + io.rsValBIn),
       aluADDIWType -> (io.rsValAIn + io.rsValBIn),
@@ -85,6 +87,6 @@ class ALU extends Module with InstConfig {
     io.csrWtDataOut := io.wtDataOut | io.rsValAIn
   }.otherwise {
     io.csrwtEnaOut  := false.B
-    io.csrWtDataOut := 0.U
+    io.csrWtDataOut := 0.U(BusWidth.W)
   }
 }

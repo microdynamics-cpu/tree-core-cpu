@@ -38,13 +38,13 @@ class PCReg extends Module with InstConfig {
     pc    := io.newInstAddrIn
     dirty := true.B
   }.elsewhen(io.stallIfIn) {
-    pc    := pc - 4.U // because the stallIFin is come from ex stage
+    pc    := pc - 4.U(BusWidth.W) // because the stallIFin is come from ex stage
     dirty := true.B
   }
 
   when(hdShkDone) {
     when(!dirty) {
-      pc             := pc + 4.U
+      pc             := pc + 4.U(BusWidth.W)
       io.instEnaOut  := true.B
       io.instDataOut := io.instRdDataIn(31, 0)
     }.otherwise {

@@ -6,6 +6,7 @@ import treecorel2.common.ConstVal._
 
 class ExecutionStage extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from id2ex
     val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val rsValAIn:      UInt = Input(UInt(BusWidth.W))
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))

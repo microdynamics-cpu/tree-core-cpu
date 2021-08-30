@@ -5,10 +5,11 @@ import treecorel2.common.ConstVal._
 
 class MAToWB extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from ma
     val maDataIn:   UInt = Input(UInt(BusWidth.W))
     val maWtEnaIn:  Bool = Input(Bool())
     val maWtAddrIn: UInt = Input(UInt(RegAddrLen.W))
-
+    // to wb
     val wbDataOut:   UInt = Output(UInt(BusWidth.W))
     val wbWtEnaOut:  Bool = Output(Bool())
     val wbWtAddrOut: UInt = Output(UInt(RegAddrLen.W))

@@ -117,7 +117,6 @@ class InstDecoderStage extends Module with InstConfig {
     // to id2ex
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
-
     // from ex
     val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val exuWtAddrIn:   UInt = Input(UInt(RegAddrLen.W))
@@ -132,22 +131,18 @@ class InstDecoderStage extends Module with InstConfig {
     val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
     val rdEnaBOut:  Bool = Output(Bool())
     val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
-
     // to beu
     val exuOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
     val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
-
     // to ma
     val lsuFunc3Out: UInt = Output(UInt(3.W))
     val lsuWtEnaOut: Bool = Output(Bool())
-
     // to regfile
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
-
     // to control
     val stallReqFromIDOut: Bool = Output(Bool())
     val jumpTypeOut:       UInt = Output(UInt(JumpTypeLen.W))
@@ -178,7 +173,7 @@ class InstDecoderStage extends Module with InstConfig {
     io.rdAddrAOut := rsRegAddrA
   }.otherwise {
     io.rdEnaAOut  := false.B
-    io.rdAddrAOut := 0.U
+    io.rdAddrAOut := 0.U(RegAddrLen.W)
   }
 
   when(
@@ -190,13 +185,17 @@ class InstDecoderStage extends Module with InstConfig {
     io.rdAddrBOut := rsRegAddrB
   }.otherwise {
     io.rdEnaBOut  := false.B
-    io.rdAddrBOut := 0.U
+    io.rdAddrBOut := 0.U(RegAddrLen.W)
   }
 
   io.exuOperTypeOut := decodeRes(3)
   // 4 for jump inst, 5 for load inst, 6 for store inst
   // because load/store inst both need to calc the mem addr, so have below code
-  io.exuOffsetOut := Mux(decodeRes(4).asBool || decodeRes(5).asBool || decodeRes(6).asBool, immExtensionUnit.io.immOut, 0.U)
+  io.exuOffsetOut := Mux(
+    decodeRes(4).asBool || decodeRes(5).asBool || decodeRes(6).asBool,
+    immExtensionUnit.io.immOut,
+    0.U(BusWidth.W)
+  )
 
   when(
     decodeRes(3) === beuJALType ||
@@ -216,7 +215,7 @@ class InstDecoderStage extends Module with InstConfig {
       io.exuOperNumOut := io.rdDataAIn
     }
   }.otherwise {
-    io.exuOperNumOut := 0.U
+    io.exuOperNumOut := 0.U(BusWidth.W)
   }
 
   when(
@@ -237,7 +236,7 @@ class InstDecoderStage extends Module with InstConfig {
   }.elsewhen(decodeRes(2) === InstDecoderStage.shamtAluOperNumType) {
     io.rsValBOut := io.instDataIn(25, 20)
   }.elsewhen(decodeRes(3) === beuJALType || decodeRes(3) === beuJALRType) {
-    io.rsValBOut := 4.U
+    io.rsValBOut := 4.U(BusWidth.W)
   }.elsewhen(io.fwRsEnaBIn) {
     io.rsValBOut := io.fwRsValBIn
   }.otherwise {
@@ -249,7 +248,7 @@ class InstDecoderStage extends Module with InstConfig {
   when(io.wtEnaOut) {
     io.wtAddrOut := rdRegAddr
   }.otherwise {
-    io.wtAddrOut := 0.U
+    io.wtAddrOut := 0.U(RegAddrLen.W)
   }
 
   // if exist load correlation
@@ -266,7 +265,7 @@ class InstDecoderStage extends Module with InstConfig {
   when(decodeRes(3) === csrRSType) {
     io.csrAddrOut := io.instDataIn(31, 20)
   }.otherwise {
-    io.csrAddrOut := 0.U
+    io.csrAddrOut := 0.U(CSRAddrLen.W)
   }
 
   // branch exec unit
