@@ -5,7 +5,6 @@ import difftest._
 
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
   val io = IO(new Bundle {
-    // val instDataIn:  UInt = Input(UInt(InstWidth.W))
     val rwReadyIn: Bool = Input(Bool())
     val rwRespIn:  UInt = Input(UInt(AxiRespLen.W))
     val rdDataIn:  UInt = Input(UInt(AxiDataWidth.W))

@@ -43,6 +43,7 @@ object AXI4Bridge {
   protected val AXI_AWCACHE_WRITE_BACK_WRITE_ALLOCATE             = "b1111".U(4.W)
   protected val AXI_AWCACHE_WRITE_BACK_READ_AND_WRITE_ALLOCATE    = "b1111".U(4.W)
 
+// Memory size
   protected val AXI_SIZE_BYTES_1   = "b000".U(3.W)
   protected val AXI_SIZE_BYTES_2   = "b001".U(3.W)
   protected val AXI_SIZE_BYTES_4   = "b010".U(3.W)
@@ -63,10 +64,9 @@ class AXI4Bridge extends Module with InstConfig {
   val io = IO(new Bundle {
     // inst oper
     val instValidIn: Bool = Input(Bool())
-    val instReqIn:   UInt = Input(UInt(2.W))
-    // val wtDataIn:  UInt = Input(UInt(BusWidth.W))
-    val instAddrIn: UInt = Input(UInt(AxiDataWidth.W))
-    val instSizeIn: UInt = Input(UInt(AxiSizeLen.W))
+    val instReqIn:   UInt = Input(UInt(2.W)) // can only read
+    val instAddrIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val instSizeIn:  UInt = Input(UInt(AxiSizeLen.W))
 
     val instReadyOut:  Bool = Output(Bool())
     val instRdDataOut: UInt = Output(UInt(BusWidth.W))
@@ -74,7 +74,7 @@ class AXI4Bridge extends Module with InstConfig {
 
     // mem oper
     val memValidIn: Bool = Input(Bool())
-    val memReqIn:   UInt = Input(UInt(2.W))
+    val memReqIn:   UInt = Input(UInt(2.W)) // read or write
     val memDataIn:  UInt = Input(UInt(AxiDataWidth.W)) // write to the dram
     val memAddrIn:  UInt = Input(UInt(AxiDataWidth.W))
     val memSizeIn:  UInt = Input(UInt(AxiSizeLen.W))
@@ -97,7 +97,7 @@ class AXI4Bridge extends Module with InstConfig {
     val axiAwLockOut:   Bool = Output(Bool())
     val axiAwCacheOut:  UInt = Output(UInt(4.W))
     val axiAwQosOut:    UInt = Output(UInt(4.W))
-    val axiAwRegionOut: UInt = Output(UInt(4.W))
+    val axiAwRegionOut: UInt = Output(UInt(4.W)) // not use
 
     // write data
     val axiWtReadyIn: Bool = Input(Bool())
@@ -106,7 +106,8 @@ class AXI4Bridge extends Module with InstConfig {
     val axiWtDataOut:  UInt = Output(UInt(AxiDataWidth.W))
     val axiWtStrbOut:  UInt = Output(UInt((AxiDataWidth / 8).W))
     val axiWtLastOut:  Bool = Output(Bool())
-    val axiWtUserOut:  UInt = Output(UInt(AxiUserLen.W))
+    val axiWtIdOut:    UInt = Output(UInt(AxiIdLen.W))
+    val axiWtUserOut:  UInt = Output(UInt(AxiUserLen.W)) // not use
 
     // write resp
     val axiWtbValidIn: Bool = Input(Bool())
@@ -130,7 +131,7 @@ class AXI4Bridge extends Module with InstConfig {
     val axiArLockOut:   Bool = Output(Bool())
     val axiArCacheOut:  UInt = Output(UInt(4.W))
     val axiArQosOut:    UInt = Output(UInt(4.W))
-    val axiArRegionOut: UInt = Output(UInt(4.W))
+    val axiArRegionOut: UInt = Output(UInt(4.W)) // not use
 
     // read data
     val axiRdValidIn: Bool = Input(Bool())
@@ -143,13 +144,16 @@ class AXI4Bridge extends Module with InstConfig {
     val axiRdReadyOut: Bool = Output(Bool())
   })
 
+  // preposition
+  protected val instAxiId = Fill(AxiIdLen, "b0".U(1.W))
+  protected val memAxiId  = Cat(AxiIdLen.U - Fill(1, "b0".U(1.W)), "b1".U(1.W)) // TODO: bug? b1001
+
   // only mem oper can write dram
   protected val wtTrans     = WireDefault(io.memReqIn === AxiReqWt.U)
   protected val instRdTrans = WireDefault(io.instReqIn === AxiReqRd.U)
   protected val memRdTrans  = WireDefault(io.memReqIn === AxiReqRd.U)
-  // protected val rdTrans = WireDefault(io.instReqIn === AxiReqRd.U)
-  protected val wtValid = WireDefault(io.memValidIn && wtTrans)
-  protected val rdValid = WireDefault((io.instValidIn && instRdTrans) || io.memValidIn && memRdTrans)
+  protected val wtValid     = WireDefault(io.memValidIn && wtTrans)
+  protected val rdValid     = WireDefault((io.instValidIn && instRdTrans) || io.memValidIn && memRdTrans)
 
   // handshake
   protected val awHdShk  = WireDefault(io.axiAwReadyIn && io.axiAwValidOut)
@@ -162,7 +166,7 @@ class AXI4Bridge extends Module with InstConfig {
   protected val instRdDone    = WireDefault(rdHdShk && io.axiRdLastIn && io.axiRdIdIn === instAxiId)
   protected val memRdDone     = WireDefault(rdHdShk && io.axiRdLastIn && io.axiRdIdIn === memAxiId)
   protected val memTransDone  = Mux(wtTrans, wtbHdShk, memRdDone)
-  protected val instTransDone = instRdDone
+  protected val instTransDone = WireDefault(instRdDone)
 
   // FSM for read/write
   protected val fsmWtIDLE  = 0.U(2.W)
@@ -177,7 +181,7 @@ class AXI4Bridge extends Module with InstConfig {
   protected val fsmIfARwithMemRD   = 4.U(3.W)
   protected val fsmIfRDwithMemRD   = 5.U(3.W)
   protected val fsmIfIDLEwithMemAR = 6.U(3.W)
-  protected val fsmIfIDLEwithMemRd = 7.U(3.W)
+  protected val fsmIfIDLEwithMemRD = 7.U(3.W)
 
   protected val wtStateReg = RegInit(fsmWtIDLE)
   protected val rdStateReg = RegInit(fsmRdIDLE)
@@ -187,14 +191,14 @@ class AXI4Bridge extends Module with InstConfig {
   protected val wtStateWrite = WireDefault(wtStateReg === fsmWtWRITE)
   protected val wtStateResp  = WireDefault(wtStateReg === fsmWtRESP)
 
-  protected val rdIDLE            = WireDefault(rdStateReg === fsmRdIDLE)
+  protected val rdStateIdle       = WireDefault(rdStateReg === fsmRdIDLE)
   protected val rdIfARwithMemIDLE = WireDefault(rdStateReg === fsmIfARwithMemIDLE)
   protected val rdIfRDwithMemIDLE = WireDefault(rdStateReg === fsmIfRDwithMemIDLE)
   protected val rdIfRDwithMemAR   = WireDefault(rdStateReg === fsmIfRDwithMemAR)
   protected val rdIfARwithMemRD   = WireDefault(rdStateReg === fsmIfARwithMemRD)
   protected val rdIfRDwithMemRD   = WireDefault(rdStateReg === fsmIfRDwithMemRD)
   protected val rdIfIDLEwithMemAR = WireDefault(rdStateReg === fsmIfIDLEwithMemAR)
-  protected val rdIfIDLEwithMemRd = WireDefault(rdStateReg === fsmIfIDLEwithMemRd)
+  protected val rdIfIDLEwithMemRD = WireDefault(rdStateReg === fsmIfIDLEwithMemRD)
 
   when(wtValid) {
     switch(wtStateReg) {
@@ -219,7 +223,6 @@ class AXI4Bridge extends Module with InstConfig {
     }
   }
 
-  // TODO: rdValid is right?
   when(rdValid) {
     switch(rdStateReg) {
       is(fsmRdIDLE) {
@@ -233,7 +236,7 @@ class AXI4Bridge extends Module with InstConfig {
         when(arHdShk && io.instValidIn && instRdTrans) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen(arHdShk) {
-          rdStateReg := fsmIfIDLEwithMemRd
+          rdStateReg := fsmIfIDLEwithMemRD
         }
       }
       is(fsmIfARwithMemIDLE) {
@@ -247,12 +250,12 @@ class AXI4Bridge extends Module with InstConfig {
         when(arHdShk && (~memRdDone)) {
           rdStateReg := fsmIfRDwithMemRD
         }.elsewhen((~arHdShk) && memRdDone) {
-          rdStateReg := fsmIfRDwithMemIDLE
+          rdStateReg := fsmIfARwithMemIDLE
         }.elsewhen(arHdShk && memRdDone) {
           rdStateReg := fsmIfRDwithMemIDLE
         }
       }
-      is(fsmIfIDLEwithMemRd) {
+      is(fsmIfIDLEwithMemRD) {
         when(io.instValidIn && instRdTrans && (~memRdDone)) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen((~(io.instValidIn && instRdTrans)) && memRdDone) {
@@ -267,7 +270,7 @@ class AXI4Bridge extends Module with InstConfig {
         }.elsewhen((~arHdShk) && instRdDone) {
           rdStateReg := fsmIfIDLEwithMemAR
         }.elsewhen(arHdShk && instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemRd
+          rdStateReg := fsmIfIDLEwithMemRD
         }
       }
       is(fsmIfRDwithMemIDLE) {
@@ -281,7 +284,7 @@ class AXI4Bridge extends Module with InstConfig {
       }
       is(fsmIfRDwithMemRD) {
         when(instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemRd
+          rdStateReg := fsmIfIDLEwithMemRD
         }
         when(memRdDone) {
           rdStateReg := fsmIfRDwithMemIDLE
@@ -292,7 +295,7 @@ class AXI4Bridge extends Module with InstConfig {
 
   // ------------------Number of transmission------------------
   protected val instTransLen        = RegInit(0.U(8.W))
-  protected val instTransLenReset   = WireDefault(this.reset.asBool() || (instRdTrans && wtStateIdle) || (rdTrans && rdStateIdle))
+  protected val instTransLenReset   = WireDefault(this.reset.asBool() || (instRdTrans && rdStateIdle))
   protected val instAxiLen          = Wire(UInt(8.W))
   protected val instTransLenIncrEna = WireDefault((instTransLen =/= instAxiLen) && rdHdShk && (io.axiRdIdIn === instAxiId))
 
@@ -303,8 +306,9 @@ class AXI4Bridge extends Module with InstConfig {
   }
 
   protected val memTransLen        = RegInit(0.U(8.W))
-  protected val memTransLenReset   = WireDefault(this.reset.asBool() | |(wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
-  protected val memTransLenIncrEna = WireDefault((memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && io.axiRdIdIn === memAxiId)))
+  protected val memTransLenReset   = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
+  protected val memAxiLen          = Wire(UInt(8.W))
+  protected val memTransLenIncrEna = WireDefault((memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && (io.axiRdIdIn === memAxiId))))
   when(memTransLenReset) {
     memTransLen := 0.U
   }.elsewhen(memTransLenIncrEna) {
@@ -315,7 +319,7 @@ class AXI4Bridge extends Module with InstConfig {
   protected val ALIGNED_WIDTH = 3 // eval: log2(AxiDataWidth / 8)
   protected val OFFSET_WIDTH  = 6 // eval: log2(AxiDataWidth)
   protected val AXI_SIZE      = 3.U // eval: log2(AxiDataWidth / 8)
-  protected val MASK_WIDTH    = AxiDataWidth * 2 // eval: 128
+  protected val MASK_WIDTH    = 128 // eval: AxiDataWidth * 2
   protected val TRANS_LEN     = 1 // eval: 1
   protected val BLOCK_TRANS   = false.B
 
@@ -326,12 +330,12 @@ class AXI4Bridge extends Module with InstConfig {
   protected val instSizeHalf     = WireDefault(io.instSizeIn === AXI4Bridge.SIZE_H)
   protected val instSizeWord     = WireDefault(io.instSizeIn === AXI4Bridge.SIZE_W)
   protected val instSizeDouble   = WireDefault(io.instSizeIn === AXI4Bridge.SIZE_D)
-  // 0100xxx
+  // opa: 0100xxx
+  // opb: b: 0000
+  //      h: 0001
+  //      w: 0011
+  //      d: 0111
   protected val instAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.instAddrIn(ALIGNED_WIDTH - 1, 0)))
-  // b: 0000
-  // h: 0001
-  // w: 0011
-  // d: 0111
   protected val instAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, instSizeByte) & "b0".U(4.W))
@@ -345,8 +349,7 @@ class AXI4Bridge extends Module with InstConfig {
 
   instAxiLen := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
   // TODO: bug?
-  protected val instAxiSize = AXI_SIZE(2, 0);
-
+  protected val instAxiSize          = AXI_SIZE(2, 0);
   protected val instAxiAddr          = Cat(io.instAddrIn(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val instAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val instAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
@@ -361,12 +364,9 @@ class AXI4Bridge extends Module with InstConfig {
       | (Fill(MASK_WIDTH, instSizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
   ) << instAlignedOffsetLow
 
-  protected val instMaskLow = instMask(AxiDataWidth - 1, 0)
-  protected val instMaskHig = instMask(MASK_WIDTH - 1, AxiDataWidth)
-
-  protected val instAxiId   = Fill(AxiIdLen, "b0".U(1.W))
-  protected val instAxiUser = Fill(AxiUserLen, "b0".U(1.W))
-
+  protected val instMaskLow  = instMask(AxiDataWidth - 1, 0)
+  protected val instMaskHig  = instMask(MASK_WIDTH - 1, AxiDataWidth)
+  protected val instAxiUser  = WireDefault(UInt(AxiUserLen.W), Fill(AxiUserLen, "b0".U(1.W)))
   protected val instReady    = RegInit(false.B)
   protected val instReadyNxt = WireDefault(instTransDone)
   protected val instReadyEna = WireDefault(instTransDone || instReady)
@@ -395,7 +395,7 @@ class AXI4Bridge extends Module with InstConfig {
   protected val memAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.memAddrIn(ALIGNED_WIDTH - 1, 0)))
   protected val memAddrOpB = WireDefault(
     UInt(4.W),
-    (Fill(4, instSizeByte) & "b0".U(4.W))
+    (Fill(4, memSizeByte) & "b0".U(4.W))
       | (Fill(4, memSizeHalf) & "b1".U(4.W))
       | (Fill(4, memSizeWord) & "b11".U(4.W))
       | (Fill(4, memSizeDouble) & "b111".U(4.W))
@@ -434,10 +434,9 @@ class AXI4Bridge extends Module with InstConfig {
 
   protected val memStrbLow = WireDefault(UInt((AxiDataWidth / 8).W), memStrb << io.memAddrIn(ALIGNED_WIDTH - 1, 0))
   protected val memStrbHig =
-    WireDefault(Uint((AxiDataWidth / 8).W), memStrb >> ((AxiDataWidth / 8).U - io.memAddrIn(ALIGNED_WIDTH - 1, 0)))
-  protected val memAxiId   = Fill(AxiIdLen, "b1".U(1.W))
-  protected val memAxiUser = Fill(AxiUserLen, "b0".U(1.W))
+    WireDefault(UInt((AxiDataWidth / 8).W), memStrb >> ((AxiDataWidth / 8).U - io.memAddrIn(ALIGNED_WIDTH - 1, 0)))
 
+  protected val memAxiUser  = Fill(AxiUserLen, "b0".U(1.W))
   protected val memReady    = RegInit(false.B)
   protected val memReadyNxt = WireDefault(memTransDone)
   protected val memReadyEna = WireDefault(memTransDone || memReady)
@@ -457,25 +456,24 @@ class AXI4Bridge extends Module with InstConfig {
   io.memRespOut := memResp
 
   // ------------------Write Transaction------------------
-  io.axiAwReadyIn    :=
-    io.axiAwValidOut := wtStateAddr
-  io.axiAwAddrOut    := memAxiAddr
-  io.axiAwProtOut    := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axiAwIdOut      := memAxiId
-  io.axiAwUserOut    := memAxiUser
-  io.axiAwLenOut     := memAxiLen
-  io.axiAwSizeOut    := memAxiSize
-  io.axiAwBurstOut   := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axiAwLockOut    := "b0".U(1.W)
-  io.axiAwCacheOut   := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axiAwQosOut     := "h0".U(4.W)
-  io.axiAwRegionOut  := DontCare
+  io.axiAwValidOut  := wtStateAddr
+  io.axiAwAddrOut   := memAxiAddr
+  io.axiAwProtOut   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+  io.axiAwIdOut     := memAxiId
+  io.axiAwUserOut   := memAxiUser
+  io.axiAwLenOut    := memAxiLen
+  io.axiAwSizeOut   := memAxiSize
+  io.axiAwBurstOut  := AXI4Bridge.AXI_BURST_TYPE_INCR
+  io.axiAwLockOut   := "b0".U(1.W)
+  io.axiAwCacheOut  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+  io.axiAwQosOut    := "h0".U(4.W)
+  io.axiAwRegionOut := DontCare
 
-  protected val axiWtDataLow = WireDefault(UInt(AxiDataWidth.W), io.memDataIn >> memAlignedOffsetLow)
-  protected val axiWtDataHig = WireDefault(UInt(AxiDataWidth.W), io.memDataIn << memAlignedOffsetHig)
+  protected val axiWtDataLow = WireDefault(UInt(AxiDataWidth.W), io.memDataIn << memAlignedOffsetLow)
+  protected val axiWtDataHig = WireDefault(UInt(AxiDataWidth.W), io.memDataIn >> memAlignedOffsetHig)
 
-  io.axiWtReadyIn  := DontCare
   io.axiWtValidOut := wtStateWrite
+  io.axiWtIdOut    := memAxiId
   io.axiWtDataOut := Mux(
     io.axiWtValidOut,
     Mux(memTransLen(0) === "b0".U(1.W), axiWtDataLow, axiWtDataHig),
@@ -489,54 +487,65 @@ class AXI4Bridge extends Module with InstConfig {
   io.axiWtLastOut := Mux(io.axiWtValidOut, (memTransLen === memAxiLen), false.B)
   io.axiWtUserOut := DontCare
 
-  io.axiWtbValidIn := DontCare
-  io.axiWtbRespIn  := DontCare
-  io.axWtbIdIn     := DontCare
-  io.axiWtbUserIn  := DontCare
+  // wt resp
+  io.axWtbIdIn    := DontCare
+  io.axiWtbUserIn := DontCare
 
   io.axiWtbReadyOut := wtStateResp
   // ------------------Read Transaction------------------
 
   // Read address channel signals
   io.axiArValidOut := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
-  io.axiArAddrOut := (Fill(AxiAddrWidth, rdIfARwithMemIDLE | rdIfARwithMemRD) & instAxiAddr) | (Fill(
+  io.axiArAddrOut := (Fill(AxiAddrWidth, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiAddr) | (Fill(
     AxiAddrWidth,
-    rdIfIDLEwithMemAR | rdIfRDwithMemAR
+    rdIfIDLEwithMemAR || rdIfRDwithMemAR
   ) & memAxiAddr)
+
   io.axiArProtOut := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axiArIdOut := (Fill(AxiIdLen, rdIfARwithMemIDLE | rdIfARwithMemRD) & instAxiId) | (Fill(
+  io.axiArIdOut := (Fill(AxiIdLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiId) | (Fill(
     AxiIdLen,
-    rdIfIDLEwithMemAR | rdIfRDwithMemAR
+    rdIfIDLEwithMemAR || rdIfRDwithMemAR
   ) & memAxiId)
-  io.axiArUserOut := (Fill(AxiUserLen, rdIfARwithMemIDLE | rdIfARwithMemRD) & instAxiUser) | (Fill(
+
+  io.axiArUserOut := (Fill(AxiUserLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiUser) | (Fill(
     AxiUserLen,
-    rdIfIDLEwithMemAR | rdIfRDwithMemAR
+    rdIfIDLEwithMemAR || rdIfRDwithMemAR
   ) & memAxiUser)
-  io.axiArLenOut := (Fill(8, rdIfARwithMemIDLE | rdIfARwithMemRD) & instAxiLen) | (Fill(
+
+  io.axiArLenOut := (Fill(8, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiLen) | (Fill(
     8,
-    rdIfIDLEwithMemAR | rdIfRDwithMemAR
+    rdIfIDLEwithMemAR || rdIfRDwithMemAR
   ) & memAxiLen)
-  io.axiArSizeOut := (Fill(3, rdIfARwithMemIDLE | rdIfARwithMemRD) & instAxiSize) | (Fill(
+
+  io.axiArSizeOut := (Fill(3, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiSize) | (Fill(
     3,
-    rdIfIDLEwithMemAR | rdIfRDwithMemAR
+    rdIfIDLEwithMemAR || rdIfRDwithMemAR
   ) & memAxiSize)
+
   io.axiArBurstOut  := AXI4Bridge.AXI_BURST_TYPE_INCR
   io.axiArLockOut   := "b0".U(1.W)
   io.axiArCacheOut  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
   io.axiArQosOut    := "h0".U(4.W)
   io.axiArRegionOut := DontCare
   // Read data channel signals
-  io.axiRdReadyOut := rdIfARwithMemRD | rdIfIDLEwithMemRd | rdIfRDwithMemAR | rdIfRDwithMemIDLE | rdIfRDwithMemRD
+  io.axiRdReadyOut := rdIfARwithMemRD || rdIfIDLEwithMemRD || rdIfRDwithMemAR || rdIfRDwithMemIDLE || rdIfRDwithMemRD
 
   protected val axiRdDataLow = WireDefault(
     UInt(AxiDataWidth.W),
-    Mux(io.axiRdIdIn === instAxiId, (io.axiRdDataIn & instMaskLow) >> instAlignedOffsetLow),
-    (io.axiRdDataIn & memMaskLow) >> memAlignedOffsetLow
+    Mux(
+      io.axiRdIdIn === instAxiId,
+      (io.axiRdDataIn & instMaskLow) >> instAlignedOffsetLow,
+      (io.axiRdDataIn & memMaskLow) >> memAlignedOffsetLow
+    )
   )
+
   protected val axiRdDataHig = WireDefault(
     UInt(AxiDataWidth.W),
-    Mux(io.axiRdIdIn === instAxiId, (io.axiRdDataIn & instMaskHig) << instAlignedOffsetHig),
-    (io.axiRdDataIn & memMaskHig) << memAlignedOffsetHig
+    Mux(
+      io.axiRdIdIn === instAxiId,
+      (io.axiRdDataIn & instMaskHig) << instAlignedOffsetHig,
+      (io.axiRdDataIn & memMaskHig) << memAlignedOffsetHig
+    )
   )
 
   //========================= read data oper

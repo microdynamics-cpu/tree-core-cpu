@@ -141,9 +141,14 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   axiBridge.io.instValidIn := treeCoreL2.io.rwValidOut
   // tmp
   axiBridge.io.instReqIn  := 0.U
-  axiBridge.io.wtDataIn   := DontCare
   axiBridge.io.instAddrIn := treeCoreL2.io.instAddrOut
   axiBridge.io.instSizeIn := treeCoreL2.io.rwSizeOut
+
+  axiBridge.io.memValidIn := DontCare
+  axiBridge.io.memReqIn   := DontCare
+  axiBridge.io.memDataIn  := DontCare
+  axiBridge.io.memAddrIn  := DontCare
+  axiBridge.io.memSizeIn  := DontCare
 
   treeCoreL2.io.rwReadyIn := axiBridge.io.instReadyOut
   treeCoreL2.io.rdDataIn  := axiBridge.io.instRdDataOut
