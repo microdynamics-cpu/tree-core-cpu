@@ -9,28 +9,26 @@ class PCReg extends Module with InstConfig {
     val stallIfIn:     Bool = Input(Bool())
     val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
     // axi signal
-    val rwReadyIn: Bool = Input(Bool())
-    val rwRespIn:  UInt = Input(UInt(AxiRespLen.W))
-    val rdDataIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val instReadyIn:  Bool = Input(Bool())
+    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
+    val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
 
     val instAddrOut: UInt = Output(UInt(BusWidth.W))
     val instDataOut: UInt = Output(UInt(InstWidth.W))
     val instEnaOut:  Bool = Output(Bool())
     // axi signal
-    val rwValidOut: Bool = Output(Bool())
-    val rwSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+    val instValidOut: Bool = Output(Bool())
+    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
   })
 
-  protected val hdShkDone = WireDefault(io.rwReadyIn && io.rwValidOut)
-  protected val pc:         UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
-  protected val dirty:      Bool = RegInit(false.B)
-  // protected val instEnaReg: Bool = RegInit(false.B)
+  protected val hdShkDone = WireDefault(io.instReadyIn && io.instValidOut)
+  protected val pc: UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
+  val dirty:        Bool = RegInit(false.B)
 
-  io.rwRespIn    := DontCare
-  io.instAddrOut := pc
-  io.rwValidOut  := true.B
-  // io.instEnaOut  := instEnaReg
-  io.rwSizeOut   := AXI4Bridge.SIZE_W
+  io.instRespIn   := DontCare
+  io.instAddrOut  := pc
+  io.instValidOut := true.B
+  io.instSizeOut  := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {
     pc    := io.newInstAddrIn
@@ -41,21 +39,18 @@ class PCReg extends Module with InstConfig {
   }
 
   when(hdShkDone) {
-    // instEnaReg     := true.B
-    io.instEnaOut := true.B
-    io.instDataOut := io.rdDataIn(31, 0)
-    when(!dirty) {
-      pc := pc + 4.U
-    }.otherwise {
-      dirty := false.B
-    }
 
-    printf(p"[pc]io.instDataOut = 0x${Hexadecimal(io.instDataOut)}\n")
-    printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(io.instAddrOut)}\n")
-    printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(io.instEnaOut)}\n")
+    when(!dirty) {
+      pc             := pc + 4.U
+      io.instEnaOut  := true.B
+      io.instDataOut := io.instRdDataIn(31, 0)
+    }.otherwise {
+      dirty          := false.B
+      io.instEnaOut  := false.B
+      io.instDataOut := NopInst.U
+    }
   }.otherwise {
-    // instEnaReg     := false.B
-    io.instEnaOut := false.B
-    io.instDataOut := 0.U
+    io.instEnaOut  := false.B
+    io.instDataOut := NopInst.U
   }
 }
