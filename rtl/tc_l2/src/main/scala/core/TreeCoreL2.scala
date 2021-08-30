@@ -5,13 +5,13 @@ import difftest._
 
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
   val io = IO(new Bundle {
-    val rwReadyIn: Bool = Input(Bool())
-    val rwRespIn:  UInt = Input(UInt(AxiRespLen.W))
-    val rdDataIn:  UInt = Input(UInt(AxiDataWidth.W))
+    val instReadyIn:  Bool = Input(Bool())
+    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
+    val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
 
-    val rwValidOut:  Bool = Output(Bool())
-    val rwSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
-    val instAddrOut: UInt = Output(UInt(BusWidth.W))
+    val instValidOut: Bool = Output(Bool())
+    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+    val instAddrOut:  UInt = Output(UInt(BusWidth.W))
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -27,18 +27,18 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
-  io.rwValidOut  := pcUnit.io.rwValidOut
-  io.rwSizeOut   := pcUnit.io.rwSizeOut
-  io.instAddrOut := pcUnit.io.instAddrOut
+  io.instValidOut := pcUnit.io.instValidOut
+  io.instSizeOut  := pcUnit.io.instSizeOut
+  io.instAddrOut  := pcUnit.io.instAddrOut
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
-  pcUnit.io.rwReadyIn := io.rwReadyIn
-  pcUnit.io.rwRespIn  := io.rwRespIn
-  pcUnit.io.rdDataIn  := io.rdDataIn
+  pcUnit.io.instReadyIn  := io.instReadyIn
+  pcUnit.io.instRespIn   := io.instRespIn
+  pcUnit.io.instRdDataIn := io.instRdDataIn
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
