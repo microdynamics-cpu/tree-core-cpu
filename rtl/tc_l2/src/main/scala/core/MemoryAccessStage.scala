@@ -39,9 +39,13 @@ class MemoryAccessStage extends Module with InstConfig {
     // wt mem ena signal is send from ex2ma stage
     val memFunc3In:    UInt = Input(UInt(3.W))
     val memOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val memValAIn:     UInt = Input(UInt(BusWidth.W))
-    val memValBIn:     UInt = Input(UInt(BusWidth.W))
-    val memOffsetIn:   UInt = Input(UInt(BusWidth.W))
+    // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
+    // memValAin -> x[rs1]
+    val memValAIn: UInt = Input(UInt(BusWidth.W))
+    // memValBIn -> x[rs2]
+    val memValBIn: UInt = Input(UInt(BusWidth.W))
+    // memOffsetIn -> offset
+    val memOffsetIn: UInt = Input(UInt(BusWidth.W))
 
     // from alu?
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
@@ -100,13 +104,12 @@ class MemoryAccessStage extends Module with InstConfig {
   protected val wMask =
     ListLookup(Cat(io.memFunc3In(1, 0), io.memAddrOut(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
 
+  // judge the write regfile data's origin
   when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
     io.wtDataOut := loadData
   }.otherwise {
     io.wtDataOut := io.wtDataIn
   }
-
-  // io.wtDataOut := io.wtDataIn
   io.wtEnaOut  := io.wtEnaIn
   io.wtAddrOut := io.wtAddrIn
 
@@ -121,6 +124,7 @@ class MemoryAccessStage extends Module with InstConfig {
     io.memAddrOut := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
+  // prepare write data
   io.memDataOut := MuxLookup(
     io.memOperTypeIn,
     0.U,
@@ -138,7 +142,6 @@ class MemoryAccessStage extends Module with InstConfig {
   )
 
   io.memValidOut := true.B
-  // io.memMaskOut  := wMask
-  io.memReqOut := DontCare
-  io.memSizeOut := DontCare
+  io.memReqOut   := DontCare
+  io.memSizeOut  := DontCare
 }

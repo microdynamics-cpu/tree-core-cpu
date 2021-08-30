@@ -22,12 +22,12 @@ class PCReg extends Module with InstConfig {
   })
 
   protected val hdShkDone = WireDefault(io.instReadyIn && io.instValidOut)
-  protected val pc: UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
-  val dirty:        Bool = RegInit(false.B)
+  protected val pc:    UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
+  protected val dirty: Bool = RegInit(false.B)
 
   io.instRespIn   := DontCare
   io.instAddrOut  := pc
-  io.instValidOut := true.B
+  io.instValidOut := true.B // TODO: is not right when ?
   io.instSizeOut  := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {
@@ -39,7 +39,6 @@ class PCReg extends Module with InstConfig {
   }
 
   when(hdShkDone) {
-
     when(!dirty) {
       pc             := pc + 4.U
       io.instEnaOut  := true.B
