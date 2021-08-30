@@ -6,12 +6,20 @@ import difftest._
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
   val io = IO(new Bundle {
     val instReadyIn:  Bool = Input(Bool())
-    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
     val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
+    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
+    val memReadyIn:   Bool = Input(Bool())
+    val memRdDataIn:  UInt = Input(UInt(BusWidth.W))
+    val memRespIn:    UInt = Input(UInt(AxiRespLen.W))
 
     val instValidOut: Bool = Output(Bool())
-    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
     val instAddrOut:  UInt = Output(UInt(BusWidth.W))
+    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+    val memValidOut:  Bool = Output(Bool())
+    val memReqOut:    UInt = Output(UInt(2.W)) // read or write
+    val memDataOut:   UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
+    val memAddrOut:   UInt = Output(UInt(AxiDataWidth.W))
+    val memSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -30,6 +38,11 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   io.instValidOut := pcUnit.io.instValidOut
   io.instSizeOut  := pcUnit.io.instSizeOut
   io.instAddrOut  := pcUnit.io.instAddrOut
+  io.memValidOut  := memAccess.io.memValidOut
+  io.memReqOut    := memAccess.io.memReqOut
+  io.memDataOut   := memAccess.io.memDataOut
+  io.memAddrOut   := memAccess.io.memAddrOut
+  io.memSizeOut   := memAccess.io.memSizeOut
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
@@ -37,8 +50,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
   pcUnit.io.instReadyIn  := io.instReadyIn
-  pcUnit.io.instRespIn   := io.instRespIn
   pcUnit.io.instRdDataIn := io.instRdDataIn
+  pcUnit.io.instRespIn   := io.instRespIn
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
@@ -100,16 +113,15 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   memAccess.io.memValBIn     := ex2maUnit.io.lsuValBOut
   memAccess.io.memOffsetIn   := ex2maUnit.io.lsuOffsetOut
 
-  memAccess.io.wtDataIn    := ex2maUnit.io.maDataOut
-  memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
-  memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
-  memAccess.io.memRdDataIn := 0.U
+  memAccess.io.wtDataIn := ex2maUnit.io.maDataOut
+  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
 
-  memAccess.io.memAddrOut   := DontCare
-  ex2maUnit.io.lsuWtEnaOut  := DontCare
-  memAccess.io.memWtDataOut := DontCare
-  memAccess.io.memMaskOut   := DontCare
-  memAccess.io.memValidOut  := DontCare
+  memAccess.io.memReadyIn  := io.memReadyIn
+  memAccess.io.memRdDataIn := io.memRdDataIn
+  memAccess.io.memRespIn   := io.memRespIn
+  ex2maUnit.io.lsuWtEnaOut := DontCare
+
   // ma to wb
   ma2wbUnit.io.maDataIn   := memAccess.io.wtDataOut
   ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
