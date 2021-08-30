@@ -5,8 +5,9 @@ import treecorel2.common.ConstVal._
 
 class Control extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from BEU(solve jump)
-    val jumpTypeIn: UInt = Input(UInt(JumpTypeLen.W))
+    // from beu(solve jump)
+    val jumpTypeIn:    UInt = Input(UInt(JumpTypeLen.W))
+    val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
     // from id(solve load coop)
     val stallReqFromIDIn: Bool = Input(Bool())
 
@@ -14,14 +15,15 @@ class Control extends Module with InstConfig {
     val stallIfOut: Bool = Output(Bool())
     val flushIdOut: Bool = Output(Bool())
     val ifJumpOut:  Bool = Output(Bool())
-    // val flushExOut: Bool = Output(Bool())
+    // to pc
+    val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
   })
 
-  io.flushIfOut := false.B
-  io.stallIfOut := false.B
-  io.flushIdOut := false.B
-  io.ifJumpOut  := false.B
-  // io.flushExOut := false.B
+  io.flushIfOut     := false.B
+  io.stallIfOut     := false.B
+  io.flushIdOut     := false.B
+  io.ifJumpOut      := false.B
+  io.newInstAddrOut := io.newInstAddrIn // make all control signal come from this oen unit
 
   // 1. if branch type is jal or jalr, flush id stage
   // because the bsu is in id stage now, so unc/cond jump is same
@@ -36,5 +38,5 @@ class Control extends Module with InstConfig {
   }.elsewhen(io.jumpTypeIn === uncJumpType || io.jumpTypeIn === condJumpType) {
     io.flushIfOut := true.B
     io.ifJumpOut  := true.B
-  }.otherwise {}
+  }
 }

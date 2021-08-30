@@ -5,29 +5,33 @@ import AXI4Bridge._
 
 class PCReg extends Module with InstConfig {
   val io = IO(new Bundle {
-    val ifJumpIn:      Bool = Input(Bool())
-    val stallIfIn:     Bool = Input(Bool())
+    // from control
+    val ifJumpIn:  Bool = Input(Bool())
+    val stallIfIn: Bool = Input(Bool())
+    // from id
     val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
-    // axi signal
+    // from axi bridge
     val instReadyIn:  Bool = Input(Bool())
     val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
     val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
 
+    // to id
     val instAddrOut: UInt = Output(UInt(BusWidth.W))
     val instDataOut: UInt = Output(UInt(InstWidth.W))
     val instEnaOut:  Bool = Output(Bool())
-    // axi signal
+    // to axi bridge
     val instValidOut: Bool = Output(Bool())
     val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
   })
 
-  protected val hdShkDone = WireDefault(io.instReadyIn && io.instValidOut)
-  protected val pc:    UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
-  protected val dirty: Bool = RegInit(false.B)
+  protected val hdShkDone: Bool = WireDefault(io.instReadyIn && io.instValidOut)
+  protected val pc:        UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
+  protected val dirty:     Bool = RegInit(false.B)
 
+  // now we dont handle this resp info to check if the read oper is right
   io.instRespIn   := DontCare
   io.instAddrOut  := pc
-  io.instValidOut := true.B // TODO: is not right when ?
+  io.instValidOut := true.B // TODO: need to judge when mem need to read
   io.instSizeOut  := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {

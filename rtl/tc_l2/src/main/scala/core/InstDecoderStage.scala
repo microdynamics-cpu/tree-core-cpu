@@ -148,11 +148,10 @@ class InstDecoderStage extends Module with InstConfig {
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
 
-    // to pc
-    val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
     // to control
     val stallReqFromIDOut: Bool = Output(Bool())
     val jumpTypeOut:       UInt = Output(UInt(JumpTypeLen.W))
+    val newInstAddrOut:    UInt = Output(UInt(BusWidth.W))
     // to csr
     val csrAddrOut: UInt = Output(UInt(CSRAddrLen.W))
   })
@@ -273,7 +272,7 @@ class InstDecoderStage extends Module with InstConfig {
   // branch exec unit
   protected val beu = Module(new BEU)
   beu.io.exuOperNumIn  := io.exuOperNumOut
-  beu.io.exuOperTypeIn := decodeRes(3)
+  beu.io.exuOperTypeIn := io.exuOperTypeOut
   beu.io.rsValAIn      := io.rsValAOut
   beu.io.rsValBIn      := io.rsValBOut
   beu.io.offsetIn      := io.exuOffsetOut

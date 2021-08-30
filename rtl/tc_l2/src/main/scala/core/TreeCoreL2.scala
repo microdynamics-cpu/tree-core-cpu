@@ -46,7 +46,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
-  pcUnit.io.newInstAddrIn := instDecoder.io.newInstAddrOut
+  pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
   pcUnit.io.instReadyIn  := io.instReadyIn
@@ -149,6 +149,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
   // branch and load/store control
   controlUnit.io.jumpTypeIn       := instDecoder.io.jumpTypeOut
+  controlUnit.io.newInstAddrIn    := instDecoder.io.newInstAddrOut
   controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
 
   // csr
