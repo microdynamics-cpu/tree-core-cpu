@@ -2,6 +2,7 @@ package treecorel2
 
 import chisel3._
 import chisel3.util._
+import AXI4Bridge._
 import treecorel2.common.ConstVal._
 import treecorel2.common.{getSignExtn, getZeroExtn}
 
@@ -39,9 +40,13 @@ class MemoryAccessStage extends Module with InstConfig {
     // wt mem ena signal is send from ex2ma stage
     val memFunc3In:    UInt = Input(UInt(3.W))
     val memOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val memValAIn:     UInt = Input(UInt(BusWidth.W))
-    val memValBIn:     UInt = Input(UInt(BusWidth.W))
-    val memOffsetIn:   UInt = Input(UInt(BusWidth.W))
+    // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
+    // memValAin -> x[rs1]
+    val memValAIn: UInt = Input(UInt(BusWidth.W))
+    // memValBIn -> x[rs2]
+    val memValBIn: UInt = Input(UInt(BusWidth.W))
+    // memOffsetIn -> offset
+    val memOffsetIn: UInt = Input(UInt(BusWidth.W))
 
     // from alu?
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
@@ -62,6 +67,8 @@ class MemoryAccessStage extends Module with InstConfig {
     val memDataOut:  UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
     val memAddrOut:  UInt = Output(UInt(AxiDataWidth.W))
     val memSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+    // to control
+    val stallReqOut: Bool = Output(Bool())
   })
 
   protected val lwData: UInt = Mux(io.memAddrOut(2), io.memRdDataIn(63, 32), io.memRdDataIn(31, 0))
@@ -100,17 +107,28 @@ class MemoryAccessStage extends Module with InstConfig {
   protected val wMask =
     ListLookup(Cat(io.memFunc3In(1, 0), io.memAddrOut(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
 
-  when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
+  protected val memValidReg: Bool = RegInit(false.B)
+  io.memValidOut := memValidReg
+  // judge the write regfile data's origin
+  when(io.memReadyIn) {
     io.wtDataOut := loadData
+    io.memReqOut := AxiReqNop.U // the is decided by valid and what's value of this is dont matter
+    memValidReg  := false.B
   }.otherwise {
     io.wtDataOut := io.wtDataIn
+    io.memReqOut := AxiReqNop.U
+    when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
+      io.memReqOut := AxiReqRd.U
+      memValidReg  := true.B
+    }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
+      io.memReqOut := AxiReqWt.U
+      memValidReg  := true.B
+    }
   }
-
-  // io.wtDataOut := io.wtDataIn
   io.wtEnaOut  := io.wtEnaIn
   io.wtAddrOut := io.wtAddrIn
 
-  // for load and store inst
+  // for load and store inst addr
   when(
     io.memOperTypeIn === lsuLBUType ||
       io.memOperTypeIn === lsuLHUType ||
@@ -121,6 +139,7 @@ class MemoryAccessStage extends Module with InstConfig {
     io.memAddrOut := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
+  // prepare write data
   io.memDataOut := MuxLookup(
     io.memOperTypeIn,
     0.U,
@@ -137,8 +156,6 @@ class MemoryAccessStage extends Module with InstConfig {
     )
   )
 
-  io.memValidOut := true.B
-  // io.memMaskOut  := wMask
-  io.memReqOut := DontCare
-  io.memSizeOut := DontCare
+  io.memSizeOut  := AXI4Bridge.SIZE_D
+  io.stallReqOut := io.memValidOut && (~io.memReadyIn)
 }

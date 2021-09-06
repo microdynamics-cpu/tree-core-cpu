@@ -4,11 +4,12 @@ import chisel3._
 
 class IFToID extends Module with InstConfig {
   val io = IO(new Bundle {
+    // from if and control
     val ifInstAddrIn: UInt = Input(UInt(BusWidth.W))
     val ifInstDataIn: UInt = Input(UInt(InstWidth.W))
+    val ifFlushIn:    Bool = Input(Bool())
 
-    val ifFlushIn: Bool = Input(Bool())
-
+    // to id
     val idInstAddrOut:     UInt = Output(UInt(BusWidth.W))
     val idInstDataOut:     UInt = Output(UInt(InstWidth.W))
     val diffIfSkipInstOut: Bool = Output(Bool())

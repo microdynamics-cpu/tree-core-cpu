@@ -46,7 +46,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
-  pcUnit.io.newInstAddrIn := execUnit.io.newInstAddrOut
+  pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
   pcUnit.io.instReadyIn  := io.instReadyIn
@@ -83,17 +83,12 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   id2exUnit.io.lsuWtEnaIn      := instDecoder.io.lsuWtEnaOut
   id2exUnit.io.ifFlushIn       := controlUnit.io.flushIdOut
   // ex
-  // for jal and jalr inst(in execUnit's beu)
-  execUnit.io.exuOperNumIn        := instDecoder.io.exuOperNumOut
-  execUnit.io.exuOperTypeFromIdIn := instDecoder.io.exuOperTypeOut
-  execUnit.io.offsetIn            := instDecoder.io.exuOffsetOut // important!!!
+  execUnit.io.offsetIn := instDecoder.io.exuOffsetOut // important!!!
 
-  execUnit.io.exuOperTypeIn  := id2exUnit.io.exAluOperTypeOut
-  execUnit.io.rsValAIn       := id2exUnit.io.exRsValAOut
-  execUnit.io.rsValBIn       := id2exUnit.io.exRsValBOut
-  execUnit.io.rsValAFromIdIn := instDecoder.io.rsValAOut
-  execUnit.io.rsValBFromIdIn := instDecoder.io.rsValBOut
-  execUnit.io.csrRdDataIn    := RegNext(csrUnit.io.rdDataOut) // TODO: need to refactor
+  execUnit.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
+  execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
+  execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
+  execUnit.io.csrRdDataIn   := RegNext(csrUnit.io.rdDataOut) // TODO: need to refactor
   // ex to ma
   ex2maUnit.io.exDataIn   := execUnit.io.wtDataOut
   ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
@@ -153,8 +148,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
-  controlUnit.io.jumpTypeIn       := execUnit.io.jumpTypeOut
+  controlUnit.io.jumpTypeIn       := instDecoder.io.jumpTypeOut
+  controlUnit.io.newInstAddrIn    := instDecoder.io.newInstAddrOut
   controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
+  controlUnit.io.stallReqFromMaIn := memAccess.io.stallReqOut
 
   // csr
   csrUnit.io.rdAddrIn := instDecoder.io.csrAddrOut
@@ -229,6 +226,13 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
       printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
+      when(memAccess.io.memReadyIn) {
+        printf("########################################\n")
+        printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.memReadyIn)}\n")
+        printf("########################################\n")
+      }
+
+      printf(p"[ma]memAccess.io.stallReqOut = 0x${Hexadecimal(memAccess.io.stallReqOut)}\n")
       printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.wtDataOut)}\n")
       printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(memAccess.io.wtEnaOut)}\n")
       printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(memAccess.io.wtAddrOut)}\n")

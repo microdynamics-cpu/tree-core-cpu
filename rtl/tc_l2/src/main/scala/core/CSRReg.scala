@@ -23,12 +23,12 @@ class CSRReg extends Module with InstConfig {
   when(io.wtEnaIn) {
     cycleReg := io.wtDataIn
   }.otherwise {
-    cycleReg := cycleReg + 1.U
+    cycleReg := cycleReg + 1.U(BusWidth.W)
   }
 
   io.rdDataOut := MuxLookup(
     io.rdAddrIn,
-    0.U,
+    0.U(BusWidth.W),
     Seq(
       mCycleAddr -> cycleReg
     )
