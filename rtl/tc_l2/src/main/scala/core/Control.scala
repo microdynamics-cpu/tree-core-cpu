@@ -10,7 +10,8 @@ class Control extends Module with InstConfig {
     val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
     // from id(solve load coop)
     val stallReqFromIDIn: Bool = Input(Bool())
-
+    // from ma(solve axi load/store)
+    val stallReqFromMaIn: Bool = Input(Bool())
     // to if and id
     val flushIfOut: Bool = Output(Bool())
     val stallIfOut: Bool = Output(Bool())
@@ -39,5 +40,9 @@ class Control extends Module with InstConfig {
   }.elsewhen(io.jumpTypeIn === uncJumpType || io.jumpTypeIn === condJumpType) {
     io.flushIfOut := true.B
     io.ifJumpOut  := true.B
+  }
+
+  when(io.stallReqFromMaIn) {
+    io.stallIfOut := true.B
   }
 }

@@ -151,6 +151,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   controlUnit.io.jumpTypeIn       := instDecoder.io.jumpTypeOut
   controlUnit.io.newInstAddrIn    := instDecoder.io.newInstAddrOut
   controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
+  controlUnit.io.stallReqFromMaIn := memAccess.io.stallReqOut
 
   // csr
   csrUnit.io.rdAddrIn := instDecoder.io.csrAddrOut
@@ -225,6 +226,13 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
       printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
+      when(memAccess.io.memReadyIn) {
+        printf("########################################\n")
+        printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.memReadyIn)}\n")
+        printf("########################################\n")
+      }
+
+      printf(p"[ma]memAccess.io.stallReqOut = 0x${Hexadecimal(memAccess.io.stallReqOut)}\n")
       printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.wtDataOut)}\n")
       printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(memAccess.io.wtEnaOut)}\n")
       printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(memAccess.io.wtAddrOut)}\n")

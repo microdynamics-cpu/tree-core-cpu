@@ -29,9 +29,10 @@ class PCReg extends Module with InstConfig {
   protected val dirty:     Bool = RegInit(false.B)
 
   // now we dont handle this resp info to check if the read oper is right
-  io.instRespIn   := DontCare
-  io.instAddrOut  := pc
-  io.instValidOut := true.B // TODO: need to judge when mem need to read
+  io.instRespIn  := DontCare
+  io.instAddrOut := pc
+  // io.instValidOut := true.B // TODO: need to judge when mem need to read
+  io.instValidOut := ~io.stallIfIn
   io.instSizeOut  := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {

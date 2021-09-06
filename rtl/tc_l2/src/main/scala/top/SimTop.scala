@@ -155,6 +155,24 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   treeCoreL2.io.memReadyIn   := axiBridge.io.memReadyOut
   treeCoreL2.io.memRdDataIn  := axiBridge.io.memRdDataOut
   treeCoreL2.io.memRespIn    := axiBridge.io.memRespOut
+
+  // when(axiBridge.io.instReadyOut) {
+  //   printf("########################################\n")
+  //   printf("axiBridge.io.instReadyOut\n")
+  //   printf("########################################\n")
+  // }
+
+  when(axiBridge.io.axiWtValidOut) {
+    printf("########################################\n")
+    printf("axiBridge.io.axiWtValidOut\n")
+    printf("########################################\n")
+  }
+
+  when(axiBridge.io.axiWtbValidIn) {
+    printf("########################################\n")
+    printf("axiBridge.io.axiWtbValidIn\n")
+    printf("########################################\n")
+  }
 }
 
 object SimTop extends App {
