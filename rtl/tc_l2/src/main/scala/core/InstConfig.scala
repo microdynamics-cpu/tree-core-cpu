@@ -15,6 +15,7 @@ trait InstConfig {
   val AxiUserLen   = 1
   val AxiReqRd     = 0
   val AxiReqWt     = 1
+  val AxiReqNop    = 2
   val InstCacheLen = 128
 
   val RegAddrLen = 5
