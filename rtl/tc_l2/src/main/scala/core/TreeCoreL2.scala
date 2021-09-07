@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
+class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val instReadyIn:  Bool = Input(Bool())
     val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))

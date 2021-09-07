@@ -35,7 +35,7 @@ object MemoryAccessStage {
 
 // read data addr is calc by alu
 // write data addr is passed from id stage directly
-class MemoryAccessStage extends Module with InstConfig {
+class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
     val memFunc3In:    UInt = Input(UInt(3.W))

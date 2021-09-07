@@ -17,7 +17,7 @@ class RAMHelper extends BlackBox with InstConfig {
   })
 }
 
-class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
+class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val logCtrl  = new LogCtrlIO
     val perfInfo = new PerfInfoIO

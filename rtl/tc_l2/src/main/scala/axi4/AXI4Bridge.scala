@@ -60,9 +60,10 @@ object AXI4Bridge {
   val SIZE_D = "b11".U(2.W)
 }
 
-class AXI4Bridge extends Module with InstConfig {
+class AXI4Bridge extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // inst oper
+
     val instValidIn: Bool = Input(Bool())
     val instReqIn:   UInt = Input(UInt(2.W)) // can only read
     val instAddrIn:  UInt = Input(UInt(AxiDataWidth.W))
