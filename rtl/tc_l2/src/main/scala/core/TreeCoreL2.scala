@@ -8,9 +8,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
   })
-  // tmp
-  io.inst.req   := 0.U // 0: read 1: write
-  io.inst.wdata := DontCare
 
   protected val pcUnit      = Module(new PCReg)
   protected val if2idUnit   = Module(new IFToID)
@@ -25,26 +22,21 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
-  io.inst.valid := pcUnit.io.instValidOut
-  io.inst.size  := pcUnit.io.instSizeOut
-  io.inst.addr  := pcUnit.io.instAddrOut
-  io.mem.valid  := memAccess.io.memValidOut
-  io.mem.req    := memAccess.io.memReqOut
-  io.mem.wdata  := memAccess.io.memDataOut
-  io.mem.addr   := memAccess.io.memAddrOut
-  io.mem.size   := memAccess.io.memSizeOut
+  io.inst <> pcUnit.io.inst
+
+  io.mem.valid := memAccess.io.memValidOut
+  io.mem.req   := memAccess.io.memReqOut
+  io.mem.wdata := memAccess.io.memDataOut
+  io.mem.addr  := memAccess.io.memAddrOut
+  io.mem.size  := memAccess.io.memSizeOut
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
-  // axi to pc
-  pcUnit.io.instReadyIn  := io.inst.ready
-  pcUnit.io.instRdDataIn := io.inst.rdata
-  pcUnit.io.instRespIn   := io.inst.resp
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
-  if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
+  if2idUnit.io.ifInstAddrIn := pcUnit.io.inst.addr
   if2idUnit.io.ifInstDataIn := pcUnit.io.instDataOut
   if2idUnit.io.ifFlushIn    := controlUnit.io.flushIfOut
 
@@ -170,7 +162,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))) &
       (!RegNext(RegNext(RegNext(id2exUnit.io.diffIdSkipInstOut))))
 
-    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.inst.addr)))))
     // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
 
     diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instDataOut))))) // important!!!
@@ -180,8 +172,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
     val debugCnt: UInt = RegInit(0.U(5.W))
-    when(pcUnit.io.instAddrOut === "h80000014".U) {
-      printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+    when(pcUnit.io.inst.addr === "h80000014".U) {
+      printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.inst.addr)}\n")
     }
 
     when(pcUnit.io.instDataOut =/= NopInst.U) {
@@ -192,7 +184,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       debugCnt := debugCnt - 1.U
       printf("debugCnt: %d\n", debugCnt)
       printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
-      printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.inst.addr)}\n")
       printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
       // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
 
@@ -244,7 +236,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     //   printf("t0: %d\n", regFile.io.debugOut)
     // }
 
-    // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
+    // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.inst.addr)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
     // printf("\n")
     // CSR State
@@ -283,7 +275,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     diffTrapState.io.coreid   := 0.U
     diffTrapState.io.valid    := trapReg
     diffTrapState.io.code     := 0.U // GoodTrap
-    diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.inst.addr)))))
     diffTrapState.io.cycleCnt := cycleCnt
     diffTrapState.io.instrCnt := instCnt
   } // ifDiffTest
