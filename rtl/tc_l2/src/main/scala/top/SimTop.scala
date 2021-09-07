@@ -17,15 +17,14 @@ class RAMHelper extends BlackBox with InstConfig {
   })
 }
 
-class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
+class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val logCtrl  = new LogCtrlIO
     val perfInfo = new PerfInfoIO
     val uart     = new UARTIO
 
     // bacause the framework, some below are specific name
-    val memAXI_0_aw_ready: Bool = Input(Bool())
-
+    val memAXI_0_aw_ready:      Bool = Input(Bool())
     val memAXI_0_aw_valid:      Bool = Output(Bool())
     val memAXI_0_aw_bits_addr:  UInt = Output(UInt(AxiAddrWidth.W))
     val memAXI_0_aw_bits_prot:  UInt = Output(UInt(AxiProtLen.W))
@@ -41,8 +40,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
     // write data
     // becuase the framework, now the 'memAXI_0_w_bits_data' need to be replaced
     // by 'memAXI_0_w_bits_data[3:0]' in Makefile
-    val memAXI_0_w_ready: Bool = Input(Bool())
-
+    val memAXI_0_w_ready:     Bool = Input(Bool())
     val memAXI_0_w_valid:     Bool = Output(Bool())
     val memAXI_0_w_bits_data: UInt = Output(UInt(AxiDataWidth.W))
     val memAXI_0_w_bits_strb: UInt = Output(UInt(8.W))
@@ -53,12 +51,10 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
     val memAXI_0_b_bits_resp: UInt = Input(UInt(AxiRespLen.W))
     val memAXI_0_b_bits_id:   UInt = Input(UInt(AxiIdLen.W))
     val memAXI_0_b_bits_user: UInt = Input(UInt(AxiUserLen.W))
-
-    val memAXI_0_b_ready: Bool = Output(Bool())
+    val memAXI_0_b_ready:     Bool = Output(Bool())
 
     // read addr
-    val memAXI_0_ar_ready: Bool = Input(Bool())
-
+    val memAXI_0_ar_ready:      Bool = Input(Bool())
     val memAXI_0_ar_valid:      Bool = Output(Bool())
     val memAXI_0_ar_bits_addr:  UInt = Output(UInt(AxiAddrWidth.W))
     val memAXI_0_ar_bits_prot:  UInt = Output(UInt(AxiProtLen.W))
@@ -80,8 +76,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
     val memAXI_0_r_bits_last: Bool = Input(Bool())
     val memAXI_0_r_bits_id:   UInt = Input(UInt(AxiIdLen.W))
     val memAXI_0_r_bits_use:  UInt = Input(UInt(AxiUserLen.W))
-
-    val memAXI_0_r_ready: Bool = Output(Bool())
+    val memAXI_0_r_ready:     Bool = Output(Bool())
   })
 
   // uart io
@@ -90,87 +85,71 @@ class SimTop(val ifDiffTest: Boolean) extends Module with InstConfig {
   io.uart.out.ch    := 0.U
 
   protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge())
-  axiBridge.io.axiAwReadyIn := io.memAXI_0_aw_ready
-  io.memAXI_0_aw_valid      := axiBridge.io.axiAwValidOut
-  io.memAXI_0_aw_bits_addr  := axiBridge.io.axiAwAddrOut
-  io.memAXI_0_aw_bits_prot  := axiBridge.io.axiAwProtOut
-  io.memAXI_0_aw_bits_id    := axiBridge.io.axiAwIdOut
-  io.memAXI_0_aw_bits_user  := axiBridge.io.axiAwUserOut
-  io.memAXI_0_aw_bits_len   := axiBridge.io.axiAwLenOut
-  io.memAXI_0_aw_bits_size  := axiBridge.io.axiAwSizeOut
-  io.memAXI_0_aw_bits_burst := axiBridge.io.axiAwBurstOut
-  io.memAXI_0_aw_bits_lock  := axiBridge.io.axiAwLockOut
-  io.memAXI_0_aw_bits_cache := axiBridge.io.axiAwCacheOut
-  io.memAXI_0_aw_bits_qos   := axiBridge.io.axiAwQosOut
+  axiBridge.io.axi.aw.ready := io.memAXI_0_aw_ready
+  io.memAXI_0_aw_valid      := axiBridge.io.axi.aw.valid
+  io.memAXI_0_aw_bits_addr  := axiBridge.io.axi.aw.addr
+  io.memAXI_0_aw_bits_prot  := axiBridge.io.axi.aw.prot
+  io.memAXI_0_aw_bits_id    := axiBridge.io.axi.aw.id
+  io.memAXI_0_aw_bits_user  := axiBridge.io.axi.aw.user
+  io.memAXI_0_aw_bits_len   := axiBridge.io.axi.aw.len
+  io.memAXI_0_aw_bits_size  := axiBridge.io.axi.aw.size
+  io.memAXI_0_aw_bits_burst := axiBridge.io.axi.aw.burst
+  io.memAXI_0_aw_bits_lock  := axiBridge.io.axi.aw.lock
+  io.memAXI_0_aw_bits_cache := axiBridge.io.axi.aw.cache
+  io.memAXI_0_aw_bits_qos   := axiBridge.io.axi.aw.qos
 
-  axiBridge.io.axiWtReadyIn := io.memAXI_0_w_ready
-  io.memAXI_0_w_valid       := axiBridge.io.axiWtValidOut
-  io.memAXI_0_w_bits_data   := axiBridge.io.axiWtDataOut
-  io.memAXI_0_w_bits_strb   := axiBridge.io.axiWtStrbOut
-  io.memAXI_0_w_bits_last   := axiBridge.io.axiWtLastOut
+  axiBridge.io.axi.wt.ready := io.memAXI_0_w_ready
+  io.memAXI_0_w_valid       := axiBridge.io.axi.wt.valid
+  io.memAXI_0_w_bits_data   := axiBridge.io.axi.wt.data
+  io.memAXI_0_w_bits_strb   := axiBridge.io.axi.wt.strb
+  io.memAXI_0_w_bits_last   := axiBridge.io.axi.wt.last
 
-  axiBridge.io.axiWtbValidIn := io.memAXI_0_b_valid
-  axiBridge.io.axiWtbRespIn  := io.memAXI_0_b_bits_resp
-  axiBridge.io.axWtbIdIn     := io.memAXI_0_b_bits_id
-  axiBridge.io.axiWtbUserIn  := io.memAXI_0_b_bits_user
-  io.memAXI_0_b_ready        := axiBridge.io.axiWtbReadyOut
+  axiBridge.io.axi.b.valid := io.memAXI_0_b_valid
+  axiBridge.io.axi.b.resp  := io.memAXI_0_b_bits_resp
+  axiBridge.io.axi.b.id    := io.memAXI_0_b_bits_id
+  axiBridge.io.axi.b.user  := io.memAXI_0_b_bits_user
+  io.memAXI_0_b_ready      := axiBridge.io.axi.b.ready
 
-  axiBridge.io.axiArReadyIn := io.memAXI_0_ar_ready
-  io.memAXI_0_ar_valid      := axiBridge.io.axiArValidOut
-  io.memAXI_0_ar_bits_addr  := axiBridge.io.axiArAddrOut
-  io.memAXI_0_ar_bits_prot  := axiBridge.io.axiArProtOut
-  io.memAXI_0_ar_bits_id    := axiBridge.io.axiArIdOut
-  io.memAXI_0_ar_bits_user  := axiBridge.io.axiArUserOut
-  io.memAXI_0_ar_bits_len   := axiBridge.io.axiArLenOut
-  io.memAXI_0_ar_bits_size  := axiBridge.io.axiArSizeOut
-  io.memAXI_0_ar_bits_burst := axiBridge.io.axiArBurstOut
-  io.memAXI_0_ar_bits_lock  := axiBridge.io.axiArLockOut
-  io.memAXI_0_ar_bits_cache := axiBridge.io.axiArCacheOut
-  io.memAXI_0_ar_bits_qos   := axiBridge.io.axiArQosOut
+  axiBridge.io.axi.ar.ready := io.memAXI_0_ar_ready
+  io.memAXI_0_ar_valid      := axiBridge.io.axi.ar.valid
+  io.memAXI_0_ar_bits_addr  := axiBridge.io.axi.ar.addr
+  io.memAXI_0_ar_bits_prot  := axiBridge.io.axi.ar.prot
+  io.memAXI_0_ar_bits_id    := axiBridge.io.axi.ar.id
+  io.memAXI_0_ar_bits_user  := axiBridge.io.axi.ar.user
+  io.memAXI_0_ar_bits_len   := axiBridge.io.axi.ar.len
+  io.memAXI_0_ar_bits_size  := axiBridge.io.axi.ar.size
+  io.memAXI_0_ar_bits_burst := axiBridge.io.axi.ar.burst
+  io.memAXI_0_ar_bits_lock  := axiBridge.io.axi.ar.lock
+  io.memAXI_0_ar_bits_cache := axiBridge.io.axi.ar.cache
+  io.memAXI_0_ar_bits_qos   := axiBridge.io.axi.ar.qos
 
-  axiBridge.io.axiRdValidIn := io.memAXI_0_r_valid
-  axiBridge.io.axiRdRespIn  := io.memAXI_0_r_bits_resp
-  axiBridge.io.axiRdDataIn  := io.memAXI_0_r_bits_data
-  axiBridge.io.axiRdLastIn  := io.memAXI_0_r_bits_last
-  axiBridge.io.axiRdIdIn    := io.memAXI_0_r_bits_id
-  axiBridge.io.axiRdUserIn  := io.memAXI_0_r_bits_use
-  io.memAXI_0_r_ready       := axiBridge.io.axiRdReadyOut
+  axiBridge.io.axi.rd.valid := io.memAXI_0_r_valid
+  axiBridge.io.axi.rd.resp  := io.memAXI_0_r_bits_resp
+  axiBridge.io.axi.rd.data  := io.memAXI_0_r_bits_data
+  axiBridge.io.axi.rd.last  := io.memAXI_0_r_bits_last
+  axiBridge.io.axi.rd.id    := io.memAXI_0_r_bits_id
+  axiBridge.io.axi.rd.user  := io.memAXI_0_r_bits_use
+  io.memAXI_0_r_ready       := axiBridge.io.axi.rd.ready
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
+  axiBridge.io.inst <> treeCoreL2.io.inst
+  axiBridge.io.mem  <> treeCoreL2.io.mem
 
-  axiBridge.io.instValidIn := treeCoreL2.io.instValidOut
-  axiBridge.io.instReqIn   := 0.U // 0: read 1: write
-  axiBridge.io.instAddrIn  := treeCoreL2.io.instAddrOut
-  axiBridge.io.instSizeIn  := treeCoreL2.io.instSizeOut
-
-  axiBridge.io.memValidIn := treeCoreL2.io.memValidOut
-  axiBridge.io.memReqIn   := treeCoreL2.io.memReqOut
-  axiBridge.io.memDataIn  := treeCoreL2.io.memDataOut
-  axiBridge.io.memAddrIn  := treeCoreL2.io.memAddrOut
-  axiBridge.io.memSizeIn  := treeCoreL2.io.memSizeOut
-
-  treeCoreL2.io.instReadyIn  := axiBridge.io.instReadyOut
-  treeCoreL2.io.instRdDataIn := axiBridge.io.instRdDataOut
-  treeCoreL2.io.instRespIn   := axiBridge.io.instRespOut
-  treeCoreL2.io.memReadyIn   := axiBridge.io.memReadyOut
-  treeCoreL2.io.memRdDataIn  := axiBridge.io.memRdDataOut
-  treeCoreL2.io.memRespIn    := axiBridge.io.memRespOut
-
-  // when(axiBridge.io.instReadyOut) {
+  // when(axiBridge.io.inst.ready) {
   //   printf("########################################\n")
-  //   printf("axiBridge.io.instReadyOut\n")
+  //   printf("axiBridge.io.inst.ready\n")
   //   printf("########################################\n")
   // }
 
-  when(axiBridge.io.axiWtValidOut) {
+  when(axiBridge.io.axi.wt.valid) {
     printf("########################################\n")
-    printf("axiBridge.io.axiWtValidOut\n")
+    printf("axiBridge.io.axi.wt.valid\n")
     printf("########################################\n")
   }
 
-  when(axiBridge.io.axiWtbValidIn) {
+  when(axiBridge.io.axi.b.valid) {
     printf("########################################\n")
-    printf("axiBridge.io.axiWtbValidIn\n")
+    printf("axiBridge.io.axi.b.valid\n")
     printf("########################################\n")
   }
 }
