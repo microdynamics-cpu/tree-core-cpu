@@ -138,27 +138,28 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
 
-  axiBridge.io.instValidIn := treeCoreL2.io.instValidOut
-  axiBridge.io.instReqIn   := 0.U // 0: read 1: write
-  axiBridge.io.instAddrIn  := treeCoreL2.io.instAddrOut
-  axiBridge.io.instSizeIn  := treeCoreL2.io.instSizeOut
+  axiBridge.io.inst.valid := treeCoreL2.io.instValidOut
+  axiBridge.io.inst.req   := 0.U // 0: read 1: write
+  axiBridge.io.inst.wdata := DontCare
+  axiBridge.io.inst.addr  := treeCoreL2.io.instAddrOut
+  axiBridge.io.inst.size  := treeCoreL2.io.instSizeOut
 
-  axiBridge.io.memValidIn := treeCoreL2.io.memValidOut
-  axiBridge.io.memReqIn   := treeCoreL2.io.memReqOut
-  axiBridge.io.memDataIn  := treeCoreL2.io.memDataOut
-  axiBridge.io.memAddrIn  := treeCoreL2.io.memAddrOut
-  axiBridge.io.memSizeIn  := treeCoreL2.io.memSizeOut
+  axiBridge.io.mem.valid := treeCoreL2.io.memValidOut
+  axiBridge.io.mem.req   := treeCoreL2.io.memReqOut
+  axiBridge.io.mem.wdata := treeCoreL2.io.memDataOut
+  axiBridge.io.mem.addr  := treeCoreL2.io.memAddrOut
+  axiBridge.io.mem.size  := treeCoreL2.io.memSizeOut
 
-  treeCoreL2.io.instReadyIn  := axiBridge.io.instReadyOut
-  treeCoreL2.io.instRdDataIn := axiBridge.io.instRdDataOut
-  treeCoreL2.io.instRespIn   := axiBridge.io.instRespOut
-  treeCoreL2.io.memReadyIn   := axiBridge.io.memReadyOut
-  treeCoreL2.io.memRdDataIn  := axiBridge.io.memRdDataOut
-  treeCoreL2.io.memRespIn    := axiBridge.io.memRespOut
+  treeCoreL2.io.instReadyIn  := axiBridge.io.inst.ready
+  treeCoreL2.io.instRdDataIn := axiBridge.io.inst.rdata
+  treeCoreL2.io.instRespIn   := axiBridge.io.inst.resp
+  treeCoreL2.io.memReadyIn   := axiBridge.io.mem.ready
+  treeCoreL2.io.memRdDataIn  := axiBridge.io.mem.rdata
+  treeCoreL2.io.memRespIn    := axiBridge.io.mem.resp
 
-  // when(axiBridge.io.instReadyOut) {
+  // when(axiBridge.io.inst.ready) {
   //   printf("########################################\n")
-  //   printf("axiBridge.io.instReadyOut\n")
+  //   printf("axiBridge.io.inst.ready\n")
   //   printf("########################################\n")
   // }
 

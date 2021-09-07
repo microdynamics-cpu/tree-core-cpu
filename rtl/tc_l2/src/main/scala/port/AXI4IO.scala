@@ -2,17 +2,18 @@ package treecorel2
 
 import chisel3._
 
-class AXI4USERIO extends Bundle with AXI4Config with InstConfig {
-  val valid:  Bool = Input(Bool())
-  val req:    UInt = Input(UInt(AxiReqLen.W)) // can only read
-  val addr:   UInt = Input(UInt(AxiDataWidth.W))
-  val size:   UInt = Input(UInt(AxiSizeLen.W))
-  val ready:  Bool = Output(Bool())
-  val rdData: UInt = Output(UInt(BusWidth.W))
-  val resp:   UInt = Output(UInt(AxiRespLen.W))
+class AXI4USERIO extends Bundle with AXI4Config {
+  val valid: Bool = Input(Bool())
+  val req:   UInt = Input(UInt(AxiReqLen.W))
+  val wdata: UInt = Input(UInt(AxiDataWidth.W))
+  val addr:  UInt = Input(UInt(AxiDataWidth.W))
+  val size:  UInt = Input(UInt(AxiSizeLen.W))
+  val ready: Bool = Output(Bool())
+  val rdata: UInt = Output(UInt(AxiDataWidth.W))
+  val resp:  UInt = Output(UInt(AxiRespLen.W))
 }
 
-class AXI4AWIO extends Bundle with AXI4Config with InstConfig {
+class AXI4AWIO extends Bundle with AXI4Config {
 // write addr
   val ready:  Bool = Input(Bool())
   val valid:  Bool = Output(Bool())
@@ -22,14 +23,14 @@ class AXI4AWIO extends Bundle with AXI4Config with InstConfig {
   val user:   UInt = Output(UInt(AxiUserLen.W))
   val len:    UInt = Output(UInt(8.W))
   val size:   UInt = Output(UInt(3.W))
-  val burst:  UInt = Output(UInt(2.W))
+  val burst:  UInt = Output(UInt(AxiBurstLen.W))
   val lock:   Bool = Output(Bool())
-  val cache:  UInt = Output(UInt(4.W))
-  val qos:    UInt = Output(UInt(4.W))
-  val region: UInt = Output(UInt(4.W)) // not use
+  val cache:  UInt = Output(UInt(AxiCacheLen.W))
+  val qos:    UInt = Output(UInt(AxiQosLen.W))
+  val region: UInt = Output(UInt(AxiRegionLen.W)) // not use
 }
 
-class AXI4WTIO extends Bundle with AXI4Config with InstConfig {
+class AXI4WTIO extends Bundle with AXI4Config {
   // write data
   val ready: Bool = Input(Bool())
   val valid: Bool = Output(Bool())
@@ -40,7 +41,7 @@ class AXI4WTIO extends Bundle with AXI4Config with InstConfig {
   val user:  UInt = Output(UInt(AxiUserLen.W)) // not use
 }
 
-class AXI4WTBIO extends Bundle with AXI4Config with InstConfig {
+class AXI4WTBIO extends Bundle with AXI4Config {
   // write resp
   val valid: Bool = Input(Bool())
   val resp:  UInt = Input(UInt(AxiRespLen.W))
@@ -49,7 +50,7 @@ class AXI4WTBIO extends Bundle with AXI4Config with InstConfig {
   val ready: Bool = Output(Bool())
 }
 
-class AXI4ARIO extends Bundle with AXI4Config with InstConfig {
+class AXI4ARIO extends Bundle with AXI4Config {
   // read addr
   val ready:  Bool = Input(Bool())
   val valid:  Bool = Output(Bool())
@@ -59,14 +60,14 @@ class AXI4ARIO extends Bundle with AXI4Config with InstConfig {
   val user:   UInt = Output(UInt(AxiUserLen.W))
   val len:    UInt = Output(UInt(8.W))
   val size:   UInt = Output(UInt(3.W))
-  val burst:  UInt = Output(UInt(2.W))
+  val burst:  UInt = Output(UInt(AxiBurstLen.W))
   val lock:   Bool = Output(Bool())
-  val cache:  UInt = Output(UInt(4.W))
-  val qos:    UInt = Output(UInt(4.W))
-  val region: UInt = Output(UInt(4.W)) // not use
+  val cache:  UInt = Output(UInt(AxiCacheLen.W))
+  val qos:    UInt = Output(UInt(AxiQosLen.W))
+  val region: UInt = Output(UInt(AxiRegionLen.W)) // not use
 }
 
-class AXI4RDIO extends Bundle with AXI4Config with InstConfig {
+class AXI4RDIO extends Bundle with AXI4Config {
   // read data
   val valid: Bool = Input(Bool())
   val resp:  UInt = Input(UInt(AxiRespLen.W))

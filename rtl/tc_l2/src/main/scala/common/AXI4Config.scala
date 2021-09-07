@@ -5,18 +5,22 @@ import chisel3.util._
 
 //AXI parameters
 trait AXI4Config {
+  val AxiReqLen = 2
+  val AxiReqRd  = 0
+  val AxiReqWt  = 1
+  val AxiReqNop = 2
+
   val AxiDataWidth = 64
   val AxiAddrWidth = 64
-  val AxiSizeLen   = 2
-  val AxiRespLen   = 2
   val AxiProtLen   = 3
   val AxiIdLen     = 4
   val AxiUserLen   = 1
-  val AxiReqLen    = 2
-  val AxiReqRd     = 0
-  val AxiReqWt     = 1
-
-  val AxiReqNop = 2
+  val AxiSizeLen   = 2
+  val AxiBurstLen  = 2
+  val AxiCacheLen  = 4
+  val AxiQosLen    = 4
+  val AxiRegionLen = 4
+  val AxiRespLen   = 2
 
   // val addrBits   = 64
   // val dataBits   = 64
