@@ -24,8 +24,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
     val uart     = new UARTIO
 
     // bacause the framework, some below are specific name
-    val memAXI_0_aw_ready: Bool = Input(Bool())
-
+    val memAXI_0_aw_ready:      Bool = Input(Bool())
     val memAXI_0_aw_valid:      Bool = Output(Bool())
     val memAXI_0_aw_bits_addr:  UInt = Output(UInt(AxiAddrWidth.W))
     val memAXI_0_aw_bits_prot:  UInt = Output(UInt(AxiProtLen.W))
@@ -41,8 +40,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
     // write data
     // becuase the framework, now the 'memAXI_0_w_bits_data' need to be replaced
     // by 'memAXI_0_w_bits_data[3:0]' in Makefile
-    val memAXI_0_w_ready: Bool = Input(Bool())
-
+    val memAXI_0_w_ready:     Bool = Input(Bool())
     val memAXI_0_w_valid:     Bool = Output(Bool())
     val memAXI_0_w_bits_data: UInt = Output(UInt(AxiDataWidth.W))
     val memAXI_0_w_bits_strb: UInt = Output(UInt(8.W))
@@ -53,12 +51,10 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
     val memAXI_0_b_bits_resp: UInt = Input(UInt(AxiRespLen.W))
     val memAXI_0_b_bits_id:   UInt = Input(UInt(AxiIdLen.W))
     val memAXI_0_b_bits_user: UInt = Input(UInt(AxiUserLen.W))
-
-    val memAXI_0_b_ready: Bool = Output(Bool())
+    val memAXI_0_b_ready:     Bool = Output(Bool())
 
     // read addr
-    val memAXI_0_ar_ready: Bool = Input(Bool())
-
+    val memAXI_0_ar_ready:      Bool = Input(Bool())
     val memAXI_0_ar_valid:      Bool = Output(Bool())
     val memAXI_0_ar_bits_addr:  UInt = Output(UInt(AxiAddrWidth.W))
     val memAXI_0_ar_bits_prot:  UInt = Output(UInt(AxiProtLen.W))
@@ -80,8 +76,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
     val memAXI_0_r_bits_last: Bool = Input(Bool())
     val memAXI_0_r_bits_id:   UInt = Input(UInt(AxiIdLen.W))
     val memAXI_0_r_bits_use:  UInt = Input(UInt(AxiUserLen.W))
-
-    val memAXI_0_r_ready: Bool = Output(Bool())
+    val memAXI_0_r_ready:     Bool = Output(Bool())
   })
 
   // uart io
@@ -138,7 +133,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
   axiBridge.io.inst <> treeCoreL2.io.inst
-  axiBridge.io.mem <> treeCoreL2.io.mem
+  axiBridge.io.mem  <> treeCoreL2.io.mem
 
   // when(axiBridge.io.inst.ready) {
   //   printf("########################################\n")
