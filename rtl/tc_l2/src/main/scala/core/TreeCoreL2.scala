@@ -3,23 +3,10 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig {
+class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
-    val instReadyIn:  Bool = Input(Bool())
-    val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
-    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
-    val memReadyIn:   Bool = Input(Bool())
-    val memRdDataIn:  UInt = Input(UInt(BusWidth.W))
-    val memRespIn:    UInt = Input(UInt(AxiRespLen.W))
-
-    val instValidOut: Bool = Output(Bool())
-    val instAddrOut:  UInt = Output(UInt(BusWidth.W))
-    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
-    val memValidOut:  Bool = Output(Bool())
-    val memReqOut:    UInt = Output(UInt(2.W)) // read or write
-    val memDataOut:   UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
-    val memAddrOut:   UInt = Output(UInt(AxiDataWidth.W))
-    val memSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
+    val inst: AXI4USERIO = Flipped(new AXI4USERIO)
+    val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -35,26 +22,16 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
-  io.instValidOut := pcUnit.io.instValidOut
-  io.instSizeOut  := pcUnit.io.instSizeOut
-  io.instAddrOut  := pcUnit.io.instAddrOut
-  io.memValidOut  := memAccess.io.memValidOut
-  io.memReqOut    := memAccess.io.memReqOut
-  io.memDataOut   := memAccess.io.memDataOut
-  io.memAddrOut   := memAccess.io.memAddrOut
-  io.memSizeOut   := memAccess.io.memSizeOut
+  io.inst <> pcUnit.io.axi
+  io.mem  <> memAccess.io.axi
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
-  // axi to pc
-  pcUnit.io.instReadyIn  := io.instReadyIn
-  pcUnit.io.instRdDataIn := io.instRdDataIn
-  pcUnit.io.instRespIn   := io.instRespIn
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
-  if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
+  if2idUnit.io.ifInstAddrIn := pcUnit.io.axi.addr
   if2idUnit.io.ifInstDataIn := pcUnit.io.instDataOut
   if2idUnit.io.ifFlushIn    := controlUnit.io.flushIfOut
 
@@ -108,13 +85,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
   memAccess.io.memValBIn     := ex2maUnit.io.lsuValBOut
   memAccess.io.memOffsetIn   := ex2maUnit.io.lsuOffsetOut
 
-  memAccess.io.wtDataIn := ex2maUnit.io.maDataOut
-  memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
-  memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
-
-  memAccess.io.memReadyIn  := io.memReadyIn
-  memAccess.io.memRdDataIn := io.memRdDataIn
-  memAccess.io.memRespIn   := io.memRespIn
+  memAccess.io.wtDataIn    := ex2maUnit.io.maDataOut
+  memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
+  memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
   ex2maUnit.io.lsuWtEnaOut := DontCare
 
   // ma to wb
@@ -180,7 +153,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
       (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))) &
       (!RegNext(RegNext(RegNext(id2exUnit.io.diffIdSkipInstOut))))
 
-    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
     // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
 
     diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instDataOut))))) // important!!!
@@ -190,8 +163,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
 
     val debugCnt: UInt = RegInit(0.U(5.W))
-    when(pcUnit.io.instAddrOut === "h80000014".U) {
-      printf(p"[pc]io.instAddrOut[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+    when(pcUnit.io.axi.addr === "h80000014".U) {
+      printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
     }
 
     when(pcUnit.io.instDataOut =/= NopInst.U) {
@@ -202,7 +175,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
       debugCnt := debugCnt - 1.U
       printf("debugCnt: %d\n", debugCnt)
       printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
-      printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
       printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
       // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
 
@@ -226,9 +199,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
 
       printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
-      when(memAccess.io.memReadyIn) {
+      when(memAccess.io.axi.ready) {
         printf("########################################\n")
-        printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.memReadyIn)}\n")
+        printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.axi.ready)}\n")
         printf("########################################\n")
       }
 
@@ -254,7 +227,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     //   printf("t0: %d\n", regFile.io.debugOut)
     // }
 
-    // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))}\n")
+    // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
     // printf("\n")
     // CSR State
@@ -293,7 +266,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with InstConfig
     diffTrapState.io.coreid   := 0.U
     diffTrapState.io.valid    := trapReg
     diffTrapState.io.code     := 0.U // GoodTrap
-    diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instAddrOut)))))
+    diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
     diffTrapState.io.cycleCnt := cycleCnt
     diffTrapState.io.instrCnt := instCnt
   } // ifDiffTest

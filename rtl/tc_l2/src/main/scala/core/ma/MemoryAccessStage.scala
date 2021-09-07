@@ -35,7 +35,7 @@ object MemoryAccessStage {
 
 // read data addr is calc by alu
 // write data addr is passed from id stage directly
-class MemoryAccessStage extends Module with InstConfig {
+class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
     val memFunc3In:    UInt = Input(UInt(3.W))
@@ -52,28 +52,22 @@ class MemoryAccessStage extends Module with InstConfig {
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
     val wtEnaIn:  Bool = Input(Bool())
     val wtAddrIn: UInt = Input(UInt(RegAddrLen.W))
+
     // from axibridge
-    val memReadyIn:  Bool = Input(Bool())
-    val memRdDataIn: UInt = Input(UInt(BusWidth.W))
-    val memRespIn:   UInt = Input(UInt(AxiRespLen.W))
+    val axi: AXI4USERIO = Flipped(new AXI4USERIO)
 
     // to regfile
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
-    // to axibridge
-    val memValidOut: Bool = Output(Bool())
-    val memReqOut:   UInt = Output(UInt(2.W)) // read or write
-    val memDataOut:  UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
-    val memAddrOut:  UInt = Output(UInt(AxiDataWidth.W))
-    val memSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
+
     // to control
     val stallReqOut: Bool = Output(Bool())
   })
 
-  protected val lwData: UInt = Mux(io.memAddrOut(2), io.memRdDataIn(63, 32), io.memRdDataIn(31, 0))
-  protected val lhData: UInt = Mux(io.memAddrOut(1), lwData(31, 16), lwData(15, 0))
-  protected val lbData: UInt = Mux(io.memAddrOut(0), lhData(15, 8), lhData(7, 0))
+  protected val lwData: UInt = Mux(io.axi.addr(2), io.axi.rdata(63, 32), io.axi.rdata(31, 0))
+  protected val lhData: UInt = Mux(io.axi.addr(1), lwData(31, 16), lwData(15, 0))
+  protected val lbData: UInt = Mux(io.axi.addr(0), lhData(15, 8), lhData(7, 0))
 
   // select zero or sign extension
   protected val lbWire: UInt = Cat(
@@ -91,11 +85,11 @@ class MemoryAccessStage extends Module with InstConfig {
     lwData
   )
 
-  protected val ldWire: UInt = io.memRdDataIn
+  protected val ldWire: UInt = io.axi.rdata
 
   protected val loadData: UInt = MuxLookup(
     io.memFunc3In(1, 0),
-    io.memRdDataIn,
+    io.axi.rdata,
     Array(
       0.U -> lbWire,
       1.U -> lhWire,
@@ -105,24 +99,24 @@ class MemoryAccessStage extends Module with InstConfig {
   )
 
   protected val wMask =
-    ListLookup(Cat(io.memFunc3In(1, 0), io.memAddrOut(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
+    ListLookup(Cat(io.memFunc3In(1, 0), io.axi.addr(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
 
   protected val memValidReg: Bool = RegInit(false.B)
-  io.memValidOut := memValidReg
+  io.axi.valid := memValidReg
   // judge the write regfile data's origin
-  when(io.memReadyIn) {
+  when(io.axi.ready) {
     io.wtDataOut := loadData
-    io.memReqOut := AxiReqNop.U // the is decided by valid and what's value of this is dont matter
+    io.axi.req   := AxiReqNop.U // the is decided by valid and what's value of this is dont matter
     memValidReg  := false.B
   }.otherwise {
     io.wtDataOut := io.wtDataIn
-    io.memReqOut := AxiReqNop.U
+    io.axi.req   := AxiReqNop.U
     when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
-      io.memReqOut := AxiReqRd.U
-      memValidReg  := true.B
+      io.axi.req  := AxiReqRd.U
+      memValidReg := true.B
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
-      io.memReqOut := AxiReqWt.U
-      memValidReg  := true.B
+      io.axi.req  := AxiReqWt.U
+      memValidReg := true.B
     }
   }
   io.wtEnaOut  := io.wtEnaIn
@@ -134,28 +128,28 @@ class MemoryAccessStage extends Module with InstConfig {
       io.memOperTypeIn === lsuLHUType ||
       io.memOperTypeIn === lsuLWUType
   ) {
-    io.memAddrOut := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    io.axi.addr := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }.otherwise {
-    io.memAddrOut := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    io.axi.addr := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
   // prepare write data
-  io.memDataOut := MuxLookup(
+  io.axi.wdata := MuxLookup(
     io.memOperTypeIn,
     0.U,
     Seq(
-      lsuSBType -> (io.memValBIn(7, 0) << (io.memAddrOut(2, 0) * 8.U)),
+      lsuSBType -> (io.memValBIn(7, 0) << (io.axi.addr(2, 0) * 8.U)),
       // (0x0, 0x1)->0, (0x2, 0x3)->1, (0x4, 0x5)->2, (0x6, 0x7)->3
       // shift bits: (addr(2, 0) / 2 * 16 bit)
-      lsuSHType -> (io.memValBIn(15, 0) << (io.memAddrOut(2, 0) * 8.U)),
+      lsuSHType -> (io.memValBIn(15, 0) << (io.axi.addr(2, 0) * 8.U)),
       // (0x0...0x3)->0, (0x4...0x7)->1
       // shift bits: (addr(2, 0) / 4 * 32 bit)
-      lsuSWType -> (io.memValBIn(31, 0) << (io.memAddrOut(2, 0) * 8.U)),
+      lsuSWType -> (io.memValBIn(31, 0) << (io.axi.addr(2, 0) * 8.U)),
       // (0x0...0x7)->0
       lsuSDType -> io.memValBIn(63, 0)
     )
   )
 
-  io.memSizeOut  := AXI4Bridge.SIZE_D
-  io.stallReqOut := io.memValidOut && (~io.memReadyIn)
+  io.axi.size    := AXI4Bridge.SIZE_D
+  io.stallReqOut := io.axi.valid && (~io.axi.ready)
 }
