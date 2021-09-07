@@ -79,9 +79,9 @@ class AXI4RDIO extends Bundle with AXI4Config {
 }
 
 class AXI4IO extends Bundle {
-  val awSign:  AXI4AWIO  = new AXI4AWIO
-  val wtSign:  AXI4WTIO  = new AXI4WTIO
-  val wtbSign: AXI4WTBIO = new AXI4WTBIO
-  val arSign:  AXI4ARIO  = new AXI4ARIO
-  val rdSign:  AXI4RDIO  = new AXI4RDIO
+  val aw: AXI4AWIO  = new AXI4AWIO
+  val wt: AXI4WTIO  = new AXI4WTIO
+  val b:  AXI4WTBIO = new AXI4WTBIO
+  val ar: AXI4ARIO  = new AXI4ARIO
+  val rd: AXI4RDIO  = new AXI4RDIO
 }

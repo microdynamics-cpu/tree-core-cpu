@@ -5,22 +5,12 @@ import difftest._
 
 class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
-    val instReadyIn:  Bool = Input(Bool())
-    val instRdDataIn: UInt = Input(UInt(AxiDataWidth.W))
-    val instRespIn:   UInt = Input(UInt(AxiRespLen.W))
-    val memReadyIn:   Bool = Input(Bool())
-    val memRdDataIn:  UInt = Input(UInt(BusWidth.W))
-    val memRespIn:    UInt = Input(UInt(AxiRespLen.W))
-
-    val instValidOut: Bool = Output(Bool())
-    val instAddrOut:  UInt = Output(UInt(BusWidth.W))
-    val instSizeOut:  UInt = Output(UInt(AxiSizeLen.W))
-    val memValidOut:  Bool = Output(Bool())
-    val memReqOut:    UInt = Output(UInt(2.W)) // read or write
-    val memDataOut:   UInt = Output(UInt(AxiDataWidth.W)) // write to the dram
-    val memAddrOut:   UInt = Output(UInt(AxiDataWidth.W))
-    val memSizeOut:   UInt = Output(UInt(AxiSizeLen.W))
+    val inst: AXI4USERIO = Flipped(new AXI4USERIO)
+    val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
   })
+  // tmp
+  io.inst.req   := 0.U // 0: read 1: write
+  io.inst.wdata := DontCare
 
   protected val pcUnit      = Module(new PCReg)
   protected val if2idUnit   = Module(new IFToID)
@@ -35,23 +25,23 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
-  io.instValidOut := pcUnit.io.instValidOut
-  io.instSizeOut  := pcUnit.io.instSizeOut
-  io.instAddrOut  := pcUnit.io.instAddrOut
-  io.memValidOut  := memAccess.io.memValidOut
-  io.memReqOut    := memAccess.io.memReqOut
-  io.memDataOut   := memAccess.io.memDataOut
-  io.memAddrOut   := memAccess.io.memAddrOut
-  io.memSizeOut   := memAccess.io.memSizeOut
+  io.inst.valid := pcUnit.io.instValidOut
+  io.inst.size  := pcUnit.io.instSizeOut
+  io.inst.addr  := pcUnit.io.instAddrOut
+  io.mem.valid  := memAccess.io.memValidOut
+  io.mem.req    := memAccess.io.memReqOut
+  io.mem.wdata  := memAccess.io.memDataOut
+  io.mem.addr   := memAccess.io.memAddrOut
+  io.mem.size   := memAccess.io.memSizeOut
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
   // axi to pc
-  pcUnit.io.instReadyIn  := io.instReadyIn
-  pcUnit.io.instRdDataIn := io.instRdDataIn
-  pcUnit.io.instRespIn   := io.instRespIn
+  pcUnit.io.instReadyIn  := io.inst.ready
+  pcUnit.io.instRdDataIn := io.inst.rdata
+  pcUnit.io.instRespIn   := io.inst.resp
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2idUnit.io.ifInstAddrIn := pcUnit.io.instAddrOut
@@ -112,9 +102,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   memAccess.io.wtEnaIn  := ex2maUnit.io.maWtEnaOut
   memAccess.io.wtAddrIn := ex2maUnit.io.maWtAddrOut
 
-  memAccess.io.memReadyIn  := io.memReadyIn
-  memAccess.io.memRdDataIn := io.memRdDataIn
-  memAccess.io.memRespIn   := io.memRespIn
+  memAccess.io.memReadyIn  := io.mem.ready
+  memAccess.io.memRdDataIn := io.mem.rdata
+  memAccess.io.memRespIn   := io.mem.resp
   ex2maUnit.io.lsuWtEnaOut := DontCare
 
   // ma to wb
@@ -191,7 +181,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
 
     val debugCnt: UInt = RegInit(0.U(5.W))
     when(pcUnit.io.instAddrOut === "h80000014".U) {
-      printf(p"[pc]io.instAddrOut[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
     }
 
     when(pcUnit.io.instDataOut =/= NopInst.U) {
@@ -202,7 +192,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       debugCnt := debugCnt - 1.U
       printf("debugCnt: %d\n", debugCnt)
       printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
-      printf(p"[pc]io.instAddrOut = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
+      printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.instAddrOut)}\n")
       printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
       // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
 
