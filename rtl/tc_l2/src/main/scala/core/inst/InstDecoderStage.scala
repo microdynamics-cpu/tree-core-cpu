@@ -112,8 +112,7 @@ object InstDecoderStage {
 class InstDecoderStage extends Module with InstConfig {
   val io = IO(new Bundle {
     // from pc
-    val instAddrIn: UInt = Input(UInt(BusWidth.W))
-    val instDataIn: UInt = Input(UInt(InstWidth.W))
+    val inst: INSTIO = new INSTIO
     // to id2ex
     val rdDataAIn: UInt = Input(UInt(BusWidth.W))
     val rdDataBIn: UInt = Input(UInt(BusWidth.W))
@@ -151,18 +150,18 @@ class InstDecoderStage extends Module with InstConfig {
     val csrAddrOut: UInt = Output(UInt(CSRAddrLen.W))
   })
 
-  protected val rsRegAddrA: UInt = io.instDataIn(19, 15)
-  protected val rsRegAddrB: UInt = io.instDataIn(24, 20)
-  protected val rdRegAddr:  UInt = io.instDataIn(11, 7)
+  protected val rsRegAddrA: UInt = io.inst.data(19, 15)
+  protected val rsRegAddrB: UInt = io.inst.data(24, 20)
+  protected val rdRegAddr:  UInt = io.inst.data(11, 7)
 
-  protected val decodeRes = ListLookup(io.instDataIn, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
+  protected val decodeRes = ListLookup(io.inst.data, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
 
   // acoording the inst type to construct the imm
   protected val immExtensionUnit = Module(new ImmExten)
-  immExtensionUnit.io.instDataIn := io.instDataIn
+  immExtensionUnit.io.instDataIn := io.inst.data
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
-  io.lsuFunc3Out := io.instDataIn(14, 12)
+  io.lsuFunc3Out := io.inst.data(14, 12)
   io.lsuWtEnaOut := decodeRes(6)
 
   when(
@@ -206,7 +205,7 @@ class InstDecoderStage extends Module with InstConfig {
       decodeRes(3) === beuBGEType ||
       decodeRes(3) === beuBGEUType
   ) {
-    io.exuOperNumOut := io.instAddrIn
+    io.exuOperNumOut := io.inst.addr
   }.elsewhen(decodeRes(3) === beuJALRType) {
     // import: maybe this time rdDataA have not been writen to the reg
     when(io.fwRsEnaAIn) {
@@ -223,7 +222,7 @@ class InstDecoderStage extends Module with InstConfig {
       decodeRes(3) === beuJALType ||
       decodeRes(3) === beuJALRType
   ) {
-    io.rsValAOut := io.instAddrIn
+    io.rsValAOut := io.inst.addr
   }.elsewhen(io.fwRsEnaAIn) {
     io.rsValAOut := io.fwRsValAIn
   }.otherwise {
@@ -234,7 +233,7 @@ class InstDecoderStage extends Module with InstConfig {
   when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
     io.rsValBOut := immExtensionUnit.io.immOut
   }.elsewhen(decodeRes(2) === InstDecoderStage.shamtAluOperNumType) {
-    io.rsValBOut := io.instDataIn(25, 20)
+    io.rsValBOut := io.inst.data(25, 20)
   }.elsewhen(decodeRes(3) === beuJALType || decodeRes(3) === beuJALRType) {
     io.rsValBOut := 4.U(BusWidth.W)
   }.elsewhen(io.fwRsEnaBIn) {
@@ -263,7 +262,7 @@ class InstDecoderStage extends Module with InstConfig {
   }
 
   when(decodeRes(3) === csrRSType) {
-    io.csrAddrOut := io.instDataIn(31, 20)
+    io.csrAddrOut := io.inst.data(31, 20)
   }.otherwise {
     io.csrAddrOut := 0.U(CSRAddrLen.W)
   }
