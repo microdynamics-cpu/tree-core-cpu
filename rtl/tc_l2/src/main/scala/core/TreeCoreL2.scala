@@ -10,124 +10,131 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   })
 
   protected val pcUnit      = Module(new PCReg)
-  protected val if2idUnit   = Module(new IFToID)
+  protected val if2id       = Module(new IFToID)
   protected val regFile     = Module(new RegFile(ifDiffTest))
-  protected val instDecoder = Module(new InstDecoderStage)
-  protected val id2exUnit   = Module(new IDToEX)
+  protected val idUnit      = Module(new InstDecoderStage)
+  protected val id2ex       = Module(new IDToEX)
   protected val execUnit    = Module(new ExecutionStage)
-  protected val ex2maUnit   = Module(new EXToMA)
-  protected val memAccess   = Module(new MemoryAccessStage)
-  protected val ma2wbUnit   = Module(new MAToWB)
+  protected val ex2ma       = Module(new EXToMA)
+  protected val maUnit      = Module(new MemoryAccessStage)
+  protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg)
 
   io.inst <> pcUnit.io.axi
-  io.mem  <> memAccess.io.axi
+  io.mem  <> maUnit.io.axi
 
   // ex to pc
   pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
   pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
   pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
+  pcUnit.io.maStallIfIn   := controlUnit.io.maStallIfOut
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
-  if2idUnit.io.ifInstAddrIn := pcUnit.io.axi.addr
-  if2idUnit.io.ifInstDataIn := pcUnit.io.instDataOut
-  if2idUnit.io.ifFlushIn    := controlUnit.io.flushIfOut
+  if2id.io.instIn.addr := pcUnit.io.axi.addr
+  if2id.io.instIn.data := pcUnit.io.instDataOut
+  if2id.io.ifFlushIn   := controlUnit.io.flushIfOut
 
   // id
-  instDecoder.io.instAddrIn := if2idUnit.io.idInstAddrOut
-  instDecoder.io.instDataIn := if2idUnit.io.idInstDataOut
-  instDecoder.io.rdDataAIn  := regFile.io.rdDataAOut
-  instDecoder.io.rdDataBIn  := regFile.io.rdDataBOut
+  idUnit.io.inst   <> if2id.io.instOut
+  id2ex.io.instIn  <> if2id.io.instOut
+  ex2ma.io.instIn  <> id2ex.io.instOut
+  maUnit.io.instIn <> ex2ma.io.instOut
+  ma2wb.io.instIn  <> maUnit.io.instOut
+
+  idUnit.io.rdDataAIn := regFile.io.rdDataAOut
+  idUnit.io.rdDataBIn := regFile.io.rdDataBOut
 
   // for load correlation
-  instDecoder.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
-  instDecoder.io.exuWtAddrIn   := id2exUnit.io.exWtAddrOut
+  idUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
+  idUnit.io.exuWtAddrIn   := id2ex.io.exWtAddrOut
 
-  regFile.io.rdEnaAIn  := instDecoder.io.rdEnaAOut
-  regFile.io.rdAddrAIn := instDecoder.io.rdAddrAOut
-  regFile.io.rdEnaBIn  := instDecoder.io.rdEnaBOut
-  regFile.io.rdAddrBIn := instDecoder.io.rdAddrBOut
+  regFile.io.rdEnaAIn  := idUnit.io.rdEnaAOut
+  regFile.io.rdAddrAIn := idUnit.io.rdAddrAOut
+  regFile.io.rdEnaBIn  := idUnit.io.rdEnaBOut
+  regFile.io.rdAddrBIn := idUnit.io.rdAddrBOut
 
   // id to ex
-  id2exUnit.io.idAluOperTypeIn := instDecoder.io.exuOperTypeOut
-  id2exUnit.io.idRsValAIn      := instDecoder.io.rsValAOut
-  id2exUnit.io.idRsValBIn      := instDecoder.io.rsValBOut
-  id2exUnit.io.idWtEnaIn       := instDecoder.io.wtEnaOut
-  id2exUnit.io.idWtAddrIn      := instDecoder.io.wtAddrOut
-  id2exUnit.io.lsuFunc3In      := instDecoder.io.lsuFunc3Out
-  id2exUnit.io.lsuWtEnaIn      := instDecoder.io.lsuWtEnaOut
-  id2exUnit.io.ifFlushIn       := controlUnit.io.flushIdOut
-  // ex
-  execUnit.io.offsetIn := instDecoder.io.exuOffsetOut // important!!!
+  id2ex.io.idAluOperTypeIn := idUnit.io.exuOperTypeOut
+  id2ex.io.idRsValAIn      := idUnit.io.rsValAOut
+  id2ex.io.idRsValBIn      := idUnit.io.rsValBOut
+  id2ex.io.idWtEnaIn       := idUnit.io.wtEnaOut
+  id2ex.io.idWtAddrIn      := idUnit.io.wtAddrOut
+  id2ex.io.lsuFunc3In      := idUnit.io.lsuFunc3Out
+  id2ex.io.lsuWtEnaIn      := idUnit.io.lsuWtEnaOut
+  id2ex.io.ifFlushIn       := controlUnit.io.flushIdOut
 
-  execUnit.io.exuOperTypeIn := id2exUnit.io.exAluOperTypeOut
-  execUnit.io.rsValAIn      := id2exUnit.io.exRsValAOut
-  execUnit.io.rsValBIn      := id2exUnit.io.exRsValBOut
+  // ex
+  execUnit.io.offsetIn := idUnit.io.exuOffsetOut // important!!!
+
+  execUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
+  execUnit.io.rsValAIn      := id2ex.io.exRsValAOut
+  execUnit.io.rsValBIn      := id2ex.io.exRsValBOut
   execUnit.io.csrRdDataIn   := RegNext(csrUnit.io.rdDataOut) // TODO: need to refactor
   // ex to ma
-  ex2maUnit.io.exDataIn   := execUnit.io.wtDataOut
-  ex2maUnit.io.exWtEnaIn  := id2exUnit.io.exWtEnaOut
-  ex2maUnit.io.exWtAddrIn := id2exUnit.io.exWtAddrOut
+  ex2ma.io.exDataIn   := execUnit.io.wtDataOut
+  ex2ma.io.exWtEnaIn  := id2ex.io.exWtEnaOut
+  ex2ma.io.exWtAddrIn := id2ex.io.exWtAddrOut
 
-  ex2maUnit.io.lsuFunc3In    := id2exUnit.io.lsuFunc3Out
-  ex2maUnit.io.lsuWtEnaIn    := id2exUnit.io.lsuWtEnaOut
-  ex2maUnit.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
-  ex2maUnit.io.lsuValAIn     := execUnit.io.rsValAIn
-  ex2maUnit.io.lsuValBIn     := execUnit.io.rsValBIn
-  ex2maUnit.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
+  ex2ma.io.lsuFunc3In    := id2ex.io.lsuFunc3Out
+  ex2ma.io.lsuWtEnaIn    := id2ex.io.lsuWtEnaOut
+  ex2ma.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
+  ex2ma.io.lsuValAIn     := execUnit.io.rsValAIn
+  ex2ma.io.lsuValBIn     := execUnit.io.rsValBIn
+  ex2ma.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
 
   // ma
-  memAccess.io.memFunc3In    := ex2maUnit.io.lsuFunc3Out
-  memAccess.io.memOperTypeIn := ex2maUnit.io.lsuOperTypeOut
-  memAccess.io.memValAIn     := ex2maUnit.io.lsuValAOut
-  memAccess.io.memValBIn     := ex2maUnit.io.lsuValBOut
-  memAccess.io.memOffsetIn   := ex2maUnit.io.lsuOffsetOut
+  maUnit.io.memFunc3In    := ex2ma.io.lsuFunc3Out
+  maUnit.io.memOperTypeIn := ex2ma.io.lsuOperTypeOut
+  maUnit.io.memValAIn     := ex2ma.io.lsuValAOut
+  maUnit.io.memValBIn     := ex2ma.io.lsuValBOut
+  maUnit.io.memOffsetIn   := ex2ma.io.lsuOffsetOut
 
-  memAccess.io.wtDataIn    := ex2maUnit.io.maDataOut
-  memAccess.io.wtEnaIn     := ex2maUnit.io.maWtEnaOut
-  memAccess.io.wtAddrIn    := ex2maUnit.io.maWtAddrOut
-  ex2maUnit.io.lsuWtEnaOut := DontCare
+  maUnit.io.wtDataIn   := ex2ma.io.maDataOut
+  maUnit.io.wtEnaIn    := ex2ma.io.maWtEnaOut
+  maUnit.io.wtAddrIn   := ex2ma.io.maWtAddrOut
+  ex2ma.io.lsuWtEnaOut := DontCare
 
   // ma to wb
-  ma2wbUnit.io.maDataIn   := memAccess.io.wtDataOut
-  ma2wbUnit.io.maWtEnaIn  := memAccess.io.wtEnaOut
-  ma2wbUnit.io.maWtAddrIn := memAccess.io.wtAddrOut
+  ma2wb.io.maDataIn          := maUnit.io.wtDataOut
+  ma2wb.io.maWtEnaIn         := maUnit.io.wtEnaOut
+  ma2wb.io.maWtAddrIn        := maUnit.io.wtAddrOut
+  ma2wb.io.ifValidIn         := maUnit.io.ifValidOut
+  ma2wb.io.ifMemInstCommitIn := maUnit.io.ifMemInstCommitOut
   // wb
-  regFile.io.wtDataIn := ma2wbUnit.io.wbDataOut
-  regFile.io.wtEnaIn  := ma2wbUnit.io.wbWtEnaOut
-  regFile.io.wtAddrIn := ma2wbUnit.io.wbWtAddrOut
+  regFile.io.wtDataIn := ma2wb.io.wbDataOut
+  regFile.io.wtEnaIn  := ma2wb.io.wbWtEnaOut
+  regFile.io.wtAddrIn := ma2wb.io.wbWtAddrOut
 
   // forward control unit
-  forwardUnit.io.exDataIn   := ex2maUnit.io.exDataIn
-  forwardUnit.io.exWtEnaIn  := ex2maUnit.io.exWtEnaIn
-  forwardUnit.io.exWtAddrIn := ex2maUnit.io.exWtAddrIn
+  forwardUnit.io.exDataIn   := ex2ma.io.exDataIn
+  forwardUnit.io.exWtEnaIn  := ex2ma.io.exWtEnaIn
+  forwardUnit.io.exWtAddrIn := ex2ma.io.exWtAddrIn
 
   // maDataIn only come from regfile and imm
   // maDataOut have right data include load/store inst and alu calc
-  forwardUnit.io.maDataIn   := ma2wbUnit.io.maDataIn
-  forwardUnit.io.maWtEnaIn  := ma2wbUnit.io.maWtEnaIn
-  forwardUnit.io.maWtAddrIn := ma2wbUnit.io.maWtAddrIn
+  forwardUnit.io.maDataIn   := ma2wb.io.maDataIn
+  forwardUnit.io.maWtEnaIn  := ma2wb.io.maWtEnaIn
+  forwardUnit.io.maWtAddrIn := ma2wb.io.maWtAddrIn
 
-  forwardUnit.io.idRdEnaAIn  := instDecoder.io.rdEnaAOut
-  forwardUnit.io.idRdAddrAIn := instDecoder.io.rdAddrAOut
-  forwardUnit.io.idRdEnaBIn  := instDecoder.io.rdEnaBOut
-  forwardUnit.io.idRdAddrBIn := instDecoder.io.rdAddrBOut
+  forwardUnit.io.idRdEnaAIn  := idUnit.io.rdEnaAOut
+  forwardUnit.io.idRdAddrAIn := idUnit.io.rdAddrAOut
+  forwardUnit.io.idRdEnaBIn  := idUnit.io.rdEnaBOut
+  forwardUnit.io.idRdAddrBIn := idUnit.io.rdAddrBOut
 
-  instDecoder.io.fwRsEnaAIn := forwardUnit.io.fwRsEnaAOut
-  instDecoder.io.fwRsValAIn := forwardUnit.io.fwRsValAOut
-  instDecoder.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
-  instDecoder.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
+  idUnit.io.fwRsEnaAIn := forwardUnit.io.fwRsEnaAOut
+  idUnit.io.fwRsValAIn := forwardUnit.io.fwRsValAOut
+  idUnit.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
+  idUnit.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
-  controlUnit.io.jumpTypeIn       := instDecoder.io.jumpTypeOut
-  controlUnit.io.newInstAddrIn    := instDecoder.io.newInstAddrOut
-  controlUnit.io.stallReqFromIDIn := instDecoder.io.stallReqFromIDOut
-  controlUnit.io.stallReqFromMaIn := memAccess.io.stallReqOut
-
+  controlUnit.io.jumpTypeIn       := idUnit.io.jumpTypeOut
+  controlUnit.io.newInstAddrIn    := idUnit.io.newInstAddrOut
+  controlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
+  controlUnit.io.stallReqFromMaIn := maUnit.io.stallReqOut
   // csr
-  csrUnit.io.rdAddrIn := instDecoder.io.csrAddrOut
+  csrUnit.io.rdAddrIn := idUnit.io.csrAddrOut
   csrUnit.io.wtEnaIn  := execUnit.io.csrwtEnaOut
   csrUnit.io.wtDataIn := execUnit.io.csrWtDataOut
 
@@ -149,74 +156,112 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     diffCommitState.io.isRVC    := false.B
     diffCommitState.io.scFailed := false.B
 
-    diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
-      (!RegNext(RegNext(RegNext(RegNext(if2idUnit.io.diffIfSkipInstOut))))) &
-      (!RegNext(RegNext(RegNext(id2exUnit.io.diffIdSkipInstOut))))
+    when(RegNext(ma2wb.io.ifMemInstCommitOut)) {
+      diffCommitState.io.valid := true.B
+      printf("hello%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+    }.otherwise {
+      diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
+        (!RegNext(RegNext(RegNext(RegNext(if2id.io.diffIfSkipInstOut))))) &
+        (!RegNext(RegNext(RegNext(id2ex.io.diffIdSkipInstOut)))) &
+        (!(RegNext(ma2wb.io.diffMaSkipInstOut)))
+    }
 
-    diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
-    // diffCommitState.io.pc    := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstAddrOut))))
+    // diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
+    // diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instDataOut))))) // important!!!
+    diffCommitState.io.pc    := RegNext(ma2wb.io.instOut.addr)
+    diffCommitState.io.instr := RegNext(ma2wb.io.instOut.data)
+    diffCommitState.io.wen   := RegNext(ma2wb.io.wbWtEnaOut)
+    diffCommitState.io.wdata := RegNext(ma2wb.io.wbDataOut)
+    diffCommitState.io.wdest := RegNext(ma2wb.io.wbWtAddrOut)
 
-    diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instDataOut))))) // important!!!
-    // diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut)))) // important!!!
-    diffCommitState.io.wen   := RegNext(ma2wbUnit.io.wbWtEnaOut)
-    diffCommitState.io.wdata := RegNext(ma2wbUnit.io.wbDataOut)
-    diffCommitState.io.wdest := RegNext(ma2wbUnit.io.wbWtAddrOut)
+    //####################################################################
+    // when(maUnit.io.axi.ready) {
+    //   printf("########################################\n")
+    //   printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
+    //   printf("########################################\n")
+    // }
 
     val debugCnt: UInt = RegInit(0.U(5.W))
-    when(pcUnit.io.axi.addr === "h80000014".U) {
-      printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
-    }
+    // when(pcUnit.io.axi.addr === "h80000014".U) {
+    //   printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
+    // }
 
     when(pcUnit.io.instDataOut =/= NopInst.U) {
       debugCnt := 5.U
+      // printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
+      // printf(p"[pc]pcUnit.io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
+      // printf("\n")
     }
 
     when(debugCnt =/= 0.U) {
       debugCnt := debugCnt - 1.U
       printf("debugCnt: %d\n", debugCnt)
-      printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
-      printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
-      printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
+      // printf(p"[pc]io.axi.valid = 0x${Hexadecimal(pcUnit.io.axi.valid)}\n")
+      // printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
+      // printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
+      // printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
       // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
 
-      printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2idUnit.io.ifFlushIn)}\n")
-      printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2idUnit.io.diffIfSkipInstOut)}\n")
-      printf(p"[if2id]io.idInstAddrOut = 0x${Hexadecimal(if2idUnit.io.idInstAddrOut)}\n")
-      printf(p"[if2id]io.idInstDataOut = 0x${Hexadecimal(if2idUnit.io.idInstDataOut)}\n")
+      printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2id.io.ifFlushIn)}\n")
+      printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2id.io.diffIfSkipInstOut)}\n")
+      printf(p"[if2id]io.instOut.addr = 0x${Hexadecimal(if2id.io.instOut.addr)}\n")
+      printf(p"[if2id]io.instOut.data = 0x${Hexadecimal(if2id.io.instOut.data)}\n")
 
-      printf(p"[id]io.instDataIn = 0x${Hexadecimal(instDecoder.io.instDataIn)}\n")
-      printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(instDecoder.io.rdEnaAOut)}\n")
-      printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(instDecoder.io.rdAddrAOut)}\n")
-      printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(instDecoder.io.rdEnaBOut)}\n")
-      printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(instDecoder.io.rdAddrBOut)}\n")
-      // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(instDecoder.io.exuOperTypeOut)}\n")
-      // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(instDecoder.io.lsuWtEnaOut)}\n")
-      printf(p"[id]io.rsValAOut = 0x${Hexadecimal(instDecoder.io.rsValAOut)}\n")
-      printf(p"[id]io.rsValBOut = 0x${Hexadecimal(instDecoder.io.rsValBOut)}\n")
+      // printf(p"[id]io.inst.data = 0x${Hexadecimal(idUnit.io.inst.data)}\n")
+      // printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(idUnit.io.rdEnaAOut)}\n")
+      // printf(p"[id]io.rdAddrAOut = 0x${Hexadecimal(idUnit.io.rdAddrAOut)}\n")
+      // printf(p"[id]io.rdEnaBOut = 0x${Hexadecimal(idUnit.io.rdEnaBOut)}\n")
+      // printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(idUnit.io.rdAddrBOut)}\n")
+      // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(idUnit.io.exuOperTypeOut)}\n")
+      // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(idUnit.io.lsuWtEnaOut)}\n")
+      printf(p"[id]io.rsValAOut = 0x${Hexadecimal(idUnit.io.rsValAOut)}\n")
+      printf(p"[id]io.rsValBOut = 0x${Hexadecimal(idUnit.io.rsValBOut)}\n")
 
-      printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(instDecoder.io.wtEnaOut)}\n")
-      printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(instDecoder.io.wtAddrOut)}\n")
+      printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(idUnit.io.wtEnaOut)}\n")
+      printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(idUnit.io.wtAddrOut)}\n")
 
-      printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
+      // printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
-      when(memAccess.io.axi.ready) {
-        printf("########################################\n")
-        printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.axi.ready)}\n")
-        printf("########################################\n")
-      }
+      printf(p"[ma]io.memOperTypeIn = 0x${Hexadecimal(maUnit.io.memOperTypeIn)}\n")
+      printf(p"[ma]io.memValAIn = 0x${Hexadecimal(maUnit.io.memValAIn)}\n")
+      printf(p"[ma]io.memValBIn = 0x${Hexadecimal(maUnit.io.memValBIn)}\n")
+      printf(p"[ma]io.memOffsetIn = 0x${Hexadecimal(maUnit.io.memOffsetIn)}\n")
+      printf(p"[ma]io.axi.addr = 0x${Hexadecimal(maUnit.io.axi.addr)}\n")
+      printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
+      printf(p"[ma]io.axi.size = 0x${Hexadecimal(maUnit.io.axi.size)}\n")
+      printf(p"[ma]io.axi.valid = 0x${Hexadecimal(maUnit.io.axi.valid)}\n")
+      printf(p"[ma]io.axi.req = 0x${Hexadecimal(maUnit.io.axi.req)}\n")
 
-      printf(p"[ma]memAccess.io.stallReqOut = 0x${Hexadecimal(memAccess.io.stallReqOut)}\n")
-      printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(memAccess.io.wtDataOut)}\n")
-      printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(memAccess.io.wtEnaOut)}\n")
-      printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(memAccess.io.wtAddrOut)}\n")
+      printf(p"[ma]io.stallReqOut = 0x${Hexadecimal(maUnit.io.stallReqOut)}\n")
+      printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(maUnit.io.wtDataOut)}\n")
+      printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(maUnit.io.wtEnaOut)}\n")
+      printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(maUnit.io.wtAddrOut)}\n")
 
       printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
       printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
       printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
       printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
-      printf(p"[main]t1 = 0x${Hexadecimal(regFile.io.debugOut)}\n")
+      // printf(p"[main&ma2wb]io.instOut.addr = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.addr))}\n")
+      // printf(p"[main&ma2wb]io.instOut.data = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.data))}\n")
+      // printf(p"[main&ma2wb]io.ifMemInstCommitOut = 0x${Hexadecimal(RegNext(ma2wb.io.ifMemInstCommitOut))}\n")
+      printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOut)}\n")
       printf("\n")
     }
+
+    // when(maUnit.io.memOperTypeIn >= 38.U && maUnit.io.memOperTypeIn <= 48.U) {
+    //   printf(p"[ma]io.memOperTypeIn = 0x${Hexadecimal(maUnit.io.memOperTypeIn)}\n")
+    //   printf(p"[ma]io.memValAIn = 0x${Hexadecimal(maUnit.io.memValAIn)}\n")
+    //   printf(p"[ma]io.memValBIn = 0x${Hexadecimal(maUnit.io.memValBIn)}\n")
+    //   printf(p"[ma]io.memOffsetIn = 0x${Hexadecimal(maUnit.io.memOffsetIn)}\n")
+    //   printf(p"[ma]io.axi.addr = 0x${Hexadecimal(maUnit.io.axi.addr)}\n")
+    //   printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
+    //   printf(p"[ma]io.axi.size = 0x${Hexadecimal(maUnit.io.axi.size)}\n")
+    //   printf(p"[ma]io.axi.valid = 0x${Hexadecimal(maUnit.io.axi.valid)}\n")
+    //   printf(p"[ma]io.axi.req = 0x${Hexadecimal(maUnit.io.axi.req)}\n")
+    //   printf("\n")
+    // }
+
+    //###########################################################################################
 
     // output custom putch oper for 0x7B
     when(diffCommitState.io.instr === 0x0000007b.U) {
@@ -228,7 +273,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     // }
 
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))}\n")
-    // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2idUnit.io.idInstDataOut))))}\n")
+    // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2id.io.instOut.data))))}\n")
     // printf("\n")
     // CSR State
     val diffCsrState = Module(new DifftestCSRState())

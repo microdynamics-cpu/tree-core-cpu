@@ -6,28 +6,49 @@ import treecorel2.common.ConstVal._
 class MAToWB extends Module with InstConfig {
   val io = IO(new Bundle {
     // from ma
-    val maDataIn:   UInt = Input(UInt(BusWidth.W))
-    val maWtEnaIn:  Bool = Input(Bool())
-    val maWtAddrIn: UInt = Input(UInt(RegAddrLen.W))
+    val maDataIn:          UInt   = Input(UInt(BusWidth.W))
+    val maWtEnaIn:         Bool   = Input(Bool())
+    val maWtAddrIn:        UInt   = Input(UInt(RegAddrLen.W))
+    val ifValidIn:         Bool   = Input(Bool())
+    val instIn:            INSTIO = new INSTIO
+    val ifMemInstCommitIn: Bool   = Input(Bool())
+
     // to wb
     val wbDataOut:   UInt = Output(UInt(BusWidth.W))
     val wbWtEnaOut:  Bool = Output(Bool())
     val wbWtAddrOut: UInt = Output(UInt(RegAddrLen.W))
+    // to difftest
+    val diffMaSkipInstOut:  Bool   = Output(Bool())
+    val instOut:            INSTIO = Flipped(new INSTIO)
+    val ifMemInstCommitOut: Bool   = Output(Bool())
   })
 
-  protected val resReg:    UInt = RegInit(0.U(BusWidth.W))
-  protected val wtEnaReg:  Bool = RegInit(false.B)
-  protected val wtAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
+  //####################
+  protected val instAddrReg: UInt = RegInit(0.U(BusWidth.W))
+  protected val instDataReg: UInt = RegInit(0.U(InstWidth.W))
 
-  resReg    := io.maDataIn
-  wtEnaReg  := io.maWtEnaIn
-  wtAddrReg := io.maWtAddrIn
+  instAddrReg     := io.instIn.addr
+  instDataReg     := io.instIn.data
+  io.instOut.addr := instAddrReg
+  io.instOut.data := instDataReg
+  //####################
 
-  io.wbDataOut   := resReg
-  io.wbWtEnaOut  := wtEnaReg
-  io.wbWtAddrOut := wtAddrReg
+  protected val resReg:            UInt = RegInit(0.U(BusWidth.W))
+  protected val wtEnaReg:          Bool = RegInit(false.B)
+  protected val wtAddrReg:         UInt = RegInit(0.U(RegAddrLen.W))
+  protected val diffMaSkipInstReg: Bool = RegInit(false.B)
+  protected val memInstCommitReg:  Bool = RegInit(false.B)
 
-  //@printf(p"[ma2wb]io.wbDataOut = 0x${Hexadecimal(io.wbDataOut)}\n")
-  //@printf(p"[ma2wb]io.wbWtEnaOut = 0x${Hexadecimal(io.wbWtEnaOut)}\n")
-  //@printf(p"[ma2wb]io.wbWtAddrOut = 0x${Hexadecimal(io.wbWtAddrOut)}\n")
+  resReg            := io.maDataIn
+  wtEnaReg          := io.maWtEnaIn
+  wtAddrReg         := io.maWtAddrIn
+  diffMaSkipInstReg := io.ifValidIn
+  memInstCommitReg  := io.ifMemInstCommitIn
+
+  io.wbDataOut          := resReg
+  io.wbWtEnaOut         := wtEnaReg
+  io.wbWtAddrOut        := wtAddrReg
+  io.diffMaSkipInstOut  := diffMaSkipInstReg
+  io.ifMemInstCommitOut := memInstCommitReg
+
 }

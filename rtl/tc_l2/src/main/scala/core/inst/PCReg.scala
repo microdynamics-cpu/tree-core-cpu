@@ -6,8 +6,9 @@ import AXI4Bridge._
 class PCReg extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // from control
-    val ifJumpIn:  Bool = Input(Bool())
-    val stallIfIn: Bool = Input(Bool())
+    val ifJumpIn:    Bool = Input(Bool())
+    val stallIfIn:   Bool = Input(Bool())
+    val maStallIfIn: Bool = Input(Bool())
     // from id
     val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
     // from axi
@@ -16,19 +17,19 @@ class PCReg extends Module with AXI4Config with InstConfig {
     val instDataOut: UInt = Output(UInt(InstWidth.W))
     val instEnaOut:  Bool = Output(Bool())
   })
-  // tmp
-  io.axi.req   := 0.U // 0: read 1: write
-  io.axi.wdata := DontCare
 
   protected val hdShkDone: Bool = WireDefault(io.axi.ready && io.axi.valid)
   protected val pc:        UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
   protected val dirty:     Bool = RegInit(false.B)
 
   // now we dont handle this resp info to check if the read oper is right
-  io.axi.resp := DontCare
-  io.axi.addr := pc
+  // tmp
+  io.axi.req   := 0.U // 0: read 1: write
+  io.axi.wdata := DontCare
+  io.axi.resp  := DontCare
+  io.axi.addr  := pc
   // io.axi.valid := true.B // TODO: need to judge when mem need to read
-  io.axi.valid := ~io.stallIfIn
+  io.axi.valid := ~io.maStallIfIn // TODO: maybe this code lead to cycle
   io.axi.size  := AXI4Bridge.SIZE_W
 
   when(io.ifJumpIn) {
@@ -36,6 +37,9 @@ class PCReg extends Module with AXI4Config with InstConfig {
     dirty := true.B
   }.elsewhen(io.stallIfIn) {
     pc    := pc - 4.U(BusWidth.W) // because the stallIFin is come from ex stage
+    dirty := true.B
+  }.elsewhen(io.maStallIfIn) {
+    pc    := pc
     dirty := true.B
   }
 

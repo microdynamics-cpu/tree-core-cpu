@@ -13,16 +13,18 @@ class Control extends Module with InstConfig {
     // from ma(solve axi load/store)
     val stallReqFromMaIn: Bool = Input(Bool())
     // to if and id
-    val flushIfOut: Bool = Output(Bool())
-    val stallIfOut: Bool = Output(Bool())
-    val flushIdOut: Bool = Output(Bool())
-    val ifJumpOut:  Bool = Output(Bool())
+    val flushIfOut:   Bool = Output(Bool())
+    val stallIfOut:   Bool = Output(Bool())
+    val maStallIfOut: Bool = Output(Bool())
+    val flushIdOut:   Bool = Output(Bool())
+    val ifJumpOut:    Bool = Output(Bool())
     // to pc
     val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
   })
 
   io.flushIfOut     := false.B
   io.stallIfOut     := false.B
+  io.maStallIfOut   := false.B
   io.flushIdOut     := false.B
   io.ifJumpOut      := false.B
   io.newInstAddrOut := io.newInstAddrIn // make all control signal come from this oen unit
@@ -43,6 +45,6 @@ class Control extends Module with InstConfig {
   }
 
   when(io.stallReqFromMaIn) {
-    io.stallIfOut := true.B
+    io.maStallIfOut := true.B
   }
 }

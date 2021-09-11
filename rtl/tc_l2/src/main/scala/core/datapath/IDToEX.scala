@@ -8,13 +8,14 @@ class IDToEX extends Module with InstConfig {
     // from control
     val ifFlushIn: Bool = Input(Bool())
     // from id
-    val idAluOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val idRsValAIn:      UInt = Input(UInt(BusWidth.W))
-    val idRsValBIn:      UInt = Input(UInt(BusWidth.W))
-    val idWtEnaIn:       Bool = Input(Bool())
-    val idWtAddrIn:      UInt = Input(UInt(RegAddrLen.W))
-    val lsuFunc3In:      UInt = Input(UInt(3.W))
-    val lsuWtEnaIn:      Bool = Input(Bool())
+    val idAluOperTypeIn: UInt   = Input(UInt(InstOperTypeLen.W))
+    val idRsValAIn:      UInt   = Input(UInt(BusWidth.W))
+    val idRsValBIn:      UInt   = Input(UInt(BusWidth.W))
+    val idWtEnaIn:       Bool   = Input(Bool())
+    val idWtAddrIn:      UInt   = Input(UInt(RegAddrLen.W))
+    val lsuFunc3In:      UInt   = Input(UInt(3.W))
+    val lsuWtEnaIn:      Bool   = Input(Bool())
+    val instIn:          INSTIO = new INSTIO
 
     // to ex
     val exAluOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
@@ -23,9 +24,10 @@ class IDToEX extends Module with InstConfig {
     val exWtEnaOut:       Bool = Output(Bool())
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
     // ex2ma
-    val lsuFunc3Out:       UInt = Output(UInt(3.W))
-    val lsuWtEnaOut:       Bool = Output(Bool())
-    val diffIdSkipInstOut: Bool = Output(Bool())
+    val lsuFunc3Out:       UInt   = Output(UInt(3.W))
+    val lsuWtEnaOut:       Bool   = Output(Bool())
+    val diffIdSkipInstOut: Bool   = Output(Bool())
+    val instOut:           INSTIO = Flipped(new INSTIO)
   })
 
   protected val diffIdSkipInstReg: Bool = RegInit(false.B)
@@ -36,6 +38,16 @@ class IDToEX extends Module with InstConfig {
   protected val wtAddrReg:         UInt = RegInit(0.U(RegAddrLen.W))
   protected val lsuFunc3Reg:       UInt = RegInit(0.U(3.W))
   protected val lsuWtEnaReg:       Bool = RegInit(false.B)
+
+  //####################
+  protected val instAddrReg: UInt = RegInit(0.U(BusWidth.W))
+  protected val instDataReg: UInt = RegInit(0.U(InstWidth.W))
+
+  instAddrReg     := io.instIn.addr
+  instDataReg     := io.instIn.data
+  io.instOut.addr := instAddrReg
+  io.instOut.data := instDataReg
+  //####################
 
   when(io.ifFlushIn) {
     diffIdSkipInstReg := true.B
@@ -65,15 +77,4 @@ class IDToEX extends Module with InstConfig {
   io.exWtAddrOut       := wtAddrReg
   io.lsuFunc3Out       := lsuFunc3Reg
   io.lsuWtEnaOut       := lsuWtEnaReg
-  //@printf(p"[id2ex]this.reset = 0x${Hexadecimal(this.reset.asBool())}\n")
-  //@printf(p"[id2ex]io.idAluOperTypeIn = 0x${Hexadecimal(io.idAluOperTypeIn)}\n")
-
-  //@printf(p"[id2ex]io.idWtEnaIn  = 0x${Hexadecimal(io.idWtEnaIn)}\n")
-  //@printf(p"[id2ex]io.idWtAddrIn = 0x${Hexadecimal(io.idWtAddrIn)}\n")
-
-  // printf(p"[id2ex]io.exAluOperTypeOut = 0x${Hexadecimal(io.exAluOperTypeOut)}\n")
-  // printf(p"[id2ex]io.lsuWtEnaOut = 0x${Hexadecimal(io.lsuWtEnaOut)}\n")
-  // printf("\n")
-  //@printf(p"[id2ex]io.exWtEnaOut  = 0x${Hexadecimal(io.exWtEnaOut)}\n")
-  //@printf(p"[id2ex]io.exWtAddrOut = 0x${Hexadecimal(io.exWtAddrOut)}\n")
 }
