@@ -30,7 +30,7 @@ class AXI4AWIO extends Bundle with AXI4Config {
   val region: UInt = Output(UInt(AxiRegionLen.W)) // not use
 }
 
-class AXI4WTIO extends Bundle with AXI4Config {
+class AXI4WIO extends Bundle with AXI4Config {
   // write data
   val ready: Bool = Input(Bool())
   val valid: Bool = Output(Bool())
@@ -41,7 +41,7 @@ class AXI4WTIO extends Bundle with AXI4Config {
   val user:  UInt = Output(UInt(AxiUserLen.W)) // not use
 }
 
-class AXI4WTBIO extends Bundle with AXI4Config {
+class AXI4BIO extends Bundle with AXI4Config {
   // write resp
   val valid: Bool = Input(Bool())
   val resp:  UInt = Input(UInt(AxiRespLen.W))
@@ -67,7 +67,7 @@ class AXI4ARIO extends Bundle with AXI4Config {
   val region: UInt = Output(UInt(AxiRegionLen.W)) // not use
 }
 
-class AXI4RDIO extends Bundle with AXI4Config {
+class AXI4RIO extends Bundle with AXI4Config {
   // read data
   val valid: Bool = Input(Bool())
   val resp:  UInt = Input(UInt(AxiRespLen.W))
@@ -79,9 +79,9 @@ class AXI4RDIO extends Bundle with AXI4Config {
 }
 
 class AXI4IO extends Bundle {
-  val aw: AXI4AWIO  = new AXI4AWIO
-  val wt: AXI4WTIO  = new AXI4WTIO
-  val b:  AXI4WTBIO = new AXI4WTBIO
-  val ar: AXI4ARIO  = new AXI4ARIO
-  val rd: AXI4RDIO  = new AXI4RDIO
+  val aw: AXI4AWIO = new AXI4AWIO
+  val w:  AXI4WIO  = new AXI4WIO
+  val b:  AXI4BIO  = new AXI4BIO
+  val ar: AXI4ARIO = new AXI4ARIO
+  val r:  AXI4RIO  = new AXI4RIO
 }
