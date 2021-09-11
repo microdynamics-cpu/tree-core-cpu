@@ -41,7 +41,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   // for custom inst output
   io.charDataOut := regFile(10.U)
-  io.debugOut    := regFile(6.U)
+  io.debugOut    := regFile(2.U)
   // printf(p"[regFile]io.rdEnaAIn = 0x${Hexadecimal(io.rdEnaAIn)}\n")
   // printf(p"[regFile]io.rdAddrAIn = 0x${Hexadecimal(io.rdAddrAIn)}\n")
   //@printf(p"[regFile]io.rdEnaBIn = 0x${Hexadecimal(io.rdEnaBIn)}\n")

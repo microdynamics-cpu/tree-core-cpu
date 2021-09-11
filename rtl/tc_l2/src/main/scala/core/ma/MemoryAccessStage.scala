@@ -54,13 +54,18 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     val wtAddrIn: UInt = Input(UInt(RegAddrLen.W))
 
     // from axibridge
-    val axi: AXI4USERIO = Flipped(new AXI4USERIO)
+    val axi:    AXI4USERIO = Flipped(new AXI4USERIO)
+    val instIn: INSTIO     = new INSTIO
 
     // to regfile
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
     val wtAddrOut: UInt = Output(UInt(RegAddrLen.W))
 
+    // to ma2wb
+    val ifValidOut:         Bool   = Output(Bool())
+    val ifMemInstCommitOut: Bool   = Output(Bool())
+    val instOut:            INSTIO = Flipped(new INSTIO)
     // to control
     val stallReqOut: Bool = Output(Bool())
   })
@@ -101,26 +106,73 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   protected val wMask =
     ListLookup(Cat(io.memFunc3In(1, 0), io.axi.addr(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
 
-  protected val memValidReg: Bool = RegInit(false.B)
+  protected val memValidReg:       Bool = RegInit(false.B)
+  protected val memReqReg:         UInt = RegInit(AxiReqNop.U(AxiReqLen.W))
+  protected val memAddrReg:        UInt = RegInit(0.U(AxiDataWidth.W))
+  protected val memDataReg:        UInt = RegInit(0.U(AxiDataWidth.W))
+  protected val memRegfileAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
+  protected val memInstAddrReg:    UInt = RegInit(0.U(BusWidth.W))
+  protected val memInstDataReg:    UInt = RegInit(0.U(InstWidth.W))
+  protected val isFirstReg:        Bool = RegInit(true.B)
+
   io.axi.valid := memValidReg
+  io.axi.req   := memReqReg
+  io.axi.addr  := memAddrReg
+  io.axi.wdata := memDataReg
+
   // judge the write regfile data's origin
   when(io.axi.ready) {
-    io.wtDataOut := loadData
-    io.axi.req   := AxiReqNop.U // the is decided by valid and what's value of this is dont matter
-    memValidReg  := false.B
+    when(isFirstReg) {
+      isFirstReg            := false.B
+      io.ifValidOut         := false.B
+      io.ifMemInstCommitOut := true.B
+      io.wtDataOut          := loadData
+      // io.wtDataOut          := io.axi.rdata
+      // TODO: some bug: this use trick code to handle this bug, if not the 'ready' will triggered twice
+      printf("ready!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+      printf(p"#############[ma]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
+      printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
+      memReqReg   := AxiReqNop.U
+      memValidReg := false.B
+
+      io.instOut.addr := memInstAddrReg
+      io.instOut.data := memInstDataReg
+      io.wtAddrOut    := memRegfileAddrReg
+    }.otherwise {
+      io.ifValidOut         := false.B
+      io.ifMemInstCommitOut := false.B
+      io.wtDataOut          := io.wtDataIn
+      io.instOut            <> io.instIn
+      io.wtAddrOut          := io.wtAddrIn
+    }
+
   }.otherwise {
-    io.wtDataOut := io.wtDataIn
-    io.axi.req   := AxiReqNop.U
+    io.ifValidOut         := false.B
+    io.ifMemInstCommitOut := false.B
+    io.wtDataOut          := io.wtDataIn
+    io.instOut            <> io.instIn
+    io.wtAddrOut          := io.wtAddrIn
+
     when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
-      io.axi.req  := AxiReqRd.U
-      memValidReg := true.B
+      isFirstReg        := true.B
+      io.ifValidOut     := true.B
+      memValidReg       := true.B
+      memReqReg         := AxiReqRd.U
+      memRegfileAddrReg := io.wtAddrIn
+      memInstAddrReg    := io.instIn.addr
+      memInstDataReg    := io.instIn.data
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
-      io.axi.req  := AxiReqWt.U
-      memValidReg := true.B
+      isFirstReg        := true.B
+      io.ifValidOut     := true.B
+      memValidReg       := true.B
+      memReqReg         := AxiReqWt.U
+      memRegfileAddrReg := io.wtAddrIn
+      memInstAddrReg    := io.instIn.addr
+      memInstDataReg    := io.instIn.data
     }
   }
-  io.wtEnaOut  := io.wtEnaIn
-  io.wtAddrOut := io.wtAddrIn
+  io.wtEnaOut := io.wtEnaIn
+  // io.wtAddrOut := io.wtAddrIn
 
   // for load and store inst addr
   when(
@@ -128,17 +180,27 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       io.memOperTypeIn === lsuLHUType ||
       io.memOperTypeIn === lsuLWUType
   ) {
-    io.axi.addr := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
-  }.otherwise {
-    io.axi.addr := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    // io.axi.addr := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    memAddrReg := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+  }.elsewhen(
+    (io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) ||
+      (io.memOperTypeIn === lsuLBType) ||
+      (io.memOperTypeIn === lsuLHType) ||
+      (io.memOperTypeIn === lsuLWType) ||
+      (io.memOperTypeIn === lsuLDType)
+  ) {
+    // io.axi.addr := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    memAddrReg := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
   // prepare write data
-  io.axi.wdata := MuxLookup(
+  memDataReg := MuxLookup(
     io.memOperTypeIn,
-    0.U,
+    memDataReg,
     Seq(
       lsuSBType -> (io.memValBIn(7, 0) << (io.axi.addr(2, 0) * 8.U)),
+      // lsuSBType -> io.memValBIn(7, 0),
+      // lsuSBType -> io.memValBIn,
       // (0x0, 0x1)->0, (0x2, 0x3)->1, (0x4, 0x5)->2, (0x6, 0x7)->3
       // shift bits: (addr(2, 0) / 2 * 16 bit)
       lsuSHType -> (io.memValBIn(15, 0) << (io.axi.addr(2, 0) * 8.U)),
