@@ -87,80 +87,109 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   protected val instBridge: AXI4SigBridge = Module(new AXI4SigBridge)
   protected val memBridge:  AXI4SigBridge = Module(new AXI4SigBridge)
   protected val axiIntcon:  AXI4Intcon    = Module(new AXI4Intcon)
-  instBridge.io.rw  := DontCare
-  memBridge.io.rw   := DontCare
   axiIntcon.io.inst <> instBridge.io.axi
   axiIntcon.io.mem  <> memBridge.io.axi
-  axiIntcon.io.out  := DontCare
 
-  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge)
-  axiBridge.io.axi.aw.ready := io.memAXI_0_aw_ready
-  io.memAXI_0_aw_valid      := axiBridge.io.axi.aw.valid
-  io.memAXI_0_aw_bits_addr  := axiBridge.io.axi.aw.addr
-  io.memAXI_0_aw_bits_prot  := axiBridge.io.axi.aw.prot
-  io.memAXI_0_aw_bits_id    := axiBridge.io.axi.aw.id
-  io.memAXI_0_aw_bits_user  := axiBridge.io.axi.aw.user
-  io.memAXI_0_aw_bits_len   := axiBridge.io.axi.aw.len
-  io.memAXI_0_aw_bits_size  := axiBridge.io.axi.aw.size
-  io.memAXI_0_aw_bits_burst := axiBridge.io.axi.aw.burst
-  io.memAXI_0_aw_bits_lock  := axiBridge.io.axi.aw.lock
-  io.memAXI_0_aw_bits_cache := axiBridge.io.axi.aw.cache
-  io.memAXI_0_aw_bits_qos   := axiBridge.io.axi.aw.qos
+  // protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge)
+  // axiBridge.io.axi.aw.ready := io.memAXI_0_aw_ready
+  // io.memAXI_0_aw_valid      := axiBridge.io.axi.aw.valid
+  // io.memAXI_0_aw_bits_addr  := axiBridge.io.axi.aw.addr
+  // io.memAXI_0_aw_bits_prot  := axiBridge.io.axi.aw.prot
+  // io.memAXI_0_aw_bits_id    := axiBridge.io.axi.aw.id
+  // io.memAXI_0_aw_bits_user  := axiBridge.io.axi.aw.user
+  // io.memAXI_0_aw_bits_len   := axiBridge.io.axi.aw.len
+  // io.memAXI_0_aw_bits_size  := axiBridge.io.axi.aw.size
+  // io.memAXI_0_aw_bits_burst := axiBridge.io.axi.aw.burst
+  // io.memAXI_0_aw_bits_lock  := axiBridge.io.axi.aw.lock
+  // io.memAXI_0_aw_bits_cache := axiBridge.io.axi.aw.cache
+  // io.memAXI_0_aw_bits_qos   := axiBridge.io.axi.aw.qos
 
-  axiBridge.io.axi.w.ready := io.memAXI_0_w_ready
-  io.memAXI_0_w_valid      := axiBridge.io.axi.w.valid
-  io.memAXI_0_w_bits_data  := axiBridge.io.axi.w.data
-  io.memAXI_0_w_bits_strb  := axiBridge.io.axi.w.strb
-  io.memAXI_0_w_bits_last  := axiBridge.io.axi.w.last
+  // axiBridge.io.axi.w.ready := io.memAXI_0_w_ready
+  // io.memAXI_0_w_valid      := axiBridge.io.axi.w.valid
+  // io.memAXI_0_w_bits_data  := axiBridge.io.axi.w.data
+  // io.memAXI_0_w_bits_strb  := axiBridge.io.axi.w.strb
+  // io.memAXI_0_w_bits_last  := axiBridge.io.axi.w.last
 
-  axiBridge.io.axi.b.valid := io.memAXI_0_b_valid
-  axiBridge.io.axi.b.resp  := io.memAXI_0_b_bits_resp
-  axiBridge.io.axi.b.id    := io.memAXI_0_b_bits_id
-  axiBridge.io.axi.b.user  := io.memAXI_0_b_bits_user
-  io.memAXI_0_b_ready      := axiBridge.io.axi.b.ready
+  // axiBridge.io.axi.b.valid := io.memAXI_0_b_valid
+  // axiBridge.io.axi.b.resp  := io.memAXI_0_b_bits_resp
+  // axiBridge.io.axi.b.id    := io.memAXI_0_b_bits_id
+  // axiBridge.io.axi.b.user  := io.memAXI_0_b_bits_user
+  // io.memAXI_0_b_ready      := axiBridge.io.axi.b.ready
 
-  axiBridge.io.axi.ar.ready := io.memAXI_0_ar_ready
-  io.memAXI_0_ar_valid      := axiBridge.io.axi.ar.valid
-  io.memAXI_0_ar_bits_addr  := axiBridge.io.axi.ar.addr
-  io.memAXI_0_ar_bits_prot  := axiBridge.io.axi.ar.prot
-  io.memAXI_0_ar_bits_id    := axiBridge.io.axi.ar.id
-  io.memAXI_0_ar_bits_user  := axiBridge.io.axi.ar.user
-  io.memAXI_0_ar_bits_len   := axiBridge.io.axi.ar.len
-  io.memAXI_0_ar_bits_size  := axiBridge.io.axi.ar.size
-  io.memAXI_0_ar_bits_burst := axiBridge.io.axi.ar.burst
-  io.memAXI_0_ar_bits_lock  := axiBridge.io.axi.ar.lock
-  io.memAXI_0_ar_bits_cache := axiBridge.io.axi.ar.cache
-  io.memAXI_0_ar_bits_qos   := axiBridge.io.axi.ar.qos
+  // axiBridge.io.axi.ar.ready := io.memAXI_0_ar_ready
+  // io.memAXI_0_ar_valid      := axiBridge.io.axi.ar.valid
+  // io.memAXI_0_ar_bits_addr  := axiBridge.io.axi.ar.addr
+  // io.memAXI_0_ar_bits_prot  := axiBridge.io.axi.ar.prot
+  // io.memAXI_0_ar_bits_id    := axiBridge.io.axi.ar.id
+  // io.memAXI_0_ar_bits_user  := axiBridge.io.axi.ar.user
+  // io.memAXI_0_ar_bits_len   := axiBridge.io.axi.ar.len
+  // io.memAXI_0_ar_bits_size  := axiBridge.io.axi.ar.size
+  // io.memAXI_0_ar_bits_burst := axiBridge.io.axi.ar.burst
+  // io.memAXI_0_ar_bits_lock  := axiBridge.io.axi.ar.lock
+  // io.memAXI_0_ar_bits_cache := axiBridge.io.axi.ar.cache
+  // io.memAXI_0_ar_bits_qos   := axiBridge.io.axi.ar.qos
 
-  axiBridge.io.axi.r.valid := io.memAXI_0_r_valid
-  axiBridge.io.axi.r.resp  := io.memAXI_0_r_bits_resp
-  axiBridge.io.axi.r.data  := io.memAXI_0_r_bits_data
-  axiBridge.io.axi.r.last  := io.memAXI_0_r_bits_last
-  axiBridge.io.axi.r.id    := io.memAXI_0_r_bits_id
-  axiBridge.io.axi.r.user  := io.memAXI_0_r_bits_use
-  io.memAXI_0_r_ready      := axiBridge.io.axi.r.ready
+  // axiBridge.io.axi.r.valid := io.memAXI_0_r_valid
+  // axiBridge.io.axi.r.resp  := io.memAXI_0_r_bits_resp
+  // axiBridge.io.axi.r.data  := io.memAXI_0_r_bits_data
+  // axiBridge.io.axi.r.last  := io.memAXI_0_r_bits_last
+  // axiBridge.io.axi.r.id    := io.memAXI_0_r_bits_id
+  // axiBridge.io.axi.r.user  := io.memAXI_0_r_bits_use
+  // io.memAXI_0_r_ready      := axiBridge.io.axi.r.ready
+
+ 
+  axiIntcon.io.out.aw.ready := io.memAXI_0_aw_ready
+  io.memAXI_0_aw_valid      := axiIntcon.io.out.aw.valid
+  io.memAXI_0_aw_bits_addr  := axiIntcon.io.out.aw.addr
+  io.memAXI_0_aw_bits_prot  := axiIntcon.io.out.aw.prot
+  io.memAXI_0_aw_bits_id    := axiIntcon.io.out.aw.id
+  io.memAXI_0_aw_bits_user  := axiIntcon.io.out.aw.user
+  io.memAXI_0_aw_bits_len   := axiIntcon.io.out.aw.len
+  io.memAXI_0_aw_bits_size  := axiIntcon.io.out.aw.size
+  io.memAXI_0_aw_bits_burst := axiIntcon.io.out.aw.burst
+  io.memAXI_0_aw_bits_lock  := axiIntcon.io.out.aw.lock
+  io.memAXI_0_aw_bits_cache := axiIntcon.io.out.aw.cache
+  io.memAXI_0_aw_bits_qos   := axiIntcon.io.out.aw.qos
+
+  axiIntcon.io.out.w.ready := io.memAXI_0_w_ready
+  io.memAXI_0_w_valid      := axiIntcon.io.out.w.valid
+  io.memAXI_0_w_bits_data  := axiIntcon.io.out.w.data
+  io.memAXI_0_w_bits_strb  := axiIntcon.io.out.w.strb
+  io.memAXI_0_w_bits_last  := axiIntcon.io.out.w.last
+
+  axiIntcon.io.out.b.valid := io.memAXI_0_b_valid
+  axiIntcon.io.out.b.resp  := io.memAXI_0_b_bits_resp
+  axiIntcon.io.out.b.id    := io.memAXI_0_b_bits_id
+  axiIntcon.io.out.b.user  := io.memAXI_0_b_bits_user
+  io.memAXI_0_b_ready      := axiIntcon.io.out.b.ready
+
+  axiIntcon.io.out.ar.ready := io.memAXI_0_ar_ready
+  io.memAXI_0_ar_valid      := axiIntcon.io.out.ar.valid
+  io.memAXI_0_ar_bits_addr  := axiIntcon.io.out.ar.addr
+  io.memAXI_0_ar_bits_prot  := axiIntcon.io.out.ar.prot
+  io.memAXI_0_ar_bits_id    := axiIntcon.io.out.ar.id
+  io.memAXI_0_ar_bits_user  := axiIntcon.io.out.ar.user
+  io.memAXI_0_ar_bits_len   := axiIntcon.io.out.ar.len
+  io.memAXI_0_ar_bits_size  := axiIntcon.io.out.ar.size
+  io.memAXI_0_ar_bits_burst := axiIntcon.io.out.ar.burst
+  io.memAXI_0_ar_bits_lock  := axiIntcon.io.out.ar.lock
+  io.memAXI_0_ar_bits_cache := axiIntcon.io.out.ar.cache
+  io.memAXI_0_ar_bits_qos   := axiIntcon.io.out.ar.qos
+
+  axiIntcon.io.out.r.valid := io.memAXI_0_r_valid
+  axiIntcon.io.out.r.resp  := io.memAXI_0_r_bits_resp
+  axiIntcon.io.out.r.data  := io.memAXI_0_r_bits_data
+  axiIntcon.io.out.r.last  := io.memAXI_0_r_bits_last
+  axiIntcon.io.out.r.id    := io.memAXI_0_r_bits_id
+  axiIntcon.io.out.r.user  := io.memAXI_0_r_bits_use
+  io.memAXI_0_r_ready      := axiIntcon.io.out.r.ready
+
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
-  axiBridge.io.inst <> treeCoreL2.io.inst
-  axiBridge.io.mem  <> treeCoreL2.io.mem
-
-  // when(axiBridge.io.inst.ready) {
-  //   printf("########################################\n")
-  //   printf("axiBridge.io.inst.ready\n")
-  //   printf("########################################\n")
-  // }
-
-  when(axiBridge.io.axi.w.valid) {
-    printf("########################################\n")
-    printf("axiBridge.io.axi.w.valid\n")
-    printf("########################################\n")
-  }
-
-  when(axiBridge.io.axi.b.valid) {
-    printf("########################################\n")
-    printf("axiBridge.io.axi.b.valid\n")
-    printf("########################################\n")
-  }
+  // axiBridge.io.inst <> treeCoreL2.io.inst
+  // axiBridge.io.mem  <> treeCoreL2.io.mem
+  instBridge.io.rw  <> treeCoreL2.io.inst
+  memBridge.io.rw   <> treeCoreL2.io.mem
 }
 
 object SimTop extends App {
