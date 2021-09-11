@@ -98,11 +98,11 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   io.memAXI_0_aw_bits_cache := axiBridge.io.axi.aw.cache
   io.memAXI_0_aw_bits_qos   := axiBridge.io.axi.aw.qos
 
-  axiBridge.io.axi.wt.ready := io.memAXI_0_w_ready
-  io.memAXI_0_w_valid       := axiBridge.io.axi.wt.valid
-  io.memAXI_0_w_bits_data   := axiBridge.io.axi.wt.data
-  io.memAXI_0_w_bits_strb   := axiBridge.io.axi.wt.strb
-  io.memAXI_0_w_bits_last   := axiBridge.io.axi.wt.last
+  axiBridge.io.axi.w.ready := io.memAXI_0_w_ready
+  io.memAXI_0_w_valid      := axiBridge.io.axi.w.valid
+  io.memAXI_0_w_bits_data  := axiBridge.io.axi.w.data
+  io.memAXI_0_w_bits_strb  := axiBridge.io.axi.w.strb
+  io.memAXI_0_w_bits_last  := axiBridge.io.axi.w.last
 
   axiBridge.io.axi.b.valid := io.memAXI_0_b_valid
   axiBridge.io.axi.b.resp  := io.memAXI_0_b_bits_resp
@@ -123,13 +123,13 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   io.memAXI_0_ar_bits_cache := axiBridge.io.axi.ar.cache
   io.memAXI_0_ar_bits_qos   := axiBridge.io.axi.ar.qos
 
-  axiBridge.io.axi.rd.valid := io.memAXI_0_r_valid
-  axiBridge.io.axi.rd.resp  := io.memAXI_0_r_bits_resp
-  axiBridge.io.axi.rd.data  := io.memAXI_0_r_bits_data
-  axiBridge.io.axi.rd.last  := io.memAXI_0_r_bits_last
-  axiBridge.io.axi.rd.id    := io.memAXI_0_r_bits_id
-  axiBridge.io.axi.rd.user  := io.memAXI_0_r_bits_use
-  io.memAXI_0_r_ready       := axiBridge.io.axi.rd.ready
+  axiBridge.io.axi.r.valid := io.memAXI_0_r_valid
+  axiBridge.io.axi.r.resp  := io.memAXI_0_r_bits_resp
+  axiBridge.io.axi.r.data  := io.memAXI_0_r_bits_data
+  axiBridge.io.axi.r.last  := io.memAXI_0_r_bits_last
+  axiBridge.io.axi.r.id    := io.memAXI_0_r_bits_id
+  axiBridge.io.axi.r.user  := io.memAXI_0_r_bits_use
+  io.memAXI_0_r_ready      := axiBridge.io.axi.r.ready
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
   axiBridge.io.inst <> treeCoreL2.io.inst
@@ -141,9 +141,9 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   //   printf("########################################\n")
   // }
 
-  when(axiBridge.io.axi.wt.valid) {
+  when(axiBridge.io.axi.w.valid) {
     printf("########################################\n")
-    printf("axiBridge.io.axi.wt.valid\n")
+    printf("axiBridge.io.axi.w.valid\n")
     printf("########################################\n")
   }
 
