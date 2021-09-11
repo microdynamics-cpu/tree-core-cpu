@@ -64,8 +64,7 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = new AXI4USERIO
     val mem:  AXI4USERIO = new AXI4USERIO
-    // axi
-    val axi: AXI4IO = new AXI4IO
+    val axi:  AXI4IO     = new AXI4IO
   })
 
   // preposition

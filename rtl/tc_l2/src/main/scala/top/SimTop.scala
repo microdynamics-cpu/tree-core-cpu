@@ -84,7 +84,16 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   io.uart.out.valid := false.B
   io.uart.out.ch    := 0.U
 
-  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge())
+  protected val instBridge: AXI4SigBridge = Module(new AXI4SigBridge)
+  protected val memBridge:  AXI4SigBridge = Module(new AXI4SigBridge)
+  protected val axiIntcon:  AXI4Intcon    = Module(new AXI4Intcon)
+  instBridge.io.rw  := DontCare
+  memBridge.io.rw   := DontCare
+  axiIntcon.io.inst <> instBridge.io.axi
+  axiIntcon.io.mem  <> memBridge.io.axi
+  axiIntcon.io.out  := DontCare
+
+  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge)
   axiBridge.io.axi.aw.ready := io.memAXI_0_aw_ready
   io.memAXI_0_aw_valid      := axiBridge.io.axi.aw.valid
   io.memAXI_0_aw_bits_addr  := axiBridge.io.axi.aw.addr
