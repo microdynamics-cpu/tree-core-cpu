@@ -118,6 +118,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   io.axi.valid := memValidReg
   io.axi.req   := memReqReg
   io.axi.addr  := memAddrReg
+  io.axi.id    := 1.U
   io.axi.wdata := memDataReg
 
   // judge the write regfile data's origin

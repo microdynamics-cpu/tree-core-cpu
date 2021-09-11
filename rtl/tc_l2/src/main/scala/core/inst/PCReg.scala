@@ -28,6 +28,7 @@ class PCReg extends Module with AXI4Config with InstConfig {
   io.axi.wdata := DontCare
   io.axi.resp  := DontCare
   io.axi.addr  := pc
+  io.axi.id    := 0.U
   // io.axi.valid := true.B // TODO: need to judge when mem need to read
   io.axi.valid := ~io.maStallIfIn // TODO: maybe this code lead to cycle
   io.axi.size  := AXI4Bridge.SIZE_W
