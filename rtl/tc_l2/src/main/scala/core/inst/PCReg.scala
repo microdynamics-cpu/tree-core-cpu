@@ -46,8 +46,8 @@ class PCReg extends Module with AXI4Config with InstConfig {
 
   when(hdShkDone) {
     when(!dirty) {
-      pc             := pc + 4.U(BusWidth.W)
-      io.instEnaOut  := true.B
+      pc            := pc + 4.U(BusWidth.W)
+      io.instEnaOut := true.B
       printf("handshake done!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
       printf(p"[pc]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
       io.instDataOut := io.axi.rdata(31, 0)

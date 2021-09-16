@@ -62,7 +62,7 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
         printf("[sig] eumRdADDR\n")
       }
       is(eumRdADDR) {
-        when(arHdShk) { 
+        when(arHdShk) {
           rdOperState := eumRdREAD
           printf("[sig] eumRdREAD\n")
         }

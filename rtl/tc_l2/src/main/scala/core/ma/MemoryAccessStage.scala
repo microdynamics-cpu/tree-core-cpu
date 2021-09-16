@@ -146,7 +146,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       io.instOut            <> io.instIn
       io.wtAddrOut          := io.wtAddrIn
     }
-
   }.otherwise {
     io.ifValidOut         := false.B
     io.ifMemInstCommitOut := false.B
@@ -213,6 +212,17 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     )
   )
 
-  io.axi.size    := AXI4Bridge.SIZE_D
+  io.axi.size := AXI4Bridge.SIZE_D // ? some bug
+
+  // assign byte_enable = ({8{inst_lb | inst_lbu | inst_sb}} & 8'b0000_0001)
+  // |({8{inst_lh | inst_lhu | inst_sh}} & 8'b0000_0011)
+  // |({8{inst_lw | inst_lwu | inst_sw}} & 8'b0000_1111)
+  // |({8{inst_ld | inst_sd}} & 8'b1111_1111);
+
+  // assign mem_size = ({2{(mem_byte_enable == 8'b0000_0001)}} & `SIZE_B)
+  // | ({2{(mem_byte_enable == 8'b0000_0011)}} & `SIZE_H)
+  // | ({2{(mem_byte_enable == 8'b0000_1111)}} & `SIZE_W)
+  // | ({2{(mem_byte_enable == 8'b1111_1111)}} & `SIZE_D);
+
   io.stallReqOut := io.axi.valid && (~io.axi.ready)
 }
