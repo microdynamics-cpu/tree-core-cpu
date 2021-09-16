@@ -18,7 +18,8 @@ class AXI4Intcon extends Module with InstConfig {
   io.inst.b  := DontCare
 
   // mem rd has higher priority
-  when(io.mem.ar.valid) {
+  // when(io.mem.ar.valid) {
+  when(false.B) {
     io.inst.r.valid  := false.B
     io.inst.r.resp   := 0.U
     io.inst.r.data   := 0.U

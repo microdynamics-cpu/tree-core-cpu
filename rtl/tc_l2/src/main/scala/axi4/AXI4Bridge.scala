@@ -5,53 +5,55 @@ import chisel3.util._
 
 object AXI4Bridge {
   // Burst types
-  protected val AXI_BURST_TYPE_FIXED = "b00".U(2.W)
-  protected val AXI_BURST_TYPE_INCR  = "b01".U(2.W)
-  protected val AXI_BURST_TYPE_WRAP  = "b10".U(2.W)
+  val AXI_BURST_TYPE_FIXED = "b00".U(2.W)
+  val AXI_BURST_TYPE_INCR  = "b01".U(2.W)
+  val AXI_BURST_TYPE_WRAP  = "b10".U(2.W)
 
-// Access permissions
-  protected val AXI_PROT_UNPRIVILEGED_ACCESS = "b000".U(3.W)
-  protected val AXI_PROT_PRIVILEGED_ACCESS   = "b001".U(3.W)
-  protected val AXI_PROT_SECURE_ACCESS       = "b000".U(3.W)
-  protected val AXI_PROT_NON_SECURE_ACCESS   = "b010".U(3.W)
-  protected val AXI_PROT_DATA_ACCESS         = "b000".U(3.W)
-  protected val AXI_PROT_INSTRUCTION_ACCESS  = "b100".U(3.W)
-// Memory types (AR)
-  protected val AXI_ARCACHE_DEVICE_NON_BUFFERABLE                 = "b0000".U(4.W)
-  protected val AXI_ARCACHE_DEVICE_BUFFERABLE                     = "b0001".U(4.W)
-  protected val AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE   = "b0010".U(4.W)
-  protected val AXI_ARCACHE_NORMAL_NON_CACHEABLE_BUFFERABLE       = "b0011".U(4.W)
-  protected val AXI_ARCACHE_WRITE_THROUGH_NO_ALLOCATE             = "b1010".U(4.W)
-  protected val AXI_ARCACHE_WRITE_THROUGH_READ_ALLOCATE           = "b1110".U(4.W)
-  protected val AXI_ARCACHE_WRITE_THROUGH_WRITE_ALLOCATE          = "b1010".U(4.W)
-  protected val AXI_ARCACHE_WRITE_THROUGH_READ_AND_WRITE_ALLOCATE = "b1110".U(4.W)
-  protected val AXI_ARCACHE_WRITE_BACK_NO_ALLOCATE                = "b1011".U(4.W)
-  protected val AXI_ARCACHE_WRITE_BACK_READ_ALLOCATE              = "b1111".U(4.W)
-  protected val AXI_ARCACHE_WRITE_BACK_WRITE_ALLOCATE             = "b1011".U(4.W)
-  protected val AXI_ARCACHE_WRITE_BACK_READ_AND_WRITE_ALLOCATE    = "b1111".U(4.W)
-// Memory types (AW)
-  protected val AXI_AWCACHE_DEVICE_NON_BUFFERABLE                 = "b0000".U(4.W)
-  protected val AXI_AWCACHE_DEVICE_BUFFERABLE                     = "b0001".U(4.W)
-  protected val AXI_AWCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE   = "b0010".U(4.W)
-  protected val AXI_AWCACHE_NORMAL_NON_CACHEABLE_BUFFERABLE       = "b0011".U(4.W)
-  protected val AXI_AWCACHE_WRITE_THROUGH_NO_ALLOCATE             = "b0110".U(4.W)
-  protected val AXI_AWCACHE_WRITE_THROUGH_READ_ALLOCATE           = "b0110".U(4.W)
-  protected val AXI_AWCACHE_WRITE_THROUGH_WRITE_ALLOCATE          = "b1110".U(4.W)
-  protected val AXI_AWCACHE_WRITE_THROUGH_READ_AND_WRITE_ALLOCATE = "b1110".U(4.W)
-  protected val AXI_AWCACHE_WRITE_BACK_NO_ALLOCATE                = "b0111".U(4.W)
-  protected val AXI_AWCACHE_WRITE_BACK_READ_ALLOCATE              = "b0111".U(4.W)
-  protected val AXI_AWCACHE_WRITE_BACK_WRITE_ALLOCATE             = "b1111".U(4.W)
-  protected val AXI_AWCACHE_WRITE_BACK_READ_AND_WRITE_ALLOCATE    = "b1111".U(4.W)
+  // Access permissions
+  val AXI_PROT_UNPRIVILEGED_ACCESS = "b000".U(3.W)
+  val AXI_PROT_PRIVILEGED_ACCESS   = "b001".U(3.W)
+  val AXI_PROT_SECURE_ACCESS       = "b000".U(3.W)
+  val AXI_PROT_NON_SECURE_ACCESS   = "b010".U(3.W)
+  val AXI_PROT_DATA_ACCESS         = "b000".U(3.W)
+  val AXI_PROT_INSTRUCTION_ACCESS  = "b100".U(3.W)
 
-// Memory size
-  protected val AXI_SIZE_BYTES_1   = "b000".U(3.W)
-  protected val AXI_SIZE_BYTES_2   = "b001".U(3.W)
-  protected val AXI_SIZE_BYTES_4   = "b010".U(3.W)
-  protected val AXI_SIZE_BYTES_8   = "b011".U(3.W)
-  protected val AXI_SIZE_BYTES_16  = "b100".U(3.W)
-  protected val AXI_SIZE_BYTES_32  = "b101".U(3.W)
-  protected val AXI_SIZE_BYTES_64  = "b110".U(3.W)
-  protected val AXI_SIZE_BYTES_128 = "b111".U(3.W)
+  // Memory types (AR)
+  val AXI_ARCACHE_DEVICE_NON_BUFFERABLE                 = "b0000".U(4.W)
+  val AXI_ARCACHE_DEVICE_BUFFERABLE                     = "b0001".U(4.W)
+  val AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE   = "b0010".U(4.W)
+  val AXI_ARCACHE_NORMAL_NON_CACHEABLE_BUFFERABLE       = "b0011".U(4.W)
+  val AXI_ARCACHE_WRITE_THROUGH_NO_ALLOCATE             = "b1010".U(4.W)
+  val AXI_ARCACHE_WRITE_THROUGH_READ_ALLOCATE           = "b1110".U(4.W)
+  val AXI_ARCACHE_WRITE_THROUGH_WRITE_ALLOCATE          = "b1010".U(4.W)
+  val AXI_ARCACHE_WRITE_THROUGH_READ_AND_WRITE_ALLOCATE = "b1110".U(4.W)
+  val AXI_ARCACHE_WRITE_BACK_NO_ALLOCATE                = "b1011".U(4.W)
+  val AXI_ARCACHE_WRITE_BACK_READ_ALLOCATE              = "b1111".U(4.W)
+  val AXI_ARCACHE_WRITE_BACK_WRITE_ALLOCATE             = "b1011".U(4.W)
+  val AXI_ARCACHE_WRITE_BACK_READ_AND_WRITE_ALLOCATE    = "b1111".U(4.W)
+
+  // Memory types (AW)
+  val AXI_AWCACHE_DEVICE_NON_BUFFERABLE                 = "b0000".U(4.W)
+  val AXI_AWCACHE_DEVICE_BUFFERABLE                     = "b0001".U(4.W)
+  val AXI_AWCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE   = "b0010".U(4.W)
+  val AXI_AWCACHE_NORMAL_NON_CACHEABLE_BUFFERABLE       = "b0011".U(4.W)
+  val AXI_AWCACHE_WRITE_THROUGH_NO_ALLOCATE             = "b0110".U(4.W)
+  val AXI_AWCACHE_WRITE_THROUGH_READ_ALLOCATE           = "b0110".U(4.W)
+  val AXI_AWCACHE_WRITE_THROUGH_WRITE_ALLOCATE          = "b1110".U(4.W)
+  val AXI_AWCACHE_WRITE_THROUGH_READ_AND_WRITE_ALLOCATE = "b1110".U(4.W)
+  val AXI_AWCACHE_WRITE_BACK_NO_ALLOCATE                = "b0111".U(4.W)
+  val AXI_AWCACHE_WRITE_BACK_READ_ALLOCATE              = "b0111".U(4.W)
+  val AXI_AWCACHE_WRITE_BACK_WRITE_ALLOCATE             = "b1111".U(4.W)
+  val AXI_AWCACHE_WRITE_BACK_READ_AND_WRITE_ALLOCATE    = "b1111".U(4.W)
+
+  // Memory size
+  val AXI_SIZE_BYTES_1   = "b000".U(3.W)
+  val AXI_SIZE_BYTES_2   = "b001".U(3.W)
+  val AXI_SIZE_BYTES_4   = "b010".U(3.W)
+  val AXI_SIZE_BYTES_8   = "b011".U(3.W)
+  val AXI_SIZE_BYTES_16  = "b100".U(3.W)
+  val AXI_SIZE_BYTES_32  = "b101".U(3.W)
+  val AXI_SIZE_BYTES_64  = "b110".U(3.W)
+  val AXI_SIZE_BYTES_128 = "b111".U(3.W)
 
   // need to access by PCReg module
   val SIZE_B = "b00".U(2.W)
@@ -92,10 +94,11 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   protected val instTransDone = WireDefault(instRdDone)
 
   // FSM for read/write
-  protected val fsmWtIDLE  = 0.U(2.W)
-  protected val fsmWtADDR  = 1.U(2.W)
-  protected val fsmWtWRITE = 2.U(2.W)
-  protected val fsmWtRESP  = 3.U(2.W)
+  protected val fsmWtIDLE  = 0.U(3.W)
+  protected val fsmWtADDR  = 1.U(3.W)
+  protected val fsmWtWRITE = 2.U(3.W)
+  protected val fsmWtRESP  = 3.U(3.W)
+  protected val fsmWtRESP2 = 4.U(3.W)
 
   protected val fsmRdIDLE          = 0.U(3.W)
   protected val fsmIfARwithMemIDLE = 1.U(3.W)
@@ -140,8 +143,11 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
       }
       is(fsmWtRESP) {
         when(wtbHdShk) {
-          wtStateReg := fsmWtIDLE
+          wtStateReg := fsmWtRESP2
         }
+      }
+      is(fsmWtRESP2) {
+        wtStateReg := fsmWtIDLE
       }
     }
   }
@@ -261,10 +267,10 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   protected val instAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.inst.addr(ALIGNED_WIDTH - 1, 0)))
   protected val instAddrOpB = WireDefault(
     UInt(4.W),
-    (Fill(4, instSizeByte) & "b0".U(4.W))
-      | (Fill(4, instSizeHalf) & "b1".U(4.W))
-      | (Fill(4, instSizeWord) & "b11".U(4.W))
-      | (Fill(4, instSizeDouble) & "b111".U(4.W))
+    (Fill(4, instSizeByte) & "b0000".U(4.W))
+      | (Fill(4, instSizeHalf) & "b0001".U(4.W))
+      | (Fill(4, instSizeWord) & "b0011".U(4.W))
+      | (Fill(4, instSizeDouble) & "b0111".U(4.W))
   )
 
   protected val instAddrEnd  = WireDefault(UInt(4.W), instAddrOpA + instAddrOpB)
@@ -318,10 +324,10 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   protected val memAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.mem.addr(ALIGNED_WIDTH - 1, 0)))
   protected val memAddrOpB = WireDefault(
     UInt(4.W),
-    (Fill(4, memSizeByte) & "b0".U(4.W))
-      | (Fill(4, memSizeHalf) & "b1".U(4.W))
-      | (Fill(4, memSizeWord) & "b11".U(4.W))
-      | (Fill(4, memSizeDouble) & "b111".U(4.W))
+    (Fill(4, memSizeByte) & "b0000".U(4.W))
+      | (Fill(4, memSizeHalf) & "b0001".U(4.W))
+      | (Fill(4, memSizeWord) & "b0011".U(4.W))
+      | (Fill(4, memSizeDouble) & "b0111".U(4.W))
   )
 
   protected val memAddrEnd  = WireDefault(UInt(4.W), memAddrOpA + memAddrOpB)
@@ -399,12 +405,12 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   io.axi.w.id    := memAxiId
   io.axi.w.data := Mux(
     io.axi.w.valid,
-    Mux(memTransLen(0) === "b0".U(1.W), axiWtDataLow, axiWtDataHig),
+    Mux(memTransLen(0, 0) === "b0".U(1.W), axiWtDataLow, axiWtDataHig),
     Fill(AxiDataWidth, "b0".U(1.W))
   )
   io.axi.w.strb := Mux(
     io.axi.w.valid,
-    Mux(memTransLen(0) === "b0".U(1.W), memStrbLow, memStrbHig),
+    Mux(memTransLen(0, 0) === "b0".U(1.W), memStrbLow, memStrbHig),
     Fill(AxiDataWidth / 8, "b0".U(1.W))
   )
   io.axi.w.last := Mux(io.axi.w.valid, (memTransLen === memAxiLen), false.B)
@@ -477,7 +483,7 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   for (i <- 0 until TRANS_LEN) {
     when(rdHdShk && io.axi.r.id === instAxiId) {
       when((~instTransAligned) && instOverstep) {
-        when(instTransLen(0) =/= 0.U) {
+        when(instTransLen(0, 0) =/= 0.U) {
           instDataReadReg := instDataReadReg | axiRdDataHig
         }.otherwise {
           instDataReadReg := axiRdDataLow
@@ -493,7 +499,7 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   for (i <- 0 until TRANS_LEN) {
     when(rdHdShk && io.axi.r.id === memAxiId) {
       when((~memTransAligned) && memOverstep) {
-        when(memTransLen(0) =/= 0.U) {
+        when(memTransLen(0, 0) =/= 0.U) {
           memDataReadReg := memDataReadReg | axiRdDataHig
         }.otherwise {
           memDataReadReg := axiRdDataLow

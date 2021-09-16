@@ -28,6 +28,7 @@ class PCReg extends Module with AXI4Config with InstConfig {
   io.axi.wdata := DontCare
   io.axi.resp  := DontCare
   io.axi.addr  := pc
+  io.axi.id    := 0.U
   // io.axi.valid := true.B // TODO: need to judge when mem need to read
   io.axi.valid := ~io.maStallIfIn // TODO: maybe this code lead to cycle
   io.axi.size  := AXI4Bridge.SIZE_W
@@ -45,8 +46,10 @@ class PCReg extends Module with AXI4Config with InstConfig {
 
   when(hdShkDone) {
     when(!dirty) {
-      pc             := pc + 4.U(BusWidth.W)
-      io.instEnaOut  := true.B
+      pc            := pc + 4.U(BusWidth.W)
+      io.instEnaOut := true.B
+      printf("handshake done!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+      printf(p"[pc]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
       io.instDataOut := io.axi.rdata(31, 0)
     }.otherwise {
       dirty          := false.B
