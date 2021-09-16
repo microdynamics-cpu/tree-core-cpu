@@ -21,11 +21,4 @@ trait AXI4Config {
   val AxiQosLen    = 4
   val AxiRegionLen = 4
   val AxiRespLen   = 2
-
-  // val ALIGNED_WIDTH: Int = log2Ceil(dataBits / 8) //3
-  // val OFFSET_WIDTH:  Int = log2Ceil(dataBits) //6
-  // val AXI_SIZE:      Int = log2Ceil(dataBits / 8) //3
-  // val MASK_WIDTH:    Int = dataBits * 2 //128
-  // val TRANS_LEN:     Int = rwdataBits / dataBits //1
-
 }

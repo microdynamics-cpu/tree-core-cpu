@@ -1,8 +1,7 @@
 package treecorel2
 
 import chisel3._
-import chisel3.util.Cat
-import chisel3.util.experimental.loadMemoryFromFile
+import chisel3.util._
 
 class InstCache extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -10,13 +9,4 @@ class InstCache extends Module with InstConfig {
     val instEnaIn:   Bool = Input(Bool())
     val instDataOut: UInt = Output(UInt(BusWidth.W))
   })
-
-  protected val cache = Mem(InstCacheLen, UInt(BusWidth.W))
-  loadMemoryFromFile(cache, "data/InstcacheInit.txt")
-
-  io.instDataOut := Mux(
-    io.instEnaIn,
-    Cat(cache(io.instAddrIn), cache(io.instAddrIn + 1.U), cache(io.instAddrIn + 2.U), cache(io.instAddrIn + 3.U)),
-    0.U
-  )
 }
