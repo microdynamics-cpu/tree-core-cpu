@@ -59,18 +59,18 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
       is(eumRdIDLE) {
         rdOperState := eumRdADDR
         // printf(p"[if2id]io.instOut.data = 0x${Hexadecimal(if2id.io.instOut.data)}\n")
-        printf("[sig] eumRdADDR\n")
+        // printf("[sig] eumRdADDR\n")
       }
       is(eumRdADDR) {
         when(arHdShk) {
           rdOperState := eumRdREAD
-          printf("[sig] eumRdREAD\n")
+          // printf("[sig] eumRdREAD\n")
         }
       }
       is(eumRdREAD) {
         when(rdDone) {
           rdOperState := eumRdIDLE2
-          printf(p"[sig]io.rw.rdata = 0x${Hexadecimal(io.rw.rdata)}\n")
+          // printf(p"[sig]io.rw.rdata = 0x${Hexadecimal(io.rw.rdata)}\n")
         }
       }
       is(eumRdIDLE2) {
@@ -78,7 +78,7 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
       }
       is(eumRdIDLE3) {
         rdOperState := eumRdIDLE
-        printf("[sig] eumRdIDLE\n")
+        // printf("[sig] eumRdIDLE\n")
       }
     }
   }
