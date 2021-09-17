@@ -113,6 +113,9 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   protected val memRegfileAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
   protected val memInstAddrReg:    UInt = RegInit(0.U(BusWidth.W))
   protected val memInstDataReg:    UInt = RegInit(0.U(InstWidth.W))
+  protected val memInstSizeReg:    UInt = RegInit(0.U(2.W))
+  protected val memOperTypeReg:    UInt = RegInit(0.U(InstOperTypeLen.W))
+  protected val memFunc3Reg:       UInt = RegInit(0.U(3.W))
   protected val isFirstReg:        Bool = RegInit(true.B)
 
   io.axi.valid := memValidReg
@@ -127,12 +130,25 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       isFirstReg            := false.B
       io.ifValidOut         := false.B
       io.ifMemInstCommitOut := true.B
-      io.wtDataOut          := loadData
-      // io.wtDataOut          := io.axi.rdata
+      // io.wtDataOut          := loadData
+      // io.wtDataOut := io.axi.rdata
+      // save the mem oper type and memFunc3 type to sign ext the read data from the axi bus
+      when(memOperTypeReg === lsuLBType || memOperTypeReg === lsuLBUType) {
+        io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
+      }.elsewhen(memOperTypeReg === lsuLHType || memOperTypeReg === lsuLHUType) {
+        // printf("prepare the mem wt data!!!!!!!!!\n")
+        // printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
+        io.wtDataOut := Cat(Fill(BusWidth - 16, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(15))), io.axi.rdata(15, 0))
+      }.elsewhen(memOperTypeReg === lsuLWType || memOperTypeReg === lsuLWUType) {
+        io.wtDataOut := Cat(Fill(BusWidth - 32, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(31))), io.axi.rdata(31, 0))
+      }.otherwise {
+        io.wtDataOut := io.axi.rdata
+      }
+
       // TODO: some bug: this use trick code to handle this bug, if not the 'ready' will triggered twice
-      printf("ready!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-      printf(p"#############[ma]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
-      printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
+      // printf("ready!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+      // printf(p"#############[ma]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
+      // printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
       memReqReg   := AxiReqNop.U
       memValidReg := false.B
 
@@ -161,6 +177,8 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memRegfileAddrReg := io.wtAddrIn
       memInstAddrReg    := io.instIn.addr
       memInstDataReg    := io.instIn.data
+      memOperTypeReg    := io.memOperTypeIn
+      memFunc3Reg       := io.memFunc3In
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
       isFirstReg        := true.B
       io.ifValidOut     := true.B
@@ -172,7 +190,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     }
   }
   io.wtEnaOut := io.wtEnaIn
-  // io.wtAddrOut := io.wtAddrIn
 
   // for load and store inst addr
   when(
@@ -180,7 +197,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       io.memOperTypeIn === lsuLHUType ||
       io.memOperTypeIn === lsuLWUType
   ) {
-    // io.axi.addr := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
     memAddrReg := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }.elsewhen(
     (io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) ||
@@ -189,7 +205,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       (io.memOperTypeIn === lsuLWType) ||
       (io.memOperTypeIn === lsuLDType)
   ) {
-    // io.axi.addr := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
     memAddrReg := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
   }
 
@@ -198,31 +213,48 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     io.memOperTypeIn,
     memDataReg,
     Seq(
-      lsuSBType -> (io.memValBIn(7, 0) << (io.axi.addr(2, 0) * 8.U)),
+      // lsuSBType -> (io.memValBIn(7, 0) << (io.axi.addr(2, 0) * 8.U)),
       // lsuSBType -> io.memValBIn(7, 0),
-      // lsuSBType -> io.memValBIn,
+      lsuSBType -> io.memValBIn,
       // (0x0, 0x1)->0, (0x2, 0x3)->1, (0x4, 0x5)->2, (0x6, 0x7)->3
       // shift bits: (addr(2, 0) / 2 * 16 bit)
-      lsuSHType -> (io.memValBIn(15, 0) << (io.axi.addr(2, 0) * 8.U)),
+      // lsuSHType -> (io.memValBIn(15, 0) << (io.axi.addr(2, 0) * 8.U)),
+      lsuSHType -> io.memValBIn,
       // (0x0...0x3)->0, (0x4...0x7)->1
       // shift bits: (addr(2, 0) / 4 * 32 bit)
-      lsuSWType -> (io.memValBIn(31, 0) << (io.axi.addr(2, 0) * 8.U)),
+      // lsuSWType -> (io.memValBIn(31, 0) << (io.axi.addr(2, 0) * 8.U)),
+      lsuSWType -> io.memValBIn,
       // (0x0...0x7)->0
-      lsuSDType -> io.memValBIn(63, 0)
+      lsuSDType -> io.memValBIn
     )
   )
 
-  io.axi.size := AXI4Bridge.SIZE_D // ? some bug
-
-  // assign byte_enable = ({8{inst_lb | inst_lbu | inst_sb}} & 8'b0000_0001)
-  // |({8{inst_lh | inst_lhu | inst_sh}} & 8'b0000_0011)
-  // |({8{inst_lw | inst_lwu | inst_sw}} & 8'b0000_1111)
-  // |({8{inst_ld | inst_sd}} & 8'b1111_1111);
-
-  // assign mem_size = ({2{(mem_byte_enable == 8'b0000_0001)}} & `SIZE_B)
-  // | ({2{(mem_byte_enable == 8'b0000_0011)}} & `SIZE_H)
-  // | ({2{(mem_byte_enable == 8'b0000_1111)}} & `SIZE_W)
-  // | ({2{(mem_byte_enable == 8'b1111_1111)}} & `SIZE_D);
+  // io.axi.size := AXI4Bridge.SIZE_D // ? some bug
+  io.axi.size := memInstSizeReg
+  when(
+    io.memOperTypeIn === lsuLBType ||
+      io.memOperTypeIn === lsuLBUType ||
+      io.memOperTypeIn === lsuSBType
+  ) {
+    memInstSizeReg := AXI4Bridge.SIZE_B
+  }.elsewhen(
+    io.memOperTypeIn === lsuLHType ||
+      io.memOperTypeIn === lsuLHUType ||
+      io.memOperTypeIn === lsuSHType
+  ) {
+    memInstSizeReg := AXI4Bridge.SIZE_H
+  }.elsewhen(
+    io.memOperTypeIn === lsuLWType ||
+      io.memOperTypeIn === lsuLWUType ||
+      io.memOperTypeIn === lsuSWType
+  ) {
+    memInstSizeReg := AXI4Bridge.SIZE_W
+  }.elsewhen(
+    io.memOperTypeIn === lsuLDType ||
+      io.memOperTypeIn === lsuSDType
+  ) {
+    memInstSizeReg := AXI4Bridge.SIZE_D
+  }
 
   io.stallReqOut := io.axi.valid && (~io.axi.ready)
 }

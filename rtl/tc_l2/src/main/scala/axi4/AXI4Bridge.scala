@@ -132,13 +132,21 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         wtStateReg := fsmWtADDR
       }
       is(fsmWtADDR) {
+        // printf("write addr!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.aw.addr = 0x${Hexadecimal(io.axi.aw.addr)}\n")
         when(awHdShk) {
           wtStateReg := fsmWtWRITE
+          // printf("[axi] change wt addr --> data\n")
         }
       }
       is(fsmWtWRITE) {
+        // printf("write data!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.w.data = 0x${Hexadecimal(io.axi.w.data)}\n")
+        // printf(p"[axi]axiWtDataLow = 0x${Hexadecimal(axiWtDataLow)}\n")
+        // printf(p"[axi]axiWtDataHig = 0x${Hexadecimal(axiWtDataHig)}\n")
         when(wtDone) {
           wtStateReg := fsmWtRESP
+          // printf("[axi] change wt data --> resp\n")
         }
       }
       is(fsmWtRESP) {
@@ -162,6 +170,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfIDLEwithMemAR) {
+        // printf("mem ar!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
         when(arHdShk && io.inst.valid && instRdTrans) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen(arHdShk) {
@@ -176,6 +186,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfARwithMemRD) {
+        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(arHdShk && (~memRdDone)) {
           rdStateReg := fsmIfRDwithMemRD
         }.elsewhen((~arHdShk) && memRdDone) {
@@ -185,6 +197,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfIDLEwithMemRD) {
+        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(io.inst.valid && instRdTrans && (~memRdDone)) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen((~(io.inst.valid && instRdTrans)) && memRdDone) {
@@ -194,6 +208,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfRDwithMemAR) {
+        // printf("mem ar!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
         when(arHdShk && (~instRdDone)) {
           rdStateReg := fsmIfRDwithMemRD
         }.elsewhen((~arHdShk) && instRdDone) {
@@ -212,6 +228,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfRDwithMemRD) {
+        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(instRdDone) {
           rdStateReg := fsmIfIDLEwithMemRD
         }
@@ -242,6 +260,7 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
     memTransLen := 0.U
   }.elsewhen(memTransLenIncrEna) {
     memTransLen := memTransLen + 1.U
+    // printf("memTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLen\n")
   }
 
 // ------------------Process Data------------------
@@ -501,11 +520,21 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
       when((~memTransAligned) && memOverstep) {
         when(memTransLen(0, 0) =/= 0.U) {
           memDataReadReg := memDataReadReg | axiRdDataHig
+          // printf("rdata hig!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+          // printf(p"[axi4]memMask = 0x${Hexadecimal(memMask)}\n")
+          // printf(p"[axi4]memMaskHig = 0x${Hexadecimal(memMaskHig)}\n")
+
+          // printf(p"[axi4]memAlignedOffsetLow = 0x${Hexadecimal(memAlignedOffsetLow)}\n")
+          // printf(p"[axi4]memAlignedOffsetHig = 0x${Hexadecimal(memAlignedOffsetHig)}\n")
+          // printf(p"[axi4]axiRdDataHig = 0x${Hexadecimal(axiRdDataHig)}\n")
+          // printf(p"[axi4]memDataReadReg = 0x${Hexadecimal(memDataReadReg)}\n")
         }.otherwise {
           memDataReadReg := axiRdDataLow
+          // printf("rdata low!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
         }
       }.elsewhen(memTransLen === i.U) {
         memDataReadReg := axiRdDataLow
+        // printf("rdata norm!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
       }
     }
   }
