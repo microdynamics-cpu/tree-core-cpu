@@ -79,11 +79,6 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
     val memAXI_0_r_ready:     Bool = Output(Bool())
   })
 
-  // uart io
-  io.uart.in.valid  := false.B
-  io.uart.out.valid := false.B
-  io.uart.out.ch    := 0.U
-
   // protected val instBridge: AXI4SigBridge = Module(new AXI4SigBridge)
   // protected val memBridge:  AXI4SigBridge = Module(new AXI4SigBridge)
   // protected val axiIntcon:  AXI4Intcon    = Module(new AXI4Intcon)
@@ -186,6 +181,7 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest))
   axiBridge.io.inst <> treeCoreL2.io.inst
   axiBridge.io.mem  <> treeCoreL2.io.mem
+  io.uart           <> treeCoreL2.io.uart
   // instBridge.io.rw <> treeCoreL2.io.inst
   // memBridge.io.rw  <> treeCoreL2.io.mem
 }

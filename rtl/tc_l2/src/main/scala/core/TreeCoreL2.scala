@@ -7,6 +7,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
+    val uart: UARTIO     = new UARTIO
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -20,7 +21,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
-  protected val csrUnit     = Module(new CSRReg)
+  protected val csrUnit     = Module(new CSRReg(ifDiffTest))
 
   io.inst <> pcUnit.io.axi
   io.mem  <> maUnit.io.axi
@@ -158,7 +159,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
 
     when(RegNext(ma2wb.io.ifMemInstCommitOut)) {
       diffCommitState.io.valid := true.B
-      printf("hello%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+      // printf("hello%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
     }.otherwise {
       diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
         (!RegNext(RegNext(RegNext(RegNext(if2id.io.diffIfSkipInstOut))))) &
@@ -195,17 +196,17 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
 
     when(debugCnt =/= 0.U) {
       debugCnt := debugCnt - 1.U
-      printf("debugCnt: %d\n", debugCnt)
+      // printf("debugCnt: %d\n", debugCnt)
       // printf(p"[pc]io.axi.valid = 0x${Hexadecimal(pcUnit.io.axi.valid)}\n")
       // printf(p"[pc]io.instDataOut = 0x${Hexadecimal(pcUnit.io.instDataOut)}\n")
       // printf(p"[pc]io.inst.addr = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
       // printf(p"[pc]io.instEnaOut = 0x${Hexadecimal(pcUnit.io.instEnaOut)}\n")
       // printf(p"[pc]dirty = 0x${Hexadecimal(pcUnit.dirty)}\n")
 
-      printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2id.io.ifFlushIn)}\n")
-      printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2id.io.diffIfSkipInstOut)}\n")
-      printf(p"[if2id]io.instOut.addr = 0x${Hexadecimal(if2id.io.instOut.addr)}\n")
-      printf(p"[if2id]io.instOut.data = 0x${Hexadecimal(if2id.io.instOut.data)}\n")
+      // printf(p"[if2id]io.ifFlushIn = 0x${Hexadecimal(if2id.io.ifFlushIn)}\n")
+      // printf(p"[if2id]io.diffIfSkipInstOut = 0x${Hexadecimal(if2id.io.diffIfSkipInstOut)}\n")
+      // printf(p"[if2id]io.instOut.addr = 0x${Hexadecimal(if2id.io.instOut.addr)}\n")
+      // printf(p"[if2id]io.instOut.data = 0x${Hexadecimal(if2id.io.instOut.data)}\n")
 
       // printf(p"[id]io.inst.data = 0x${Hexadecimal(idUnit.io.inst.data)}\n")
       // printf(p"[id]io.rdEnaAOut = 0x${Hexadecimal(idUnit.io.rdEnaAOut)}\n")
@@ -214,38 +215,38 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       // printf(p"[id]io.rdAddrBOut = 0x${Hexadecimal(idUnit.io.rdAddrBOut)}\n")
       // printf(p"[id]io.exuOperTypeOut = 0x${Hexadecimal(idUnit.io.exuOperTypeOut)}\n")
       // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(idUnit.io.lsuWtEnaOut)}\n")
-      printf(p"[id]io.rsValAOut = 0x${Hexadecimal(idUnit.io.rsValAOut)}\n")
-      printf(p"[id]io.rsValBOut = 0x${Hexadecimal(idUnit.io.rsValBOut)}\n")
+      // printf(p"[id]io.rsValAOut = 0x${Hexadecimal(idUnit.io.rsValAOut)}\n")
+      // printf(p"[id]io.rsValBOut = 0x${Hexadecimal(idUnit.io.rsValBOut)}\n")
 
-      printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(idUnit.io.wtEnaOut)}\n")
-      printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(idUnit.io.wtAddrOut)}\n")
+      // printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(idUnit.io.wtEnaOut)}\n")
+      // printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(idUnit.io.wtAddrOut)}\n")
 
       // printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
-      printf(p"[ma]io.memOperTypeIn = 0x${Hexadecimal(maUnit.io.memOperTypeIn)}\n")
-      printf(p"[ma]io.memValAIn = 0x${Hexadecimal(maUnit.io.memValAIn)}\n")
-      printf(p"[ma]io.memValBIn = 0x${Hexadecimal(maUnit.io.memValBIn)}\n")
-      printf(p"[ma]io.memOffsetIn = 0x${Hexadecimal(maUnit.io.memOffsetIn)}\n")
-      printf(p"[ma]io.axi.addr = 0x${Hexadecimal(maUnit.io.axi.addr)}\n")
-      printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
-      printf(p"[ma]io.axi.size = 0x${Hexadecimal(maUnit.io.axi.size)}\n")
-      printf(p"[ma]io.axi.valid = 0x${Hexadecimal(maUnit.io.axi.valid)}\n")
-      printf(p"[ma]io.axi.req = 0x${Hexadecimal(maUnit.io.axi.req)}\n")
+      // printf(p"[ma]io.memOperTypeIn = 0x${Hexadecimal(maUnit.io.memOperTypeIn)}\n")
+      // printf(p"[ma]io.memValAIn = 0x${Hexadecimal(maUnit.io.memValAIn)}\n")
+      // printf(p"[ma]io.memValBIn = 0x${Hexadecimal(maUnit.io.memValBIn)}\n")
+      // printf(p"[ma]io.memOffsetIn = 0x${Hexadecimal(maUnit.io.memOffsetIn)}\n")
+      // printf(p"[ma]io.axi.addr = 0x${Hexadecimal(maUnit.io.axi.addr)}\n")
+      // printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
+      // printf(p"[ma]io.axi.size = 0x${Hexadecimal(maUnit.io.axi.size)}\n")
+      // printf(p"[ma]io.axi.valid = 0x${Hexadecimal(maUnit.io.axi.valid)}\n")
+      // printf(p"[ma]io.axi.req = 0x${Hexadecimal(maUnit.io.axi.req)}\n")
 
-      printf(p"[ma]io.stallReqOut = 0x${Hexadecimal(maUnit.io.stallReqOut)}\n")
-      printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(maUnit.io.wtDataOut)}\n")
-      printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(maUnit.io.wtEnaOut)}\n")
-      printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(maUnit.io.wtAddrOut)}\n")
+      // printf(p"[ma]io.stallReqOut = 0x${Hexadecimal(maUnit.io.stallReqOut)}\n")
+      // printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(maUnit.io.wtDataOut)}\n")
+      // printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(maUnit.io.wtEnaOut)}\n")
+      // printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(maUnit.io.wtAddrOut)}\n")
 
-      printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
-      printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
-      printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
-      printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
+      // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
+      // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
+      // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
+      // printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
       // printf(p"[main&ma2wb]io.instOut.addr = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.addr))}\n")
       // printf(p"[main&ma2wb]io.instOut.data = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.data))}\n")
       // printf(p"[main&ma2wb]io.ifMemInstCommitOut = 0x${Hexadecimal(RegNext(ma2wb.io.ifMemInstCommitOut))}\n")
-      printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOut)}\n")
-      printf("\n")
+      // printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOut)}\n")
+      // printf("\n")
     }
 
     // when(maUnit.io.memOperTypeIn >= 38.U && maUnit.io.memOperTypeIn <= 48.U) {
@@ -264,8 +265,14 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     //###########################################################################################
 
     // output custom putch oper for 0x7B
+    io.uart.in.valid := false.B
     when(diffCommitState.io.instr === 0x0000007b.U) {
-      printf("%c", regFile.io.charDataOut)
+      // printf("%c", regFile.io.charDataOut)
+      io.uart.out.valid := true.B
+      io.uart.out.ch    := regFile.io.charDataOut
+    }.otherwise {
+      io.uart.out.valid := false.B
+      io.uart.out.ch    := 0.U
     }
 
     // when(diffCommitState.io.skip) {
@@ -275,28 +282,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2id.io.instOut.data))))}\n")
     // printf("\n")
-    // CSR State
-    val diffCsrState = Module(new DifftestCSRState())
-    diffCsrState.io.clock          := this.clock
-    diffCsrState.io.coreid         := 0.U
-    diffCsrState.io.mstatus        := 0.U
-    diffCsrState.io.mcause         := 0.U
-    diffCsrState.io.mepc           := 0.U
-    diffCsrState.io.sstatus        := 0.U
-    diffCsrState.io.scause         := 0.U
-    diffCsrState.io.sepc           := 0.U
-    diffCsrState.io.satp           := 0.U
-    diffCsrState.io.mip            := 0.U
-    diffCsrState.io.mie            := 0.U
-    diffCsrState.io.mscratch       := 0.U
-    diffCsrState.io.sscratch       := 0.U
-    diffCsrState.io.mideleg        := 0.U
-    diffCsrState.io.medeleg        := 0.U
-    diffCsrState.io.mtval          := 0.U
-    diffCsrState.io.stval          := 0.U
-    diffCsrState.io.mtvec          := 0.U
-    diffCsrState.io.stvec          := 0.U
-    diffCsrState.io.priviledgeMode := 0.U
 
     // trap event
     val diffTrapState = Module(new DifftestTrapEvent)

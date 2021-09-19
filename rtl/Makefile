@@ -25,14 +25,17 @@ export NEMU_HOME     := $(ROOT_PATH)/NEMU
 export NOOP_HOME     := $(ROOT_PATH)
 export DRAMSIM3_HOME := $(DRAMSIM3_HOME)
 
-AllTestCaseNum  := 0
-PassTestCaseNum := 0
-FailTestCaseNum := 0
-
 define getRecursiveTestRes
+	@echo $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) > $(1)/build/log/allcasenum-log.txt
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
+
 	@printf "[%30s] " $@
-	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then echo -e "\033[1;32mPASS!\033[0m"; else echo -e "\033[1;31mFAIL!\033[0m"; fi
+	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then \
+		echo -e "\033[1;32mPASS! ipc =$$(grep 'IPC' $(1)/build/log/$@-log.txt | cut -d = -f4)\033[0m" \
+		$$(echo $$(echo $$(cat $(1)/build/log/passcasenum-log.txt) + 1 | bc) > $(1)/build/log/passcasenum-log.txt); \
+	else \
+		echo -e "\033[1;31mFAIL!\033[0m"; \
+	fi
 endef
 
 ###### chisel target ######
@@ -132,9 +135,14 @@ $(shell mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1)
 
 simpleRecursiveTest: $(simpleTestLogFile) $(simpleTestCaseName)
 	@printf "[\033[0;33m%s\033[0m]\n" all-done
+	@echo -e "[\033[0;33mAll: $$(cat $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
 
 $(simpleTestLogFile):
 	$(shell touch $(SIMPLETEST_HOME)/build/log/$@)
+	$(shell touch $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell touch $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt)
+	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt)
 
 $(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bin 
 	@$(call getRecursiveTestRes, $(SIMPLETEST_HOME))
@@ -147,10 +155,14 @@ riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.t
 $(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
-	@printf "[\033[0;33mAll: %s  \033[0;32mPASS: %s \033[0;31mFAIL: %s \033[0m]\n" $(AllTestCaseNum) $(PassTestCaseNum) $(FailTestCaseNum)
+	@echo -e "[\033[0;33mAll: $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
 
 $(riscvTestLogFile):
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
+	$(shell touch $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell touch $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
+	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(RISCVTEST_HOME))
@@ -163,10 +175,14 @@ cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, 
 $(shell mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1)
 cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
-	@printf "[\033[0;33mAll: %s  \033[0;32mPASS: %s \033[0;31mFAIL: %s \033[0m]\n" $(AllTestCaseNum) $(PassTestCaseNum) $(FailTestCaseNum)
+	@echo -e "[\033[0;33mAll: $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
 
 $(cpuTestLogFile):
 	$(shell touch $(CPUTEST_HOME)/build/log/$@)
+	$(shell touch $(CPUTEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell touch $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
+	$(shell echo 0 > $(CPUTEST_HOME)/build/log/allcasenum-log.txt)
+	$(shell echo 0 > $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME))
