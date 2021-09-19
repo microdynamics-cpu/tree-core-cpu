@@ -7,6 +7,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
+    val uart: UARTIO     = new UARTIO
   })
 
   protected val pcUnit      = Module(new PCReg)
@@ -264,8 +265,14 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     //###########################################################################################
 
     // output custom putch oper for 0x7B
+    io.uart.in.valid := false.B
     when(diffCommitState.io.instr === 0x0000007b.U) {
-      printf("%c", regFile.io.charDataOut)
+      // printf("%c", regFile.io.charDataOut)
+      io.uart.out.valid := true.B
+      io.uart.out.ch    := regFile.io.charDataOut
+    }.otherwise {
+      io.uart.out.valid := false.B
+      io.uart.out.ch    := 0.U
     }
 
     // when(diffCommitState.io.skip) {
