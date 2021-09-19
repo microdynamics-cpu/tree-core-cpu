@@ -20,7 +20,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
-  protected val csrUnit     = Module(new CSRReg)
+  protected val csrUnit     = Module(new CSRReg(ifDiffTest))
 
   io.inst <> pcUnit.io.axi
   io.mem  <> maUnit.io.axi
@@ -275,28 +275,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     // printf(p"[main]diffCommitState.io.pc(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))}\n")
     // printf(p"[main]diffCommitState.io.instr(pre) = 0x${Hexadecimal(RegNext(RegNext(RegNext(if2id.io.instOut.data))))}\n")
     // printf("\n")
-    // CSR State
-    val diffCsrState = Module(new DifftestCSRState())
-    diffCsrState.io.clock          := this.clock
-    diffCsrState.io.coreid         := 0.U
-    diffCsrState.io.mstatus        := 0.U
-    diffCsrState.io.mcause         := 0.U
-    diffCsrState.io.mepc           := 0.U
-    diffCsrState.io.sstatus        := 0.U
-    diffCsrState.io.scause         := 0.U
-    diffCsrState.io.sepc           := 0.U
-    diffCsrState.io.satp           := 0.U
-    diffCsrState.io.mip            := 0.U
-    diffCsrState.io.mie            := 0.U
-    diffCsrState.io.mscratch       := 0.U
-    diffCsrState.io.sscratch       := 0.U
-    diffCsrState.io.mideleg        := 0.U
-    diffCsrState.io.medeleg        := 0.U
-    diffCsrState.io.mtval          := 0.U
-    diffCsrState.io.stval          := 0.U
-    diffCsrState.io.mtvec          := 0.U
-    diffCsrState.io.stvec          := 0.U
-    diffCsrState.io.priviledgeMode := 0.U
 
     // trap event
     val diffTrapState = Module(new DifftestTrapEvent)
