@@ -32,7 +32,11 @@ FailTestCaseNum := 0
 define getRecursiveTestRes
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
 	@printf "[%30s] " $@
-	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then echo -e "\033[1;32mPASS!\033[0m"; else echo -e "\033[1;31mFAIL!\033[0m"; fi
+	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then \
+		echo -e "\033[1;32mPASS! ipc =$$(grep 'IPC' $(1)/build/log/$@-log.txt | cut -d = -f4)\033[0m"; \
+	else \
+		echo -e "\033[1;31mFAIL!\033[0m"; \
+	fi
 endef
 
 ###### chisel target ######
