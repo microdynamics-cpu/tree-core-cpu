@@ -77,5 +77,12 @@ object ConstVal {
   val condJumpType = 2.U(JumpTypeLen.W)
 
   // csr addr
-  val mCycleAddr = 0xb00.U(CSRAddrLen.W)
+  val mStatusAddr = 0x300.U(CSRAddrLen.W)
+  val mIeAddr     = 0x304.U(CSRAddrLen.W)
+  val mTvecAddr   = 0x305.U(CSRAddrLen.W)
+  val mEpcAddr    = 0x341.U(CSRAddrLen.W)
+  val mCauseAddr  = 0x342.U(CSRAddrLen.W)
+  val mTvalAddr   = 0x343.U(CSRAddrLen.W)
+  val mIpAddr     = 0x344.U(CSRAddrLen.W)
+  val mCycleAddr  = 0xb00.U(CSRAddrLen.W)
 }
