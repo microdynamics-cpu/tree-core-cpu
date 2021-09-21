@@ -24,9 +24,9 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     }
   })
 
-  protected val privMode: UInt = RegInit(mPrivMode.U(PrivModeLen.W))
+  protected val privMode: UInt = RegInit(mPrivMode)
   // machine mode reg
-  protected val mstatus: UInt = RegInit("h00001800".U(BusWidth.W))
+  protected val mstatus: UInt = RegInit(0.U(BusWidth.W))
   protected val mie:     UInt = RegInit(0.U(BusWidth.W))
   protected val mtvec:   UInt = RegInit(0.U(BusWidth.W))
   protected val mepc:    UInt = RegInit(0.U(BusWidth.W))
@@ -38,18 +38,21 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val ifJump   = WireDefault(false.B)
   protected val jumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
 
+  // difftest run right code in user mode, when throw exception, enter machine mode
   when(io.instOperTypeIn === sysECALLType) {
     mepc     := io.pcIn
     mcause   := 11.U // ecall cause code
-    mstatus  := Cat(mstatus(63, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+    mstatus  := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
     ifJump   := true.B
     jumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
   }
 
+  // mret
   when(io.instOperTypeIn === sysMRETType) {
-    mstatus  := Cat(mstatus(63, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
+    mstatus  := Cat(mstatus(63, 13), uPrivMode(1, 0), mstatus(10, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
     ifJump   := true.B
     jumpAddr := mepc
+    privMode := mstatus(12, 11) // mstatus.MPP
   }
 
   io.jumpInfo.ifJump := ifJump

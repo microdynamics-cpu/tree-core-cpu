@@ -9,6 +9,7 @@ object ConstVal {
   val InstOperTypeLen   = 6
   val CSRAddrLen        = 12
   val CLINTAddrLen      = 64
+  val PrivModeLen       = 2
   // exu inst type
   val aluADDIType  = 0.U(InstOperTypeLen.W)
   val aluADDIWType = 1.U(InstOperTypeLen.W)
@@ -95,7 +96,7 @@ object ConstVal {
   val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
   val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
   // privMode
-  val mPrivMode = 3
-  val sPrivMode = 1
-  val uPrivMode = 0
+  val mPrivMode = 3.U(PrivModeLen.W)
+  val sPrivMode = 1.U(PrivModeLen.W)
+  val uPrivMode = 0.U(PrivModeLen.W)
 }
