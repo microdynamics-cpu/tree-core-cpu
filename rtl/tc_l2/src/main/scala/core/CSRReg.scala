@@ -57,7 +57,32 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   //TODO: maybe some bug? the right value after wtena sig trigger
   when(io.wtEnaIn) {
-    mcycle := io.wtDataIn
+    switch(io.instOperTypeIn) {
+      is(mStatusAddr) {
+        mstatus := io.wtDataIn
+      }
+      is(mIeAddr) {
+        mie := io.wtDataIn
+      }
+      is(mTvecAddr) {
+        mtvec := io.wtDataIn
+      }
+      is(mEpcAddr) {
+        mepc := io.wtDataIn
+      }
+      is(mCauseAddr) {
+        mcause := io.wtDataIn
+      }
+      is(mTvalAddr) {
+        mtval := io.wtDataIn
+      }
+      is(mIpAddr) {
+        mip := io.wtDataIn
+      }
+      is(mCycleAddr) {
+        mcycle := io.wtDataIn
+      }
+    }
   }.otherwise {
     mcycle := mcycle + 1.U(BusWidth.W)
   }
