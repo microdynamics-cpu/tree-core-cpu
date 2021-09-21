@@ -65,7 +65,9 @@ object ConstVal {
   val lsuSWType = 47.U(InstOperTypeLen.W)
   val lsuSDType = 48.U(InstOperTypeLen.W)
 
-  val csrRSType = 49.U(InstOperTypeLen.W)
+  val csrRSType    = 49.U(InstOperTypeLen.W)
+  val sysECALLType = 50.U(InstOperTypeLen.W)
+  val sysMRETType  = 51.U(InstOperTypeLen.W)
 
   val custInstType = 62.U(InstOperTypeLen.W)
   val aluNopType   = 63.U(InstOperTypeLen.W)
