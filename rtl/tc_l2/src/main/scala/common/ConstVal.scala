@@ -8,7 +8,7 @@ object ConstVal {
   val wtDataSrcTypeLen  = 2
   val InstOperTypeLen   = 6
   val CSRAddrLen        = 12
-
+  val CLINTAddrLen      = 64
   // exu inst type
   val aluADDIType  = 0.U(InstOperTypeLen.W)
   val aluADDIWType = 1.U(InstOperTypeLen.W)
@@ -85,4 +85,15 @@ object ConstVal {
   val mTvalAddr   = 0x343.U(CSRAddrLen.W)
   val mIpAddr     = 0x344.U(CSRAddrLen.W)
   val mCycleAddr  = 0xb00.U(CSRAddrLen.W)
+  // clint addr
+  val ClintTickCnt   = 0x100
+  val ClintBaseAddr  = 0x2000000.U(CLINTAddrLen.W)
+  val ClintBoundAddr = 0x200bfff.U(CLINTAddrLen.W)
+  val MSipOffset     = 0x0.U(CLINTAddrLen.W)
+  val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
+  val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
+  // privMode
+  val mPrivMode = 3
+  val sPrivMode = 1
+  val uPrivMode = 0
 }
