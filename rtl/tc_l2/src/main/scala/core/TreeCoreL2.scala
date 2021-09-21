@@ -135,9 +135,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   controlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
   controlUnit.io.stallReqFromMaIn := maUnit.io.stallReqOut
   // csr
-  csrUnit.io.rdAddrIn := idUnit.io.csrAddrOut
-  csrUnit.io.wtEnaIn  := execUnit.io.csrwtEnaOut
-  csrUnit.io.wtDataIn := execUnit.io.csrWtDataOut
+  csrUnit.io.rdAddrIn     := idUnit.io.csrAddrOut
+  csrUnit.io.wtEnaIn      := execUnit.io.csrwtEnaOut
+  csrUnit.io.wtInstTypeIn := DontCare
+  csrUnit.io.wtDataIn     := execUnit.io.csrWtDataOut
 
   if (ifDiffTest) {
     // commit
