@@ -1,27 +1,32 @@
 package treecorel2
 
 import chisel3._
-import chisel3.util.{Cat, MuxLookup}
+import chisel3.util._
 import difftest._
 import treecorel2.common.ConstVal._
 
 class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
-    val rdAddrIn: UInt = Input(UInt(CSRAddrLen.W))
+    val rdAddrIn:       UInt = Input(UInt(CSRAddrLen.W))
+    val instOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
+    val pcIn:           UInt = Input(UInt(BusWidth.W))
     // from ex's out
-    val wtEnaIn:      Bool = Input(Bool())
-    val wtInstTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val wtDataIn:     UInt = Input(UInt(BusWidth.W))
+    val wtEnaIn:  Bool = Input(Bool())
+    val wtDataIn: UInt = Input(UInt(BusWidth.W))
     // to ex's in
     val rdDataOut: UInt = Output(UInt(BusWidth.W))
     // to difftest
     val ifNeedSkip: Bool = Output(Bool())
+    val jumpInfo = new Bundle {
+      val ifJump: Bool = Output(Bool())
+      val addr:   UInt = Output(UInt(BusWidth.W))
+    }
   })
 
-  protected val privMode: UInt = RegInit(0.U(PrivModeLen.W))
-  // machine mode
-  protected val mstatus: UInt = RegInit(0.U(BusWidth.W))
+  protected val privMode: UInt = RegInit(mPrivMode.U(PrivModeLen.W))
+  // machine mode reg
+  protected val mstatus: UInt = RegInit("h00001800".U(BusWidth.W))
   protected val mie:     UInt = RegInit(0.U(BusWidth.W))
   protected val mtvec:   UInt = RegInit(0.U(BusWidth.W))
   protected val mepc:    UInt = RegInit(0.U(BusWidth.W))
@@ -29,6 +34,26 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val mtval:   UInt = RegInit(0.U(BusWidth.W))
   protected val mip:     UInt = RegInit(0.U(BusWidth.W))
   protected val mcycle:  UInt = RegInit(0.U(BusWidth.W))
+
+  protected val ifJump   = WireDefault(false.B)
+  protected val jumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
+
+  when(io.instOperTypeIn === sysECALLType) {
+    mepc     := io.pcIn
+    mcause   := 11.U // ecall cause code
+    mstatus  := Cat(mstatus(63, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+    ifJump   := true.B
+    jumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
+  }
+
+  when(io.instOperTypeIn === sysMRETType) {
+    mstatus  := Cat(mstatus(63, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
+    ifJump   := true.B
+    jumpAddr := mepc
+  }
+
+  io.jumpInfo.ifJump := ifJump
+  io.jumpInfo.addr   := jumpAddr
 
   //TODO: maybe some bug? the right value after wtena sig trigger
   when(io.wtEnaIn) {
