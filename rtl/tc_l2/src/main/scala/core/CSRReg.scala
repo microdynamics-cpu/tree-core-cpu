@@ -17,14 +17,12 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     // to ex's in
     val rdDataOut: UInt = Output(UInt(BusWidth.W))
     // to difftest
-    val ifNeedSkip: Bool = Output(Bool())
-    val jumpInfo = new Bundle {
-      val ifJump: Bool = Output(Bool())
-      val addr:   UInt = Output(UInt(BusWidth.W))
-    }
+    val ifNeedSkip: Bool   = Output(Bool())
+    val jumpInfo:   JUMPIO = new JUMPIO
   })
 
   protected val privMode: UInt = RegInit(mPrivMode)
+  protected val addrReg:  UInt = RegNext(io.rdAddrIn)
   // machine mode reg
   protected val mstatus: UInt = RegInit(0.U(BusWidth.W))
   protected val mie:     UInt = RegInit(0.U(BusWidth.W))
@@ -35,7 +33,7 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val mip:     UInt = RegInit(0.U(BusWidth.W))
   protected val mcycle:  UInt = RegInit(0.U(BusWidth.W))
 
-  protected val ifJump   = WireDefault(false.B)
+  protected val jumpType = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val jumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
 
   // difftest run right code in user mode, when throw exception, enter machine mode
@@ -43,24 +41,25 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     mepc     := io.pcIn
     mcause   := 11.U // ecall cause code
     mstatus  := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
-    ifJump   := true.B
+    jumpType := csrJumpType
     jumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
   }
 
   // mret
   when(io.instOperTypeIn === sysMRETType) {
     mstatus  := Cat(mstatus(63, 13), uPrivMode(1, 0), mstatus(10, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
-    ifJump   := true.B
+    jumpType := csrJumpType
     jumpAddr := mepc
     privMode := mstatus(12, 11) // mstatus.MPP
   }
 
-  io.jumpInfo.ifJump := ifJump
-  io.jumpInfo.addr   := jumpAddr
+  io.jumpInfo.kind := jumpType
+  io.jumpInfo.addr := jumpAddr
 
   //TODO: maybe some bug? the right value after wtena sig trigger
+  // the addrReg is also the wt addr
   when(io.wtEnaIn) {
-    switch(io.instOperTypeIn) {
+    switch(addrReg) {
       is(mStatusAddr) {
         mstatus := io.wtDataIn
       }
@@ -123,9 +122,9 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     val diffCsrState = Module(new DifftestCSRState())
     diffCsrState.io.clock          := this.clock
     diffCsrState.io.coreid         := 0.U
-    diffCsrState.io.mstatus        := 0.U
-    diffCsrState.io.mcause         := 0.U
-    diffCsrState.io.mepc           := 0.U
+    diffCsrState.io.mstatus        := RegNext(mstatus)
+    diffCsrState.io.mcause         := RegNext(mcause)
+    diffCsrState.io.mepc           := RegNext(mepc)
     diffCsrState.io.sstatus        := 0.U
     diffCsrState.io.scause         := 0.U
     diffCsrState.io.sepc           := 0.U
@@ -138,7 +137,7 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     diffCsrState.io.medeleg        := 0.U
     diffCsrState.io.mtval          := 0.U
     diffCsrState.io.stval          := 0.U
-    diffCsrState.io.mtvec          := 0.U
+    diffCsrState.io.mtvec          := RegNext(mtvec) //exec
     diffCsrState.io.stvec          := 0.U
     diffCsrState.io.priviledgeMode := privMode
   }

@@ -130,6 +130,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   idUnit.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
+  controlUnit.io.csrJumpInfo      <> csrUnit.io.jumpInfo
   controlUnit.io.jumpTypeIn       := idUnit.io.jumpTypeOut
   controlUnit.io.newInstAddrIn    := idUnit.io.newInstAddrOut
   controlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
@@ -220,9 +221,13 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       // printf(p"[id]io.lsuWtEnaOut = 0x${Hexadecimal(idUnit.io.lsuWtEnaOut)}\n")
       // printf(p"[id]io.rsValAOut = 0x${Hexadecimal(idUnit.io.rsValAOut)}\n")
       // printf(p"[id]io.rsValBOut = 0x${Hexadecimal(idUnit.io.rsValBOut)}\n")
-
       // printf(p"[id]io.wtEnaOut = 0x${Hexadecimal(idUnit.io.wtEnaOut)}\n")
       // printf(p"[id]io.wtAddrOut = 0x${Hexadecimal(idUnit.io.wtAddrOut)}\n")
+      // printf(p"[id]io.csrInstTypeOut = 0x${Hexadecimal(idUnit.io.csrInstTypeOut)}\n")
+      // printf(p"[id]io.csrAddrOut = 0x${Hexadecimal(idUnit.io.csrAddrOut)}\n")
+
+      // printf(p"[csr]io.wtEnaIn = 0x${Hexadecimal(csrUnit.io.wtEnaIn)}\n")
+      // printf(p"[csr]io.wtDataIn = 0x${Hexadecimal(csrUnit.io.wtDataIn)}\n")
 
       // printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
