@@ -100,9 +100,9 @@ cpuTestBuild:
 	$(MAKE) -C $(CPUTEST_HOME) ARCH=riscv64-mycpu
 
 ###### (am)am-tests target ######
-# now only test the rtl-time
+# now only test the rtl-time and interrupt
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=t
+	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=i
 
 ###### (am)coremark target ######
 coremarkTestBuild:
