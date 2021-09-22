@@ -3,6 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 import treecorel2.common.ConstVal._
+import treecorel2.common.getZeroExtn
 import InstRegexPattern._
 
 object InstDecoderStage {
@@ -232,6 +233,12 @@ class InstDecoderStage extends Module with InstConfig {
       decodeRes(3) === beuJALRType
   ) {
     io.rsValAOut := io.inst.addr
+  }.elsewhen(
+    decodeRes(3) === csrRWIType ||
+      decodeRes(3) === csrRSIType ||
+      decodeRes(3) === csrRCIType
+  ) {
+    io.rsValAOut := getZeroExtn(BusWidth, rsRegAddrA) // now addr[4:0] is the imm
   }.elsewhen(io.fwRsEnaAIn) {
     io.rsValAOut := io.fwRsValAIn
   }.otherwise {
@@ -270,6 +277,7 @@ class InstDecoderStage extends Module with InstConfig {
     io.stallReqFromIDOut := false.B
   }
 
+  // csr
   when(decodeRes(3) >= csrRWType && decodeRes(3) <= csrRCIType) {
     io.csrAddrOut := io.inst.data(31, 20)
   }.otherwise {
