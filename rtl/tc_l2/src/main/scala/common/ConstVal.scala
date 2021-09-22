@@ -66,9 +66,15 @@ object ConstVal {
   val lsuSWType = 47.U(InstOperTypeLen.W)
   val lsuSDType = 48.U(InstOperTypeLen.W)
 
-  val csrRSType    = 49.U(InstOperTypeLen.W)
-  val sysECALLType = 50.U(InstOperTypeLen.W)
-  val sysMRETType  = 51.U(InstOperTypeLen.W)
+  val csrRWType  = 49.U(InstOperTypeLen.W)
+  val csrRSType  = 50.U(InstOperTypeLen.W)
+  val csrRCType  = 51.U(InstOperTypeLen.W)
+  val csrRWIType = 52.U(InstOperTypeLen.W)
+  val csrRSIType = 53.U(InstOperTypeLen.W)
+  val csrRCIType = 54.U(InstOperTypeLen.W)
+
+  val sysECALLType = 55.U(InstOperTypeLen.W)
+  val sysMRETType  = 56.U(InstOperTypeLen.W)
 
   val custInstType = 62.U(InstOperTypeLen.W)
   val aluNopType   = 63.U(InstOperTypeLen.W)
@@ -78,6 +84,7 @@ object ConstVal {
   val noJumpType   = 0.U(JumpTypeLen.W)
   val uncJumpType  = 1.U(JumpTypeLen.W)
   val condJumpType = 2.U(JumpTypeLen.W)
+  val csrJumpType  = 3.U(JumpTypeLen.W)
 
   // csr addr
   val mStatusAddr = 0x300.U(CSRAddrLen.W)

@@ -103,7 +103,12 @@ object InstDecoderStage {
     SW -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSWType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     SD -> List(wtRegFalse, sInstType, offsetLsuOperNumType, lsuSDType, branchFalse, rdMemFalse, wtMemTrue, memWtType),
     // csr inst
-    CSRRS -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRW  -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRWType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRS  -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRC  -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRCType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRWI -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRWIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRSI -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
+    CSRRCI -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRCIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // system inst
     ECALL -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysECALLType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
     MRET  -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysMRETType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
@@ -265,7 +270,7 @@ class InstDecoderStage extends Module with InstConfig {
     io.stallReqFromIDOut := false.B
   }
 
-  when(decodeRes(3) === csrRSType) {
+  when(decodeRes(3) >= csrRWType && decodeRes(3) <= csrRCIType) {
     io.csrAddrOut := io.inst.data(31, 20)
   }.otherwise {
     io.csrAddrOut := 0.U(CSRAddrLen.W)
