@@ -62,7 +62,12 @@ class ALU extends Module with InstConfig {
       beuJALRType -> (io.rsValAIn + io.rsValBIn),
       aluNopType  -> (io.rsValAIn + io.rsValBIn),
       // csr inst
-      csrRSType -> io.csrRdDataIn
+      csrRWType  -> io.csrRdDataIn,
+      csrRSType  -> io.csrRdDataIn,
+      csrRCType  -> io.csrRdDataIn,
+      csrRWIType -> io.csrRdDataIn,
+      csrRSIType -> io.csrRdDataIn,
+      csrRCIType -> io.csrRdDataIn
     )
   )
 
@@ -82,9 +87,16 @@ class ALU extends Module with InstConfig {
     io.wtDataOut := res
   }
 
-  when(io.exuOperTypeIn === csrRSType) {
+  when(io.exuOperTypeIn === csrRWType || io.exuOperTypeIn === csrRWIType) {
+    io.csrwtEnaOut  := true.B
+    io.csrWtDataOut := io.rsValAIn
+
+  }.elsewhen(io.exuOperTypeIn === csrRSType || io.exuOperTypeIn === csrRSIType) {
     io.csrwtEnaOut  := true.B
     io.csrWtDataOut := io.wtDataOut | io.rsValAIn
+  }.elsewhen(io.exuOperTypeIn === csrRCType || io.exuOperTypeIn === csrRCIType) {
+    io.csrwtEnaOut  := true.B
+    io.csrWtDataOut := io.wtDataOut & (~io.rsValAIn)
   }.otherwise {
     io.csrwtEnaOut  := false.B
     io.csrWtDataOut := 0.U(BusWidth.W)

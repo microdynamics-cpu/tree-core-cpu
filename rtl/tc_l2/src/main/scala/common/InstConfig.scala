@@ -9,7 +9,6 @@ trait InstConfig {
   val InstCacheLen = 128
   val RegAddrLen   = 5
   val RegNum       = 32
-  val PrivModeLen  = 2
 
   val PcRegStartAddr = "h80000000"
   val TrapInst       = "h0000006b"
