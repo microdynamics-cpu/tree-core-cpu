@@ -22,6 +22,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
   protected val csrUnit     = Module(new CSRReg(ifDiffTest))
+  protected val clintUnit   = Module(new CLINT)
 
   io.inst <> pcUnit.io.axi
   io.mem  <> maUnit.io.axi
@@ -130,7 +131,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   idUnit.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
-  controlUnit.io.csrJumpInfo      <> csrUnit.io.jumpInfo
+  controlUnit.io.excpJumpInfo     <> csrUnit.io.excpJumpInfo
+  controlUnit.io.intrJumpInfo     <> csrUnit.io.intrJumpInfo
   controlUnit.io.jumpTypeIn       := idUnit.io.jumpTypeOut
   controlUnit.io.newInstAddrIn    := idUnit.io.newInstAddrOut
   controlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
@@ -139,9 +141,14 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   csrUnit.io.rdAddrIn       := idUnit.io.csrAddrOut
   csrUnit.io.instOperTypeIn := idUnit.io.csrInstTypeOut
   csrUnit.io.pcIn           := if2id.io.instOut.addr
+  csrUnit.io.pcFromMaIn     := ex2ma.io.instOut.addr
   csrUnit.io.wtEnaIn        := execUnit.io.csrwtEnaOut
   csrUnit.io.wtDataIn       := execUnit.io.csrWtDataOut
-  csrUnit.io.jumpInfo       := DontCare
+
+  // clint(ma stage)
+  clintUnit.io.wt       <> maUnit.io.clintWt
+  clintUnit.io.rd       <> ma2wb.io.clintWt
+  clintUnit.io.intrInfo <> csrUnit.io.intrInfo
 
   if (ifDiffTest) {
     // commit
@@ -154,7 +161,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     // skip the flush inst(nop) maybe the skip cust oper only
     diffCommitState.io.skip := Mux(
       diffCommitState.io.instr === 0x0000007b.U ||
-        RegNext(RegNext(RegNext(RegNext(csrUnit.io.ifNeedSkip)))),
+        RegNext(RegNext(RegNext(RegNext(csrUnit.io.ifNeedSkip)))) ||
+        RegNext(RegNext(clintUnit.io.wt.ena || clintUnit.io.rd.ena)),
       true.B,
       false.B
     )
@@ -168,7 +176,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
         (!RegNext(RegNext(RegNext(RegNext(if2id.io.diffIfSkipInstOut))))) &
         (!RegNext(RegNext(RegNext(id2ex.io.diffIdSkipInstOut)))) &
-        (!(RegNext(ma2wb.io.diffMaSkipInstOut)))
+        (!(RegNext(ma2wb.io.diffMaSkipInstOut))) & (!RegNext(RegNext(csrUnit.io.intrJumpInfo.kind === 3.U)))
     }
 
     // diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
@@ -188,7 +196,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
 
     val debugCnt: UInt = RegInit(0.U(5.W))
     // when(pcUnit.io.axi.addr === "h80000014".U) {
-    //   printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
+    // printf(p"[pc]io.inst.addr[pre] = 0x${Hexadecimal(pcUnit.io.axi.addr)}\n")
     // }
 
     when(pcUnit.io.instDataOut =/= NopInst.U) {
