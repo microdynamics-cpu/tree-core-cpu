@@ -12,7 +12,8 @@ class MAToWB extends Module with InstConfig {
     val ifValidIn:         Bool   = Input(Bool())
     val instIn:            INSTIO = new INSTIO
     val ifMemInstCommitIn: Bool   = Input(Bool())
-
+    // from clint
+    val clintWt: TRANSIO = Flipped(new TRANSIO)
     // to wb
     val wbDataOut:   UInt = Output(UInt(BusWidth.W))
     val wbWtEnaOut:  Bool = Output(Bool())
@@ -45,9 +46,14 @@ class MAToWB extends Module with InstConfig {
   diffMaSkipInstReg := io.ifValidIn
   memInstCommitReg  := io.ifMemInstCommitIn
 
-  io.wbDataOut          := resReg
-  io.wbWtEnaOut         := wtEnaReg
-  io.wbWtAddrOut        := wtAddrReg
+  when(io.clintWt.ena) {
+    io.wbDataOut := io.clintWt.data
+  }.otherwise {
+    io.wbDataOut := resReg
+  }
+  io.wbWtEnaOut  := wtEnaReg
+  io.wbWtAddrOut := wtAddrReg
+
   io.diffMaSkipInstOut  := diffMaSkipInstReg
   io.ifMemInstCommitOut := memInstCommitReg
 
