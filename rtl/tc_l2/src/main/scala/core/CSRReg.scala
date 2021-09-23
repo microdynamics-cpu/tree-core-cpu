@@ -8,16 +8,14 @@ import treecorel2.common.ConstVal._
 class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
-    val rdAddrIn:       UInt = Input(UInt(CSRAddrLen.W))
-    val instOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val pcIn:           UInt = Input(UInt(BusWidth.W))
+    val rdAddrIn:       UInt   = Input(UInt(CSRAddrLen.W))
+    val instOperTypeIn: UInt   = Input(UInt(InstOperTypeLen.W))
+    val inst:           INSTIO = new INSTIO
     // from ex's out
     val wtEnaIn:  Bool = Input(Bool())
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
     // from clint
     val intrInfo: INTRIO = Flipped(new INTRIO)
-    // from ma
-    val pcFromMaIn: UInt = Input(UInt(BusWidth.W))
     // to ex's in
     val rdDataOut: UInt = Output(UInt(BusWidth.W))
     // to difftest
@@ -43,7 +41,7 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val excpJumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
   // difftest run right code in user mode, when throw exception, enter machine mode
   when(io.instOperTypeIn === sysECALLType) {
-    mepc         := io.pcIn
+    mepc         := io.inst.addr
     mcause       := 11.U // ecall cause code
     mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
     excpJumpType := csrJumpType
@@ -57,12 +55,27 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val intrJumpType    = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val intrJumpAddr    = WireDefault(UInt(BusWidth.W), 0.U)
   protected val intrJumpTypeReg = RegNext(intrJumpType)
-  when(mstatus(3) === 1.U && mie(7) === 1.U && io.intrInfo.mtip === true.B) {
-    mepc         := io.pcFromMaIn
-    mcause       := "h8000000000000007".U
-    mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
-    intrJumpType := csrJumpType
-    intrJumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
+
+  // solve the mtimecmp init val is 0 and trigger interrupt bug
+  // use the fsm to delay one inst
+  protected val enumIDLE :: enumIntr :: Nil = Enum(2)
+  protected val intrState                   = RegInit(enumIDLE)
+  switch(intrState) {
+    is(enumIDLE) {
+      when(mstatus(3) === 1.U && mie(7) === 1.U) {
+        intrState := enumIntr
+      }
+    }
+    is(enumIntr) {
+      when(io.inst.data =/= NopInst.U && io.intrInfo.mtip === true.B) {
+        mepc         := io.inst.addr
+        mcause       := "h8000000000000007".U
+        mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+        intrJumpType := csrJumpType
+        intrJumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
+        intrState    := enumIDLE
+      }
+    }
   }
 
   io.intrJumpInfo.kind := intrJumpType

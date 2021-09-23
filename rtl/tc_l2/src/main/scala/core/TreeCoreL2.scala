@@ -140,8 +140,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   // csr
   csrUnit.io.rdAddrIn       := idUnit.io.csrAddrOut
   csrUnit.io.instOperTypeIn := idUnit.io.csrInstTypeOut
-  csrUnit.io.pcIn           := if2id.io.instOut.addr
-  csrUnit.io.pcFromMaIn     := ex2ma.io.instOut.addr
+  csrUnit.io.inst           <> if2id.io.instOut
   csrUnit.io.wtEnaIn        := execUnit.io.csrwtEnaOut
   csrUnit.io.wtDataIn       := execUnit.io.csrWtDataOut
 
@@ -176,7 +175,7 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       diffCommitState.io.valid := RegNext(RegNext(RegNext(RegNext(RegNext(instValidWire))))) &
         (!RegNext(RegNext(RegNext(RegNext(if2id.io.diffIfSkipInstOut))))) &
         (!RegNext(RegNext(RegNext(id2ex.io.diffIdSkipInstOut)))) &
-        (!(RegNext(ma2wb.io.diffMaSkipInstOut))) & (!RegNext(RegNext(csrUnit.io.intrJumpInfo.kind === 3.U)))
+        (!(RegNext(ma2wb.io.diffMaSkipInstOut))) & (!RegNext(RegNext(RegNext(RegNext(csrUnit.io.intrJumpInfo.kind === 3.U)))))
     }
 
     // diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
