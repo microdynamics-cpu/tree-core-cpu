@@ -68,6 +68,8 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     val instOut:            INSTIO = Flipped(new INSTIO)
     // to control
     val stallReqOut: Bool = Output(Bool())
+    // to clint
+    val clintWt: TRANSIO = new TRANSIO
   })
 
   protected val lwData: UInt = Mux(io.axi.addr(2), io.axi.rdata(63, 32), io.axi.rdata(31, 0))
@@ -124,6 +126,9 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   io.axi.id    := 1.U
   io.axi.wdata := memDataReg
 
+  io.clintWt.ena  := WireDefault(false.B)
+  io.clintWt.addr := WireDefault(UInt(BusWidth.W), 0.U)
+  io.clintWt.data := WireDefault(UInt(BusWidth.W), 0.U)
   // judge the write regfile data's origin
   when(io.axi.ready) {
     when(isFirstReg) {
@@ -170,9 +175,20 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     io.wtAddrOut          := io.wtAddrIn
 
     when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
-      isFirstReg        := true.B
-      io.ifValidOut     := true.B
-      memValidReg       := true.B
+      isFirstReg    := true.B
+      io.ifValidOut := true.B
+
+      // *((uint64_t *) CLINT_MTIMECMP) += 7000000; just use the sd inst
+      when(
+        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
+          ClintBaseAddr + MTimeCmpOffset
+      ) {
+        memValidReg     := false.B
+        io.ifValidOut   := false.B
+        io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
+      }.otherwise {
+        memValidReg := true.B
+      }
       memReqReg         := AxiReqRd.U
       memRegfileAddrReg := io.wtAddrIn
       memInstAddrReg    := io.instIn.addr
@@ -180,9 +196,20 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memOperTypeReg    := io.memOperTypeIn
       memFunc3Reg       := io.memFunc3In
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
-      isFirstReg        := true.B
-      io.ifValidOut     := true.B
-      memValidReg       := true.B
+      isFirstReg    := true.B
+      io.ifValidOut := true.B
+      when(
+        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
+          ClintBaseAddr + MTimeCmpOffset
+      ) {
+        memValidReg     := false.B
+        io.ifValidOut   := false.B
+        io.clintWt.ena  := true.B
+        io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
+        io.clintWt.data := io.memValBIn
+      }.otherwise {
+        memValidReg := true.B
+      }
       memReqReg         := AxiReqWt.U
       memRegfileAddrReg := io.wtAddrIn
       memInstAddrReg    := io.instIn.addr

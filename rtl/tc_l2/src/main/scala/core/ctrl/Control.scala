@@ -6,7 +6,8 @@ import treecorel2.common.ConstVal._
 class Control extends Module with InstConfig {
   val io = IO(new Bundle {
     // from csr(solve jump to exception/interrupt handle func addr)
-    val csrJumpInfo: JUMPIO = Flipped(new JUMPIO)
+    val excpJumpInfo: JUMPIO = Flipped(new JUMPIO)
+    val intrJumpInfo: JUMPIO = Flipped(new JUMPIO)
     // from beu(solve jump to func addr)
     val jumpTypeIn:    UInt = Input(UInt(JumpTypeLen.W))
     val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
@@ -30,8 +31,10 @@ class Control extends Module with InstConfig {
   io.flushIdOut   := false.B
   io.ifJumpOut    := false.B
 
-  when(io.csrJumpInfo.kind === csrJumpType) {
-    io.newInstAddrOut := io.csrJumpInfo.addr
+  when(io.excpJumpInfo.kind === csrJumpType) {
+    io.newInstAddrOut := io.excpJumpInfo.addr
+  }.elsewhen(io.intrJumpInfo.kind === csrJumpType) {
+    io.newInstAddrOut := io.intrJumpInfo.addr
   }.otherwise {
     io.newInstAddrOut := io.newInstAddrIn // make all control signal come from this oen unit
   }
@@ -46,7 +49,12 @@ class Control extends Module with InstConfig {
     io.flushIdOut := true.B
     io.stallIfOut := true.B
     io.ifJumpOut  := false.B // a case: when branch inst is after a load/store inst
-  }.elsewhen(io.jumpTypeIn === uncJumpType || io.jumpTypeIn === condJumpType || io.csrJumpInfo.kind === csrJumpType) {
+  }.elsewhen(
+    io.jumpTypeIn === uncJumpType ||
+      io.jumpTypeIn === condJumpType ||
+      io.excpJumpInfo.kind === csrJumpType ||
+      io.intrJumpInfo.kind === csrJumpType
+  ) {
     io.flushIfOut := true.B
     io.ifJumpOut  := true.B
   }
