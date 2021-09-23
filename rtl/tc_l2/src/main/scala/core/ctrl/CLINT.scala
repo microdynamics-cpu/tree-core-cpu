@@ -6,31 +6,42 @@ import treecorel2.common.ConstVal._
 
 class CLINT extends Module with InstConfig {
   val io = IO(new Bundle {
-    val addrIn:    UInt = Input(UInt(BusWidth.W))
-    val wtEnaIn:   Bool = Input(Bool())
-    val wtDataIn:  UInt = Input(UInt(BusWidth.W))
-    val rdDataOut: UInt = Output(UInt(BusWidth.W))
-    val mtipOut:   Bool = Output(Bool())
-    val msipOut:   Bool = Output(Bool())
+    val wt:       TRANSIO = Flipped(new TRANSIO) // from ma
+    val rd:       TRANSIO = new TRANSIO // to wb
+    val intrInfo: INTRIO  = new INTRIO // to csr
   })
 
   protected val mtime:    UInt = RegInit(0.U(BusWidth.W))
-  protected val mtimecmp: UInt = RegInit(0.U(BusWidth.W))
+  protected val mtimecmp: UInt = RegInit(10000.U(BusWidth.W)) // HACK: need to modify this code
   protected val msip:     UInt = RegInit(0.U(BusWidth.W))
   protected val (tickCnt, cntWrap) = Counter(this.clock.asBool(), ClintTickCnt) // generate low speed clock
 
-  msip     := Mux((io.addrIn === MSipOffset) && io.wtEnaIn, io.wtDataIn, msip)
-  mtime    := Mux((io.addrIn === MTimeOffset) && io.wtEnaIn, io.wtDataIn, Mux(cntWrap, mtime + 1.U, mtime))
-  mtimecmp := Mux((io.addrIn === MTimeCmpOffset) && io.wtEnaIn, io.wtDataIn, mtimecmp)
-  io.rdDataOut := MuxLookup(
-    io.addrIn,
-    0.U,
+  msip     := Mux((io.wt.addr === ClintBaseAddr + MSipOffset) && io.wt.ena, io.wt.data, msip)
+  mtime    := Mux((io.wt.addr === ClintBaseAddr + MTimeOffset) && io.wt.ena, io.wt.data, Mux(cntWrap, mtime + 1.U, mtime))
+  mtimecmp := Mux((io.wt.addr === ClintBaseAddr + MTimeCmpOffset) && io.wt.ena, io.wt.data, mtimecmp)
+
+  io.rd.addr := io.wt.addr // TODO: modify the rd addr var name
+  // HACK
+  io.rd.ena := MuxLookup(
+    io.rd.addr,
+    false.B,
     Array(
-      MSipOffset     -> msip,
-      MTimeOffset    -> mtime,
-      MTimeCmpOffset -> mtimecmp
+      ClintBaseAddr + MSipOffset     -> true.B,
+      ClintBaseAddr + MTimeOffset    -> true.B,
+      ClintBaseAddr + MTimeCmpOffset -> true.B
     )
   )
-  io.mtipOut := RegNext((mtime >= mtimecmp) && (mtimecmp =/= 0.U))
-  io.msipOut := RegNext(msip =/= 0.U)
+
+  io.rd.data := MuxLookup(
+    io.rd.addr,
+    0.U,
+    Array(
+      ClintBaseAddr + MSipOffset     -> msip,
+      ClintBaseAddr + MTimeOffset    -> mtime,
+      ClintBaseAddr + MTimeCmpOffset -> mtimecmp
+    )
+  )
+
+  io.intrInfo.mtip := WireDefault(mtime >= mtimecmp) // FIXME: some time sequence problem
+  io.intrInfo.msip := WireDefault(msip =/= 0.U)
 }
