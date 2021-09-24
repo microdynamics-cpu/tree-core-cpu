@@ -28,14 +28,16 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val privMode: UInt = RegInit(mPrivMode)
   protected val addrReg:  UInt = RegNext(io.rdAddrIn)
   // machine mode reg
-  protected val mstatus: UInt = RegInit("h00001880".U(BusWidth.W))
-  protected val mie:     UInt = RegInit(0.U(BusWidth.W))
-  protected val mtvec:   UInt = RegInit(0.U(BusWidth.W))
-  protected val mepc:    UInt = RegInit(0.U(BusWidth.W))
-  protected val mcause:  UInt = RegInit(0.U(BusWidth.W))
-  protected val mtval:   UInt = RegInit(0.U(BusWidth.W))
-  protected val mip:     UInt = RegInit(0.U(BusWidth.W))
-  protected val mcycle:  UInt = RegInit(0.U(BusWidth.W))
+  protected val mhartid:  UInt = RegInit(0.U(BusWidth.W))
+  protected val mstatus:  UInt = RegInit("h00001880".U(BusWidth.W))
+  protected val mie:      UInt = RegInit(0.U(BusWidth.W))
+  protected val mtvec:    UInt = RegInit(0.U(BusWidth.W))
+  protected val mscratch: UInt = RegInit(0.U(BusWidth.W))
+  protected val mepc:     UInt = RegInit(0.U(BusWidth.W))
+  protected val mcause:   UInt = RegInit(0.U(BusWidth.W))
+  protected val mtval:    UInt = RegInit(0.U(BusWidth.W))
+  protected val mip:      UInt = RegInit(0.U(BusWidth.W))
+  protected val mcycle:   UInt = RegInit(0.U(BusWidth.W))
 
   protected val excpJumpType = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val excpJumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
@@ -93,14 +95,25 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   // the addrReg is also the wt addr
   when(io.wtEnaIn) {
     switch(addrReg) {
+      is(mHartidAddr) {
+        mhartid := io.wtDataIn
+      }
       is(mStatusAddr) {
-        mstatus := io.wtDataIn
+        // solve SD bit when the XS[1:0] or FS[1:0] is '11'
+        when(io.wtDataIn(16, 15) === 3.U || io.wtDataIn(14, 13) === 3.U) {
+          mstatus := io.wtDataIn | "h8000000000000000".U
+        }.otherwise {
+          mstatus := io.wtDataIn
+        }
       }
       is(mIeAddr) {
         mie := io.wtDataIn
       }
       is(mTvecAddr) {
         mtvec := io.wtDataIn
+      }
+      is(mScratchAddr) {
+        mscratch := io.wtDataIn
       }
       is(mEpcAddr) {
         mepc := io.wtDataIn
@@ -126,14 +139,16 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     io.rdAddrIn,
     0.U(BusWidth.W),
     Seq(
-      mStatusAddr -> mstatus,
-      mIeAddr     -> mie,
-      mTvecAddr   -> mtvec,
-      mEpcAddr    -> mepc,
-      mCauseAddr  -> mcause,
-      mTvalAddr   -> mtval,
-      mIpAddr     -> mip,
-      mCycleAddr  -> mcycle
+      mHartidAddr  -> mhartid,
+      mStatusAddr  -> mstatus,
+      mIeAddr      -> mie,
+      mTvecAddr    -> mtvec,
+      mScratchAddr -> mscratch,
+      mEpcAddr     -> mepc,
+      mCauseAddr   -> mcause,
+      mTvalAddr    -> mtval,
+      mIpAddr      -> mip,
+      mCycleAddr   -> mcycle
     )
   )
 
@@ -158,13 +173,13 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     diffCsrState.io.mstatus        := mstatus
     diffCsrState.io.mcause         := mcause
     diffCsrState.io.mepc           := mepc
-    diffCsrState.io.sstatus        := 0.U
+    diffCsrState.io.sstatus        := mstatus & "h80000003000DE122".U
     diffCsrState.io.scause         := 0.U
     diffCsrState.io.sepc           := 0.U
     diffCsrState.io.satp           := 0.U
     diffCsrState.io.mip            := 0.U
     diffCsrState.io.mie            := mie
-    diffCsrState.io.mscratch       := 0.U
+    diffCsrState.io.mscratch       := mscratch
     diffCsrState.io.sscratch       := 0.U
     diffCsrState.io.mideleg        := 0.U
     diffCsrState.io.medeleg        := 0.U
