@@ -260,7 +260,10 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       // printf(p"[main&ma2wb]io.instOut.addr = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.addr))}\n")
       // printf(p"[main&ma2wb]io.instOut.data = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.data))}\n")
       // printf(p"[main&ma2wb]io.ifMemInstCommitOut = 0x${Hexadecimal(RegNext(ma2wb.io.ifMemInstCommitOut))}\n")
-      // printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOut)}\n")
+      // printf(p"[main]ra = 0x${Hexadecimal(regFile.io.debugOutA)}\n")
+      // printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOutB)}\n")
+      // printf(p"[main]s0 = 0x${Hexadecimal(regFile.io.debugOutC)}\n")
+      // printf(p"[main]a0 = 0x${Hexadecimal(regFile.io.debugOutD)}\n")
       // printf("\n")
     }
 
