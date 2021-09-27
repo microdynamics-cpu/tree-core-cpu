@@ -135,9 +135,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       isFirstReg            := false.B
       io.ifValidOut         := false.B
       io.ifMemInstCommitOut := true.B
-      // io.wtDataOut          := loadData
-      // io.wtDataOut := io.axi.rdata
-      // printf(p"#############[ma]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
+
       // save the mem oper type and memFunc3 type to sign ext the read data from the axi bus
       when(memOperTypeReg === lsuLBType || memOperTypeReg === lsuLBUType) {
         io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
@@ -189,6 +187,13 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
+      }.elsewhen(
+        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
+          ClintBaseAddr + MTimeOffset
+      ) {
+        memValidReg     := false.B
+        io.ifValidOut   := false.B
+        io.clintWt.addr := ClintBaseAddr + MTimeOffset
       }.otherwise {
         memValidReg := true.B
       }
@@ -210,6 +215,15 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
         io.ifValidOut   := false.B
         io.clintWt.ena  := true.B
         io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
+        io.clintWt.data := io.memValBIn
+      }.elsewhen(
+        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
+          ClintBaseAddr + MTimeOffset
+      ) {
+        memValidReg     := false.B
+        io.ifValidOut   := false.B
+        io.clintWt.ena  := true.B
+        io.clintWt.addr := ClintBaseAddr + MTimeOffset
         io.clintWt.data := io.memValBIn
       }.otherwise {
         memValidReg := true.B

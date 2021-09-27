@@ -14,6 +14,8 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     // from ex's out
     val wtEnaIn:  Bool = Input(Bool())
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
+    // from ma2wb
+    val ifMemInstCommitIn: Bool = Input(Bool())
     // from clint
     val intrInfo: INTRIO = Flipped(new INTRIO)
     // to ex's in
@@ -23,6 +25,10 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     // to id
     val excpJumpInfo: JUMPIO = new JUMPIO
     val intrJumpInfo: JUMPIO = new JUMPIO
+    // to difftest/ma2wb
+    val memIntrEnterFlag: Bool = Output(Bool())
+    // to difftest
+    val debugMstatus: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val privMode: UInt = RegInit(mPrivMode)
@@ -57,7 +63,8 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val intrJumpType    = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val intrJumpAddr    = WireDefault(UInt(BusWidth.W), 0.U)
   protected val intrJumpTypeReg = RegNext(intrJumpType)
-
+  protected val memIntrEnterFlagReg: Bool = RegInit(false.B)
+  protected val csrIntrEnterFlagReg: Bool = RegInit(false.B)
   // solve the mtimecmp init val is 0 and trigger interrupt bug
   // use the fsm to delay one inst
   protected val enumIDLE :: enumIntr :: Nil = Enum(2)
@@ -66,29 +73,48 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     is(enumIDLE) {
       when(mstatus(3) === 1.U && mie(7) === 1.U) {
         intrState := enumIntr
+        // printf(p"[csr->idle]mstatus = 0x${Hexadecimal(mstatus)} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n")
       }
     }
     is(enumIntr) {
-      when(io.inst.data =/= NopInst.U && io.intrInfo.mtip === true.B) {
+      when(mstatus(3) === 1.U && mie(7) === 1.U && io.inst.data =/= NopInst.U && io.intrInfo.mtip === true.B) {
+        // printf(p"[csr->ent]mstatus[pre] = 0x${Hexadecimal(mstatus)} mstatus[now] = 0x${Hexadecimal(
+        // Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+        // )} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n")
         mepc         := io.inst.addr
         mcause       := "h8000000000000007".U
         mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
         intrJumpType := csrJumpType
         intrJumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
         intrState    := enumIDLE
+        when(io.instOperTypeIn >= lsuLBType && io.instOperTypeIn <= lsuSDType) {
+          memIntrEnterFlagReg := true.B
+        }
+
+        when(io.instOperTypeIn >= csrRWType && io.instOperTypeIn <= csrRCIType) {
+          csrIntrEnterFlagReg := true.B
+        }
       }
     }
   }
 
   io.intrJumpInfo.kind := intrJumpType
   io.intrJumpInfo.addr := intrJumpAddr
-
+  io.memIntrEnterFlag  := memIntrEnterFlagReg
+  io.debugMstatus      := mstatus
   // mret
   when(io.instOperTypeIn === sysMRETType) {
+    // printf(p"[csr->ret]mstatus[pre] = 0x${Hexadecimal(mstatus)} mstatus[now] = 0x${Hexadecimal(
+    // Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+    // )} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n\n")
     mstatus      := Cat(mstatus(63, 13), uPrivMode(1, 0), mstatus(10, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
     excpJumpType := csrJumpType
-    excpJumpAddr := mepc
+    excpJumpAddr := mepc // FIXME: need intr return code?
     privMode     := mstatus(12, 11) // mstatus.MPP
+  }
+
+  when(memIntrEnterFlagReg && RegNext(io.ifMemInstCommitIn)) {
+    memIntrEnterFlagReg := false.B
   }
 
   //TODO: maybe some bug? the right value after wtena sig trigger
@@ -99,11 +125,16 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
         mhartid := io.wtDataIn
       }
       is(mStatusAddr) {
-        // solve SD bit when the XS[1:0] or FS[1:0] is '11'
-        when(io.wtDataIn(16, 15) === 3.U || io.wtDataIn(14, 13) === 3.U) {
-          mstatus := io.wtDataIn | "h8000000000000000".U
+        when(csrIntrEnterFlagReg) { // solve csr inst wt oper invalid when trigger intr
+          csrIntrEnterFlagReg := false.B
+          // printf("csrIntrEnterFlagReg\n")
         }.otherwise {
-          mstatus := io.wtDataIn
+          // solve SD bit when the XS[1:0] or FS[1:0] is '11'
+          when(io.wtDataIn(16, 15) === 3.U || io.wtDataIn(14, 13) === 3.U) {
+            mstatus := io.wtDataIn | "h8000000000000000".U
+          }.otherwise {
+            mstatus := io.wtDataIn
+          }
         }
       }
       is(mIeAddr) {

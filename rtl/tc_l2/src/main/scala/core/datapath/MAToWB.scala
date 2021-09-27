@@ -14,6 +14,9 @@ class MAToWB extends Module with InstConfig {
     val ifMemInstCommitIn: Bool   = Input(Bool())
     // from clint
     val clintWt: TRANSIO = Flipped(new TRANSIO)
+    // from csr
+    val intrJumpInfo:     JUMPIO = Flipped(new JUMPIO)
+    val memIntrEnterFlag: Bool   = Input(Bool())
     // to wb
     val wbDataOut:   UInt = Output(UInt(BusWidth.W))
     val wbWtEnaOut:  Bool = Output(Bool())
@@ -46,12 +49,20 @@ class MAToWB extends Module with InstConfig {
   diffMaSkipInstReg := io.ifValidIn
   memInstCommitReg  := io.ifMemInstCommitIn
 
-  when(io.clintWt.ena) {
-    io.wbDataOut := io.clintWt.data
+  when(RegNext(io.clintWt.ena)) {
+    io.wbDataOut  := RegNext(io.clintWt.data) // FIXME: need to refactor
+    io.wbWtEnaOut := true.B
+  }.elsewhen(RegNext(RegNext(RegNext(io.intrJumpInfo.kind === csrJumpType)))) { // solve the no l/d inst invalid wt when trigger interrupt
+    io.wbDataOut  := 0.U
+    io.wbWtEnaOut := false.B
+  }.elsewhen(io.ifMemInstCommitOut && io.memIntrEnterFlag) { // FIXME: solve l/d inst wt reg invalid
+    io.wbDataOut  := 0.U
+    io.wbWtEnaOut := false.B
   }.otherwise {
-    io.wbDataOut := resReg
+    io.wbDataOut  := resReg
+    io.wbWtEnaOut := wtEnaReg
   }
-  io.wbWtEnaOut  := wtEnaReg
+  // io.wbWtEnaOut  := wtEnaReg
   io.wbWtAddrOut := wtAddrReg
 
   io.diffMaSkipInstOut  := diffMaSkipInstReg

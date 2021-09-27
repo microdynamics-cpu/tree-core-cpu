@@ -44,7 +44,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
 
   // for custom inst output
   io.charDataOut := regFile(10.U)
-  io.debugOutA   := regFile(1.U)
+  io.debugOutA   := regFile(15.U)
   io.debugOutB   := regFile(2.U)
   io.debugOutC   := regFile(8.U)
   io.debugOutD   := regFile(10.U)
