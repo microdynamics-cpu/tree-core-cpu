@@ -100,14 +100,17 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   protected val fsmWtRESP  = 3.U(3.W)
   protected val fsmWtRESP2 = 4.U(3.W)
 
-  protected val fsmRdIDLE          = 0.U(3.W)
-  protected val fsmIfARwithMemIDLE = 1.U(3.W)
-  protected val fsmIfRDwithMemIDLE = 2.U(3.W)
-  protected val fsmIfRDwithMemAR   = 3.U(3.W)
-  protected val fsmIfARwithMemRD   = 4.U(3.W)
-  protected val fsmIfRDwithMemRD   = 5.U(3.W)
-  protected val fsmIfIDLEwithMemAR = 6.U(3.W)
-  protected val fsmIfIDLEwithMemRD = 7.U(3.W)
+  protected val fsmRdIDLE          = 0.U(4.W)
+  protected val fsmIfARwithMemIDLE = 1.U(4.W)
+  protected val fsmIfRDwithMemIDLE = 2.U(4.W)
+  protected val fsmIfRDwithMemAR   = 3.U(4.W)
+  protected val fsmIfARwithMemRD   = 4.U(4.W)
+  protected val fsmIfRDwithMemRD   = 5.U(4.W)
+  protected val fsmIfIDLEwithMemAR = 6.U(4.W)
+  protected val fsmIfIDLEwithMemRD = 7.U(4.W)
+  protected val fsmDelayRdIDLE     = 8.U(4.W) // var's name is the target fsm state
+  protected val fsmDelayARWithIDLE = 9.U(4.W)
+  protected val fsmDelayRdWithIDLE = 10.U(4.W)
 
   protected val wtStateReg = RegInit(fsmWtIDLE)
   protected val rdStateReg = RegInit(fsmRdIDLE)
@@ -132,26 +135,27 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         wtStateReg := fsmWtADDR
       }
       is(fsmWtADDR) {
-        // printf("write addr!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf("[axi]write addr!!!!!!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi]io.axi.aw.addr = 0x${Hexadecimal(io.axi.aw.addr)}\n")
         when(awHdShk) {
           wtStateReg := fsmWtWRITE
-          // printf("[axi] change wt addr --> data\n")
+          // printf("[axi]change wt addr --> data\n")
         }
       }
       is(fsmWtWRITE) {
-        // printf("write data!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf("[axi]write data!!!!!!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi]io.axi.w.data = 0x${Hexadecimal(io.axi.w.data)}\n")
         // printf(p"[axi]axiWtDataLow = 0x${Hexadecimal(axiWtDataLow)}\n")
         // printf(p"[axi]axiWtDataHig = 0x${Hexadecimal(axiWtDataHig)}\n")
         when(wtDone) {
           wtStateReg := fsmWtRESP
-          // printf("[axi] change wt data --> resp\n")
+          // printf("[axi]change wt data --> resp\n")
         }
       }
       is(fsmWtRESP) {
         when(wtbHdShk) {
           wtStateReg := fsmWtRESP2
+          // printf("[axi]change resp --> idle\n")
         }
       }
       is(fsmWtRESP2) {
@@ -163,6 +167,9 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
   when(rdValid) {
     switch(rdStateReg) {
       is(fsmRdIDLE) {
+        // printf("[axi] if-idle mem-idle!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.debug = 0x${Hexadecimal(io.debug)}\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
         when(io.mem.valid && memRdTrans) {
           rdStateReg := fsmIfIDLEwithMemAR
         }.otherwise {
@@ -170,8 +177,9 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfIDLEwithMemAR) {
-        // printf("mem ar!!!!!!!!!!!!!!!!!!!!\n")
-        // printf(p"[axi]io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
+        // printf("[axi] if-idle mem-ar!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
+        // printf(p"[axi] io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
         when(arHdShk && io.inst.valid && instRdTrans) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen(arHdShk) {
@@ -179,6 +187,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfARwithMemIDLE) {
+        // printf("[axi] if-ar mem-idle!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
         when(arHdShk && io.mem.valid && memRdTrans) {
           rdStateReg := fsmIfRDwithMemAR
         }.elsewhen(arHdShk) {
@@ -186,30 +196,37 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfARwithMemRD) {
-        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
-        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
+        // printf("[axi] if-ar mem-rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
+        // printf(p"[axi] io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(arHdShk && (~memRdDone)) {
           rdStateReg := fsmIfRDwithMemRD
         }.elsewhen((~arHdShk) && memRdDone) {
-          rdStateReg := fsmIfARwithMemIDLE
+          // rdStateReg := fsmIfARwithMemIDLE
+          rdStateReg := fsmDelayARWithIDLE
         }.elsewhen(arHdShk && memRdDone) {
-          rdStateReg := fsmIfRDwithMemIDLE
+          // rdStateReg := fsmIfRDwithMemIDLE
+          rdStateReg := fsmDelayRdWithIDLE
         }
       }
       is(fsmIfIDLEwithMemRD) {
-        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
-        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
+        // printf("[axi] if-idle mem-rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
+        // printf(p"[axi] io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(io.inst.valid && instRdTrans && (~memRdDone)) {
           rdStateReg := fsmIfARwithMemRD
         }.elsewhen((~(io.inst.valid && instRdTrans)) && memRdDone) {
-          rdStateReg := fsmRdIDLE
+          // rdStateReg := fsmRdIDLE
+          rdStateReg := fsmDelayRdIDLE
         }.elsewhen(io.inst.valid && instRdTrans && memRdDone) {
-          rdStateReg := fsmIfARwithMemIDLE
+          // rdStateReg := fsmIfARwithMemIDLE
+          rdStateReg := fsmDelayARWithIDLE
         }
       }
       is(fsmIfRDwithMemAR) {
-        // printf("mem ar!!!!!!!!!!!!!!!!!!!!\n")
-        // printf(p"[axi]io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
+        // printf("[axi] if-rd mem-ar!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
+        // printf(p"[axi] io.axi.ar.addr = 0x${Hexadecimal(io.axi.ar.addr)}\n")
         when(arHdShk && (~instRdDone)) {
           rdStateReg := fsmIfRDwithMemRD
         }.elsewhen((~arHdShk) && instRdDone) {
@@ -219,6 +236,8 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfRDwithMemIDLE) {
+        // printf("[axi] if-rd mem-idle!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
         when(io.mem.valid && memRdTrans && (~instRdDone)) {
           rdStateReg := fsmIfRDwithMemAR
         }.elsewhen((~(io.mem.valid && memRdTrans)) && instRdDone) {
@@ -228,14 +247,28 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
         }
       }
       is(fsmIfRDwithMemRD) {
-        // printf("mem rd!!!!!!!!!!!!!!!!!!!!\n")
-        // printf(p"[axi]io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
+        // printf("[axi] if-rd mem-rd!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.len = 0x${Hexadecimal(io.axi.aw.len)}\n")
+        // printf(p"[axi] io.axi.r.data = 0x${Hexadecimal(io.axi.r.data)}\n")
         when(instRdDone) {
           rdStateReg := fsmIfIDLEwithMemRD
         }
         when(memRdDone) {
-          rdStateReg := fsmIfRDwithMemIDLE
+          // rdStateReg := fsmIfRDwithMemIDLE
+          rdStateReg := fsmDelayRdWithIDLE
         }
+      }
+      is(fsmDelayARWithIDLE) {
+        // printf("[axi] if-ar mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
+        rdStateReg := fsmIfARwithMemIDLE
+      }
+      is(fsmDelayRdIDLE) {
+        // printf("[axi] if-idle mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
+        rdStateReg := fsmRdIDLE
+      }
+      is(fsmDelayRdWithIDLE) {
+        // printf("[axi] if-rd mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
+        rdStateReg := fsmIfRDwithMemIDLE
       }
     }
   }

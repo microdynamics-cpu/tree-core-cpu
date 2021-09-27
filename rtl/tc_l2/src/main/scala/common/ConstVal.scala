@@ -87,21 +87,23 @@ object ConstVal {
   val csrJumpType  = 3.U(JumpTypeLen.W)
 
   // csr addr
-  val mStatusAddr = 0x300.U(CSRAddrLen.W)
-  val mIeAddr     = 0x304.U(CSRAddrLen.W)
-  val mTvecAddr   = 0x305.U(CSRAddrLen.W)
-  val mEpcAddr    = 0x341.U(CSRAddrLen.W)
-  val mCauseAddr  = 0x342.U(CSRAddrLen.W)
-  val mTvalAddr   = 0x343.U(CSRAddrLen.W)
-  val mIpAddr     = 0x344.U(CSRAddrLen.W)
-  val mCycleAddr  = 0xb00.U(CSRAddrLen.W)
+  val mHartidAddr  = 0xf14.U(CSRAddrLen.W)
+  val mStatusAddr  = 0x300.U(CSRAddrLen.W)
+  val mIeAddr      = 0x304.U(CSRAddrLen.W)
+  val mTvecAddr    = 0x305.U(CSRAddrLen.W)
+  val mScratchAddr = 0x340.U(CSRAddrLen.W)
+  val mEpcAddr     = 0x341.U(CSRAddrLen.W)
+  val mCauseAddr   = 0x342.U(CSRAddrLen.W)
+  val mTvalAddr    = 0x343.U(CSRAddrLen.W)
+  val mIpAddr      = 0x344.U(CSRAddrLen.W)
+  val mCycleAddr   = 0xb00.U(CSRAddrLen.W)
   // clint addr
-  val ClintTickCnt   = 0x100
+  val ClintTickCnt   = 10
   val ClintBaseAddr  = 0x2000000.U(CLINTAddrLen.W)
   val ClintBoundAddr = 0x200bfff.U(CLINTAddrLen.W)
   val MSipOffset     = 0x0.U(CLINTAddrLen.W)
-  val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
   val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
+  val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
   // privMode
   val mPrivMode = 3.U(PrivModeLen.W)
   val sPrivMode = 1.U(PrivModeLen.W)
