@@ -8,16 +8,16 @@ import treecorel2.common.ConstVal._
 class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
-    val rdAddrIn:       UInt = Input(UInt(CSRAddrLen.W))
-    val instOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val pcIn:           UInt = Input(UInt(BusWidth.W))
+    val rdAddrIn:       UInt   = Input(UInt(CSRAddrLen.W))
+    val instOperTypeIn: UInt   = Input(UInt(InstOperTypeLen.W))
+    val inst:           INSTIO = new INSTIO
     // from ex's out
     val wtEnaIn:  Bool = Input(Bool())
     val wtDataIn: UInt = Input(UInt(BusWidth.W))
+    // from ma2wb
+    val ifMemInstCommitIn: Bool = Input(Bool())
     // from clint
     val intrInfo: INTRIO = Flipped(new INTRIO)
-    // from ma
-    val pcFromMaIn: UInt = Input(UInt(BusWidth.W))
     // to ex's in
     val rdDataOut: UInt = Output(UInt(BusWidth.W))
     // to difftest
@@ -25,25 +25,31 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     // to id
     val excpJumpInfo: JUMPIO = new JUMPIO
     val intrJumpInfo: JUMPIO = new JUMPIO
+    // to difftest/ma2wb
+    val memIntrEnterFlag: Bool = Output(Bool())
+    // to difftest
+    val debugMstatus: UInt = Output(UInt(BusWidth.W))
   })
 
   protected val privMode: UInt = RegInit(mPrivMode)
   protected val addrReg:  UInt = RegNext(io.rdAddrIn)
   // machine mode reg
-  protected val mstatus: UInt = RegInit("h00001880".U(BusWidth.W))
-  protected val mie:     UInt = RegInit(0.U(BusWidth.W))
-  protected val mtvec:   UInt = RegInit(0.U(BusWidth.W))
-  protected val mepc:    UInt = RegInit(0.U(BusWidth.W))
-  protected val mcause:  UInt = RegInit(0.U(BusWidth.W))
-  protected val mtval:   UInt = RegInit(0.U(BusWidth.W))
-  protected val mip:     UInt = RegInit(0.U(BusWidth.W))
-  protected val mcycle:  UInt = RegInit(0.U(BusWidth.W))
+  protected val mhartid:  UInt = RegInit(0.U(BusWidth.W))
+  protected val mstatus:  UInt = RegInit("h00001880".U(BusWidth.W))
+  protected val mie:      UInt = RegInit(0.U(BusWidth.W))
+  protected val mtvec:    UInt = RegInit(0.U(BusWidth.W))
+  protected val mscratch: UInt = RegInit(0.U(BusWidth.W))
+  protected val mepc:     UInt = RegInit(0.U(BusWidth.W))
+  protected val mcause:   UInt = RegInit(0.U(BusWidth.W))
+  protected val mtval:    UInt = RegInit(0.U(BusWidth.W))
+  protected val mip:      UInt = RegInit(0.U(BusWidth.W))
+  protected val mcycle:   UInt = RegInit(0.U(BusWidth.W))
 
   protected val excpJumpType = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val excpJumpAddr = WireDefault(UInt(BusWidth.W), 0.U)
   // difftest run right code in user mode, when throw exception, enter machine mode
   when(io.instOperTypeIn === sysECALLType) {
-    mepc         := io.pcIn
+    mepc         := io.inst.addr
     mcause       := 11.U // ecall cause code
     mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
     excpJumpType := csrJumpType
@@ -57,37 +63,88 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
   protected val intrJumpType    = WireDefault(UInt(JumpTypeLen.W), noJumpType)
   protected val intrJumpAddr    = WireDefault(UInt(BusWidth.W), 0.U)
   protected val intrJumpTypeReg = RegNext(intrJumpType)
-  when(mstatus(3) === 1.U && mie(7) === 1.U && io.intrInfo.mtip === true.B) {
-    mepc         := io.pcFromMaIn
-    mcause       := "h8000000000000007".U
-    mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
-    intrJumpType := csrJumpType
-    intrJumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
+  protected val memIntrEnterFlagReg: Bool = RegInit(false.B)
+  protected val csrIntrEnterFlagReg: Bool = RegInit(false.B)
+  // solve the mtimecmp init val is 0 and trigger interrupt bug
+  // use the fsm to delay one inst
+  protected val enumIDLE :: enumIntr :: Nil = Enum(2)
+  protected val intrState                   = RegInit(enumIDLE)
+  switch(intrState) {
+    is(enumIDLE) {
+      when(mstatus(3) === 1.U && mie(7) === 1.U) {
+        intrState := enumIntr
+        // printf(p"[csr->idle]mstatus = 0x${Hexadecimal(mstatus)} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n")
+      }
+    }
+    is(enumIntr) {
+      when(mstatus(3) === 1.U && mie(7) === 1.U && io.inst.data =/= NopInst.U && io.intrInfo.mtip === true.B) {
+        // printf(p"[csr->ent]mstatus[pre] = 0x${Hexadecimal(mstatus)} mstatus[now] = 0x${Hexadecimal(
+        // Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+        // )} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n")
+        mepc         := io.inst.addr
+        mcause       := "h8000000000000007".U
+        mstatus      := Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+        intrJumpType := csrJumpType
+        intrJumpAddr := Cat(mtvec(63, 2), Fill(2, 0.U))
+        intrState    := enumIDLE
+        when(io.instOperTypeIn >= lsuLBType && io.instOperTypeIn <= lsuSDType) {
+          memIntrEnterFlagReg := true.B
+        }
+
+        when(io.instOperTypeIn >= csrRWType && io.instOperTypeIn <= csrRCIType) {
+          csrIntrEnterFlagReg := true.B
+        }
+      }
+    }
   }
 
   io.intrJumpInfo.kind := intrJumpType
   io.intrJumpInfo.addr := intrJumpAddr
-
+  io.memIntrEnterFlag  := memIntrEnterFlagReg
+  io.debugMstatus      := mstatus
   // mret
   when(io.instOperTypeIn === sysMRETType) {
+    // printf(p"[csr->ret]mstatus[pre] = 0x${Hexadecimal(mstatus)} mstatus[now] = 0x${Hexadecimal(
+    // Cat(mstatus(63, 13), privMode(1, 0), mstatus(10, 8), mstatus(3), mstatus(6, 4), 0.U, mstatus(2, 0))
+    // )} mie = 0x${Hexadecimal(mie)} mepc = 0x${Hexadecimal(io.inst.addr)}\n\n")
     mstatus      := Cat(mstatus(63, 13), uPrivMode(1, 0), mstatus(10, 8), 1.U, mstatus(6, 4), mstatus(7), mstatus(2, 0))
     excpJumpType := csrJumpType
-    excpJumpAddr := mepc
+    excpJumpAddr := mepc // FIXME: need intr return code?
     privMode     := mstatus(12, 11) // mstatus.MPP
+  }
+
+  when(memIntrEnterFlagReg && RegNext(io.ifMemInstCommitIn)) {
+    memIntrEnterFlagReg := false.B
   }
 
   //TODO: maybe some bug? the right value after wtena sig trigger
   // the addrReg is also the wt addr
   when(io.wtEnaIn) {
     switch(addrReg) {
+      is(mHartidAddr) {
+        mhartid := io.wtDataIn
+      }
       is(mStatusAddr) {
-        mstatus := io.wtDataIn
+        when(csrIntrEnterFlagReg) { // solve csr inst wt oper invalid when trigger intr
+          csrIntrEnterFlagReg := false.B
+          // printf("csrIntrEnterFlagReg\n")
+        }.otherwise {
+          // solve SD bit when the XS[1:0] or FS[1:0] is '11'
+          when(io.wtDataIn(16, 15) === 3.U || io.wtDataIn(14, 13) === 3.U) {
+            mstatus := io.wtDataIn | "h8000000000000000".U
+          }.otherwise {
+            mstatus := io.wtDataIn
+          }
+        }
       }
       is(mIeAddr) {
         mie := io.wtDataIn
       }
       is(mTvecAddr) {
         mtvec := io.wtDataIn
+      }
+      is(mScratchAddr) {
+        mscratch := io.wtDataIn
       }
       is(mEpcAddr) {
         mepc := io.wtDataIn
@@ -113,14 +170,16 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     io.rdAddrIn,
     0.U(BusWidth.W),
     Seq(
-      mStatusAddr -> mstatus,
-      mIeAddr     -> mie,
-      mTvecAddr   -> mtvec,
-      mEpcAddr    -> mepc,
-      mCauseAddr  -> mcause,
-      mTvalAddr   -> mtval,
-      mIpAddr     -> mip,
-      mCycleAddr  -> mcycle
+      mHartidAddr  -> mhartid,
+      mStatusAddr  -> mstatus,
+      mIeAddr      -> mie,
+      mTvecAddr    -> mtvec,
+      mScratchAddr -> mscratch,
+      mEpcAddr     -> mepc,
+      mCauseAddr   -> mcause,
+      mTvalAddr    -> mtval,
+      mIpAddr      -> mip,
+      mCycleAddr   -> mcycle
     )
   )
 
@@ -145,13 +204,13 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     diffCsrState.io.mstatus        := mstatus
     diffCsrState.io.mcause         := mcause
     diffCsrState.io.mepc           := mepc
-    diffCsrState.io.sstatus        := 0.U
+    diffCsrState.io.sstatus        := mstatus & "h80000003000DE122".U
     diffCsrState.io.scause         := 0.U
     diffCsrState.io.sepc           := 0.U
     diffCsrState.io.satp           := 0.U
     diffCsrState.io.mip            := 0.U
     diffCsrState.io.mie            := mie
-    diffCsrState.io.mscratch       := 0.U
+    diffCsrState.io.mscratch       := mscratch
     diffCsrState.io.sscratch       := 0.U
     diffCsrState.io.mideleg        := 0.U
     diffCsrState.io.medeleg        := 0.U

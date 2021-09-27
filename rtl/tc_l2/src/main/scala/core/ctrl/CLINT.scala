@@ -12,7 +12,7 @@ class CLINT extends Module with InstConfig {
   })
 
   protected val mtime:    UInt = RegInit(0.U(BusWidth.W))
-  protected val mtimecmp: UInt = RegInit(10000.U(BusWidth.W)) // HACK: need to modify this code
+  protected val mtimecmp: UInt = RegInit(0.U(BusWidth.W))
   protected val msip:     UInt = RegInit(0.U(BusWidth.W))
   protected val (tickCnt, cntWrap) = Counter(this.clock.asBool(), ClintTickCnt) // generate low speed clock
 
