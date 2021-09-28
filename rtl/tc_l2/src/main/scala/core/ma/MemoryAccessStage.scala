@@ -6,33 +6,6 @@ import AXI4Bridge._
 import treecorel2.common.ConstVal._
 import treecorel2.common.{getSignExtn, getZeroExtn}
 
-object MemoryAccessStage {
-  protected val defMaskRes = List(BitPat.bitPatToUInt(BitPat("b" + "1" * 64)))
-
-  protected val wMaskTable = Array(
-    // ld
-    BitPat("b11" + "???") -> List(BitPat.bitPatToUInt(BitPat("b" + "1" * 64))),
-    // lw
-    BitPat("b10" + "1??") -> List(BitPat.bitPatToUInt(BitPat("b" + "1" * 32 + "0" * 32))),
-    BitPat("b10" + "0??") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 32 + "1" * 32))),
-    // lh
-    BitPat("b01" + "11?") -> List(BitPat.bitPatToUInt(BitPat("b" + "1" * 16 + "0" * 48))),
-    BitPat("b01" + "10?") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 16 + "1" * 16 + "0" * 32))),
-    BitPat("b01" + "01?") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 32 + "1" * 16 + "0" * 16))),
-    BitPat("b01" + "00?") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 48 + "1" * 16))),
-    // lb
-    BitPat("b00" + "111") -> List(BitPat.bitPatToUInt(BitPat("b" + "1" * 8 + "0" * 56))),
-    BitPat("b00" + "110") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 8 + "1" * 8 + "0" * 48))),
-    BitPat("b00" + "101") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 16 + "1" * 8 + "0" * 40))),
-    BitPat("b00" + "100") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 24 + "1" * 8 + "0" * 32))),
-    BitPat("b00" + "011") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 32 + "1" * 8 + "0" * 24))),
-    BitPat("b00" + "010") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 40 + "1" * 8 + "0" * 16))),
-    BitPat("b00" + "001") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 48 + "1" * 8 + "0" * 8))),
-    BitPat("b00" + "000") -> List(BitPat.bitPatToUInt(BitPat("b" + "0" * 56 + "1" * 8)))
-  )
-
-}
-
 // read data addr is calc by alu
 // write data addr is passed from id stage directly
 class MemoryAccessStage extends Module with AXI4Config with InstConfig {
@@ -71,42 +44,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     // to clint
     val clintWt: TRANSIO = new TRANSIO
   })
-
-  protected val lwData: UInt = Mux(io.axi.addr(2), io.axi.rdata(63, 32), io.axi.rdata(31, 0))
-  protected val lhData: UInt = Mux(io.axi.addr(1), lwData(31, 16), lwData(15, 0))
-  protected val lbData: UInt = Mux(io.axi.addr(0), lhData(15, 8), lhData(7, 0))
-
-  // select zero or sign extension
-  protected val lbWire: UInt = Cat(
-    Fill(BusWidth - 8, Mux(io.memFunc3In(2), 0.U, lbData(7))),
-    lbData
-  )
-
-  protected val lhWire: UInt = Cat(
-    Fill(BusWidth - 16, Mux(io.memFunc3In(2), 0.U, lhData(15))),
-    lhData
-  )
-
-  protected val lwWire: UInt = Cat(
-    Fill(BusWidth - 32, Mux(io.memFunc3In(2), 0.U, lwData(31))),
-    lwData
-  )
-
-  protected val ldWire: UInt = io.axi.rdata
-
-  protected val loadData: UInt = MuxLookup(
-    io.memFunc3In(1, 0),
-    io.axi.rdata,
-    Array(
-      0.U -> lbWire,
-      1.U -> lhWire,
-      2.U -> lwWire,
-      3.U -> ldWire
-    )
-  )
-
-  protected val wMask =
-    ListLookup(Cat(io.memFunc3In(1, 0), io.axi.addr(2, 0)), MemoryAccessStage.defMaskRes, MemoryAccessStage.wMaskTable)(0)
 
   protected val memValidReg:       Bool = RegInit(false.B)
   protected val memReqReg:         UInt = RegInit(AxiReqNop.U(AxiReqLen.W))
@@ -234,7 +171,6 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memInstDataReg    := io.instIn.data
     }
   }
-  // io.wtEnaOut := io.wtEnaIn
 
   // for load and store inst addr
   when(
