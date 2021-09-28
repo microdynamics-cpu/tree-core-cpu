@@ -1,6 +1,6 @@
 // ref: https://github.com/OSCPU/ysyxSoC/blob/master/ysyx/module-prefix/AddModulePrefix.scala
 // thanks to (Jiawei Lin)https://github.com/ljwljwljwljw
-package treecorel2  // modify to your package name
+package treecorel2 // modify to your package name
 
 import firrtl._
 import firrtl.annotations.{ModuleTarget, NoTargetAnnotation}
@@ -13,7 +13,7 @@ case class ModulePrefixAnnotation(prefix: String) extends NoTargetAnnotation
 
 class AddModulePrefix extends Transform with DependencyAPIMigration {
 
-  override def prerequisites: Seq[TransformDependency] = Forms.LowForm
+  override def prerequisites:          Seq[TransformDependency] = Forms.LowForm
   override def optionalPrerequisites:  Seq[TransformDependency] = Forms.LowFormOptimized
   override def optionalPrerequisiteOf: Seq[TransformDependency] = Forms.LowEmitters
   override def invalidates(a: Transform): Boolean = false
@@ -29,15 +29,18 @@ class AddModulePrefix extends Transform with DependencyAPIMigration {
       "S011HD1P_X32Y2D128"
     )
 
-    val extModules = state.circuit.modules.filter({ m =>
-      m match {
-        case blackbox: ExtModule => true
-        case other => false
-      }
-    }).map(_.name)
+    val extModules = state.circuit.modules
+      .filter({ m =>
+        m match {
+          case blackbox: ExtModule => true
+          case other => false
+        }
+      })
+      .map(_.name)
 
     def rename(old: String): String = if (blacklist.map(_ == old).reduce(_ || _)) old
-      else if(extModules.contains(old)) old else prefix + old
+    else if (extModules.contains(old)) old
+    else prefix + old
 
     val renameMap = RenameMap()
 
@@ -52,7 +55,8 @@ class AddModulePrefix extends Transform with DependencyAPIMigration {
       case Module(info, name, ports, body) =>
         val newName = rename(name)
         renameMap.record(
-          ModuleTarget(c.main, name), ModuleTarget(c.main, newName)
+          ModuleTarget(c.main, name),
+          ModuleTarget(c.main, newName)
         )
         Module(info, newName, ports, body).mapStmt(onStmt)
       case extModule: ExtModule => extModule
