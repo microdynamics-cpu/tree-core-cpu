@@ -3,7 +3,6 @@ package treecorel2.common
 import chisel3._
 
 object ConstVal {
-  val DiffTestEna       = true
   val InstTypeLen       = 3
   val EXUOperNumTypeLen = 3
   val wtDataSrcTypeLen  = 2
