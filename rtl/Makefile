@@ -42,18 +42,12 @@ endef
 millTest:
 	mill -i __.test
 
-univBuild:
-	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain sim.univtest.UnivTop -td $(BUILD_DIR)
-
 diffBuild:
 	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain sim.difftest.SimTop -td $(BUILD_DIR)
-
-allBuild: univBuild diffBuild
+	mill -i tc_l2.runMain treecorel2.TopMain -td $(BUILD_DIR)
 
 help:
-	mill -i __.test.runMain Top --help
+	mill -i tc_l2.runMain treecorel2.TopMain --help
 
 compile:
 	mill -i __.compile
@@ -200,6 +194,6 @@ cleanDepRepo:
 
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
-.PHONY: millTest univBuild diffBuild allBuild help compile bsp reformat checkformat \
+.PHONY: millTest diffBuild help compile bsp reformat checkformat \
         nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest recursiveTest \
 		cleanBuild cleanMillOut cleanDepRepo cleanAll

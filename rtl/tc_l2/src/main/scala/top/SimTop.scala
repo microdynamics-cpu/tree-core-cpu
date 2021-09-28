@@ -1,4 +1,4 @@
-package sim.difftest
+package treecorel2
 
 import chisel3._
 import treecorel2._
@@ -184,11 +184,4 @@ class SimTop(val ifDiffTest: Boolean) extends Module with AXI4Config with InstCo
   io.uart           <> treeCoreL2.io.uart
   // instBridge.io.rw <> treeCoreL2.io.inst
   // memBridge.io.rw  <> treeCoreL2.io.mem
-}
-
-object SimTop extends App {
-  (new chisel3.stage.ChiselStage).execute(
-    args,
-    Seq(chisel3.stage.ChiselGeneratorAnnotation(() => new SimTop(true)))
-  )
 }
