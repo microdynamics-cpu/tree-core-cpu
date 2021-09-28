@@ -2,6 +2,8 @@
 
 // import chisel3._
 
-// class Debug extends Module {
+// class Debug(val ifPrint: Boolean = false) extends Module with InstConfig {
+//     when(ifPrint) {
 
+//     }
 // }
