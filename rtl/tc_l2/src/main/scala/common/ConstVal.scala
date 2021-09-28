@@ -98,7 +98,7 @@ object ConstVal {
   val mIpAddr      = 0x344.U(CSRAddrLen.W)
   val mCycleAddr   = 0xb00.U(CSRAddrLen.W)
   // clint addr
-  val ClintTickCnt   = 10
+  val ClintTickCnt   = 2
   val ClintBaseAddr  = 0x2000000.U(CLINTAddrLen.W)
   val ClintBoundAddr = 0x200bfff.U(CLINTAddrLen.W)
   val MSipOffset     = 0x0.U(CLINTAddrLen.W)
