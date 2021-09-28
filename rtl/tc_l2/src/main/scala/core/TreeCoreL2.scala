@@ -152,6 +152,18 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   clintUnit.io.rd       <> ma2wb.io.clintWt
   clintUnit.io.intrInfo <> csrUnit.io.intrInfo
 
+  // output custom putch oper for 0x7B
+  io.uart.in.valid := false.B
+  when(RegNext(ma2wb.io.instOut.data) === 0x0000007b.U) {
+    io.uart.out.valid := true.B
+    io.uart.out.ch    := regFile.io.charDataOut
+  }.otherwise {
+    io.uart.out.valid := false.B
+    io.uart.out.ch    := 0.U
+  }
+  // ouput custom gpr val
+  regFile.io.debugIn := 0.U
+
   if (ifDiffTest) {
     // commit
     val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
@@ -268,10 +280,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       // printf(p"[main&ma2wb]io.instOut.addr = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.addr))}\n")
       // printf(p"[main&ma2wb]io.instOut.data = 0x${Hexadecimal(RegNext(ma2wb.io.instOut.data))}\n")
       // printf(p"[main&ma2wb]io.ifMemInstCommitOut = 0x${Hexadecimal(RegNext(ma2wb.io.ifMemInstCommitOut))}\n")
-      // printf(p"[main]a5 = 0x${Hexadecimal(regFile.io.debugOutA)}\n")
-      // printf(p"[main]sp = 0x${Hexadecimal(regFile.io.debugOutB)}\n")
-      // printf(p"[main]s0 = 0x${Hexadecimal(regFile.io.debugOutC)}\n")
-      // printf(p"[main]a0 = 0x${Hexadecimal(regFile.io.debugOutD)}\n")
       // printf("\n")
     }
 
@@ -296,17 +304,6 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
       // printf(p"[main]diffCommitState.io.skip = 0x${Hexadecimal(diffCommitState.io.skip)}\n")
       // printf(p"[main]diffCommitState.io.valid = 0x${Hexadecimal(diffCommitState.io.valid)}\n")
       // printf("\n")
-    }
-
-    // output custom putch oper for 0x7B
-    io.uart.in.valid := false.B
-    when(diffCommitState.io.instr === 0x0000007b.U) {
-      // printf("%c", regFile.io.charDataOut)
-      io.uart.out.valid := true.B
-      io.uart.out.ch    := regFile.io.charDataOut
-    }.otherwise {
-      io.uart.out.valid := false.B
-      io.uart.out.ch    := 0.U
     }
 
     // trap event
