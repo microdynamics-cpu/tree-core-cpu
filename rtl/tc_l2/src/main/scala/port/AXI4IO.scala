@@ -7,7 +7,7 @@ class AXI4USERIO extends Bundle with AXI4Config {
   val valid: Bool = Input(Bool())
   val req:   UInt = Input(UInt(AxiReqLen.W))
   val wdata: UInt = Input(UInt(AxiDataWidth.W))
-  val addr:  UInt = Input(UInt(AxiDataWidth.W))
+  val addr:  UInt = Input(UInt(AxiAddrWidth.W))
   val id:    UInt = Input(UInt(AxiIdLen.W))
   val size:  UInt = Input(UInt(AxiSizeLen.W))
   val ready: Bool = Output(Bool())
