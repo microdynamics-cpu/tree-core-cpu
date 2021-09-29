@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import AXI4Bridge._
 
-class PCReg extends Module with AXI4Config with InstConfig {
+class PCReg(val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // from control
     val ifJumpIn:    Bool = Input(Bool())
@@ -19,7 +19,7 @@ class PCReg extends Module with AXI4Config with InstConfig {
   })
 
   protected val hdShkDone: Bool = WireDefault(io.axi.ready && io.axi.valid)
-  protected val pc:        UInt = RegInit(PcRegStartAddr.U(BusWidth.W))
+  protected val pc:        UInt = if (ifSoC) RegInit(PCFlashStartAddr.U(BusWidth.W)) else RegInit(PCLoadStartAddr.U(BusWidth.W))
   protected val dirty:     Bool = RegInit(false.B)
 
   // now we dont handle this resp info to check if the read oper is right

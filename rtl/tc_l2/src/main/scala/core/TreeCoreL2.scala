@@ -3,14 +3,14 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config with InstConfig {
+class TreeCoreL2(val ifDiffTest: Boolean = false, val ifSoC: Boolean = false) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
     val uart: UARTIO     = new UARTIO
   })
 
-  protected val pcUnit      = Module(new PCReg)
+  protected val pcUnit      = Module(new PCReg(ifSoC))
   protected val if2id       = Module(new IFToID)
   protected val regFile     = Module(new RegFile(ifDiffTest))
   protected val idUnit      = Module(new InstDecoderStage)
