@@ -19,7 +19,7 @@ DHRYSTONE_HOME   := $(AM_KERNEL_PATH)/benchmarks/dhrystone
 MICROBENCH_HOME  := $(AM_KERNEL_PATH)/benchmarks/microbench
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
-YSYXSOC_HOME     := $(ROOT_PATH)/ysyxSoC
+YSYXSOC_HOME     := $(ROOT_PATH)/ysyxSoC/ysyx
 
 export AM_HOME       := $(AM_FOLDER_PATH)/abstract-machine
 export NEMU_HOME     := $(ROOT_PATH)/NEMU
@@ -103,8 +103,7 @@ dramsim3Build:
 ###### difftest target ######
 # if want to use the RamHelper, need to remove the 'WITH_DRAMSIM3=1'
 difftestBuild:
-	@sed -i 's/io_memAXI_0_w_bits_data,/io_memAXI_0_w_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
-	@sed -i 's/io_memAXI_0_r_bits_data,/io_memAXI_0_r_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
+	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
@@ -218,8 +217,18 @@ socTopModify:
 
 # FIMXE: need a better solution, not just copy to dir everytime
 socNameCheck: socTopModify
-	@cp $(YSYXSOC_HOME)/ysyx/soc/cpu-check.py $(BUILD_DIR)
+	@cp $(YSYXSOC_HOME)/soc/cpu-check.py $(BUILD_DIR)
 	@cd $(BUILD_DIR) && echo 324 | python3 cpu-check.py
+
+socLintCheck: socNameCheck
+	@cp $(BUILD_DIR)/ysyx_210324.v $(YSYXSOC_HOME)/lint/
+	@sed -i 's/ID = \([0-9]*\)/ID = 210324/g' $(YSYXSOC_HOME)/lint/Makefile
+	@echo -e "\033[1;32mstart lint check....\033[0m"
+	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint
+	@echo -e "\033[1;32mlint check done\033[0m"
+	@echo -e "\033[1;32mstart lint-unused check....\033[0m"
+	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
+	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
 ###### clean target ######
 cleanBuild:
@@ -235,6 +244,6 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
 .PHONY: millTest diffBuild help compile bsp reformat checkformat \
-        nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
-		socNameCheck \
+		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
+		socTopModify socNameCheck \
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
