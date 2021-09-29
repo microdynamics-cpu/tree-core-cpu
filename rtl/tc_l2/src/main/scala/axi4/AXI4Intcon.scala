@@ -20,24 +20,24 @@ class AXI4Intcon extends Module with InstConfig {
   // mem rd has higher priority
   // when(io.mem.ar.valid) {
   when(false.B) {
-    io.inst.r.valid  := false.B
-    io.inst.r.resp   := 0.U
-    io.inst.r.data   := 0.U
-    io.inst.r.last   := false.B
-    io.inst.r.id     := 0.U
-    io.inst.r.user   := 0.U
-    io.inst.ar.ready := false.B
-    io.out.ar        <> io.mem.ar
-    io.out.r         <> io.mem.r
+    io.inst.r.valid     := false.B
+    io.inst.r.bits.resp := 0.U
+    io.inst.r.bits.data := 0.U
+    io.inst.r.bits.last := false.B
+    io.inst.r.bits.id   := 0.U
+    io.inst.r.bits.user := 0.U
+    io.inst.ar.ready    := false.B
+    io.out.ar           <> io.mem.ar
+    io.out.r            <> io.mem.r
   }.otherwise {
-    io.mem.r.valid  := false.B
-    io.mem.r.resp   := 0.U
-    io.mem.r.data   := 0.U
-    io.mem.r.last   := false.B
-    io.mem.r.id     := 0.U
-    io.mem.r.user   := 0.U
-    io.mem.ar.ready := false.B
-    io.out.ar       <> io.inst.ar
-    io.out.r        <> io.inst.r
+    io.mem.r.valid     := false.B
+    io.mem.r.bits.resp := 0.U
+    io.mem.r.bits.data := 0.U
+    io.mem.r.bits.last := false.B
+    io.mem.r.bits.id   := 0.U
+    io.mem.r.bits.user := 0.U
+    io.mem.ar.ready    := false.B
+    io.out.ar          <> io.inst.ar
+    io.out.r           <> io.inst.r
   }
 }

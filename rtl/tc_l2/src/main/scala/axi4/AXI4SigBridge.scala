@@ -26,8 +26,8 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
   protected val rHdShk:  Bool = WireDefault(io.axi.r.valid && io.axi.r.ready)
 
   // after handshake, the transition end sign
-  protected val wtDone:    Bool = WireDefault(wHdShk && io.axi.w.last)
-  protected val rdDone:    Bool = WireDefault(rHdShk && io.axi.r.last) // according to id to identify the rd master
+  protected val wtDone:    Bool = WireDefault(wHdShk && io.axi.w.bits.last)
+  protected val rdDone:    Bool = WireDefault(rHdShk && io.axi.r.bits.last) // according to id to identify the rd master
   protected val transDone: Bool = Mux(wtTrans, bHdShk, rdDone)
 
   val eumWtIDLE :: eumWtADDR :: eumWtWRITE :: eumWtRESP :: Nil = Enum(4)
@@ -154,27 +154,27 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
   rwReadyEna  := transDone || rwReady
   io.rw.ready := rwReady
 
-  protected val rwResp: UInt = RegEnable(Mux(wtTrans, io.axi.b.resp, io.axi.r.resp), 0.U, transDone)
+  protected val rwResp: UInt = RegEnable(Mux(wtTrans, io.axi.b.bits.resp, io.axi.r.bits.resp), 0.U, transDone)
   io.rw.resp := rwResp
 
   // ------------------Write Transaction------------------
-  io.axi.aw.valid  := WireDefault(wtOperState === eumWtADDR)
-  io.axi.aw.addr   := axiAddr
-  io.axi.aw.prot   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axi.aw.id     := axiId
-  io.axi.aw.user   := axiUser
-  io.axi.aw.len    := axiLen
-  io.axi.aw.size   := axiSize
-  io.axi.aw.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axi.aw.lock   := 0.U
-  io.axi.aw.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axi.aw.qos    := 0.U
-  io.axi.aw.region := 0.U
-  io.axi.w.valid   := WireDefault(wtOperState === eumWtWRITE)
-  io.axi.w.strb    := "b11111111".U
-  io.axi.w.last    := WireDefault(rwLen === axiLen)
-  io.axi.w.user    := axiUser
-  io.axi.w.id      := axiId
+  io.axi.aw.valid       := WireDefault(wtOperState === eumWtADDR)
+  io.axi.aw.bits.addr   := axiAddr
+  io.axi.aw.bits.prot   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+  io.axi.aw.bits.id     := axiId
+  io.axi.aw.bits.user   := axiUser
+  io.axi.aw.bits.len    := axiLen
+  io.axi.aw.bits.size   := axiSize
+  io.axi.aw.bits.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
+  io.axi.aw.bits.lock   := 0.U
+  io.axi.aw.bits.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+  io.axi.aw.bits.qos    := 0.U
+  io.axi.aw.bits.region := 0.U
+  io.axi.w.valid        := WireDefault(wtOperState === eumWtWRITE)
+  io.axi.w.bits.strb    := "b11111111".U
+  io.axi.w.bits.last    := WireDefault(rwLen === axiLen)
+  io.axi.w.bits.user    := axiUser
+  io.axi.w.bits.id      := axiId
   // prepare write data
   protected val rwWtData: UInt = RegInit(0.U(AxiDataWidth.W))
   for (i <- 0 until TRANS_LEN) {
@@ -191,30 +191,30 @@ class AXI4SigBridge extends Module with AXI4Config with InstConfig {
     }
   }
 
-  io.axi.w.data  := rwWtData
-  io.axi.b.ready := (wtOperState === eumWtRESP)
+  io.axi.w.bits.data := rwWtData
+  io.axi.b.ready     := (wtOperState === eumWtRESP)
 
   // ------------------Read Transaction------------------
-  io.axi.ar.valid  := WireDefault(rdOperState === eumRdADDR)
-  io.axi.ar.addr   := axiAddr
-  io.axi.ar.prot   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axi.ar.id     := axiId
-  io.axi.ar.user   := axiUser
-  io.axi.ar.len    := axiLen
-  io.axi.ar.size   := axiSize
-  io.axi.ar.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axi.ar.lock   := 0.U
-  io.axi.ar.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axi.ar.qos    := 0.U
-  io.axi.ar.region := 0.U
+  io.axi.ar.valid       := WireDefault(rdOperState === eumRdADDR)
+  io.axi.ar.bits.addr   := axiAddr
+  io.axi.ar.bits.prot   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+  io.axi.ar.bits.id     := axiId
+  io.axi.ar.bits.user   := axiUser
+  io.axi.ar.bits.len    := axiLen
+  io.axi.ar.bits.size   := axiSize
+  io.axi.ar.bits.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
+  io.axi.ar.bits.lock   := 0.U
+  io.axi.ar.bits.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+  io.axi.ar.bits.qos    := 0.U
+  io.axi.ar.bits.region := 0.U
 
   io.axi.r.ready := WireDefault(rdOperState === eumRdREAD)
 
   //data transfer
   protected val axiRdDataLow: UInt = Wire(UInt(AxiDataWidth.W))
-  axiRdDataLow := (io.axi.r.data & maskLow) >> alignedOffsetLow
+  axiRdDataLow := (io.axi.r.bits.data & maskLow) >> alignedOffsetLow
   protected val axiRdDataHig: UInt = Wire(UInt(AxiDataWidth.W))
-  axiRdDataHig := (io.axi.r.data & maskHig) << alignedOffsetHig
+  axiRdDataHig := (io.axi.r.bits.data & maskHig) << alignedOffsetHig
 
   // because now the TRANS_LEN is 1, so the data is one-dens
   protected val rwRdData: UInt = RegInit(0.U(AxiDataWidth.W))

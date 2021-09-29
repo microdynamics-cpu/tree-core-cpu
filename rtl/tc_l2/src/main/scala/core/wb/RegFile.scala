@@ -77,16 +77,15 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     0.U(BusWidth.W)
   )
 
-  // for custom inst output
-  io.charDataOut := regFile(10.U)
-
-  for ((i, abi) <- RegFile.abiTable) {
-    when(io.debugIn(i) === 1.U) {
-      printf(p"[regfile] ${abi} = 0x${Hexadecimal(regFile(i))}\n")
-    }
-  }
-
   if (ifDiffTest) {
+    // for custom inst output
+    io.charDataOut := regFile(10.U)
+    for ((i, abi) <- RegFile.abiTable) {
+      when(io.debugIn(i) === 1.U) {
+        printf(p"[regfile] ${abi} = 0x${Hexadecimal(regFile(i))}\n")
+      }
+    }
+
     val diffRegState: DifftestArchIntRegState = Module(new DifftestArchIntRegState)
     diffRegState.io.clock  := this.clock
     diffRegState.io.coreid := 0.U
@@ -94,5 +93,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     diffRegState.io.gpr.zipWithIndex.foreach({
       case (v, i) => v := Mux(i.U === 0.U(RegAddrLen.W), 0.U(BusWidth.W), regFile(i.U))
     })
+  } else {
+      io.charDataOut := DontCare
   }
 }

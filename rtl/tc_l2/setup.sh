@@ -16,6 +16,7 @@ AM_KERNELS_FOLDER_PATH=${AM_FOLDER_PATH}"/am-kernels"
 DIFFTEST_FOLDER_PATH=${ROOT_PATH}"/difftest"
 NEMU_FOLDER_PATH=${ROOT_PATH}"/NEMU"
 DRAMSIM3_FOLDER_PATH=${ROOT_PATH}"/DRAMsim3"
+YSYXSOC_PATH=${ROOT_PATH}"/ysyxSoC"
 
 # download the am repo from the github
 ###### abstract-machine ######
@@ -185,18 +186,32 @@ configDramSim3() {
     cd ${ROOT_PATH}
 }
 
+###### ysyxSoC ######
+configysyxSoC() {
+    cd ${ROOT_PATH}
+
+    if [[ -d ${YSYXSOC_PATH} ]]; then
+        echo -e "${RIGHT}ysyxSoC exist!${END}"
+    else
+        echo -e "${INFO}[no download]: git clone${END}"
+        git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
+    fi
+}
+
 helpInfo() {
-    echo -e "${INFO}Usage: setup.sh [-a][-n][-d][-m][-r][-k][-s repo][-h]${END}"
+    echo -e "${INFO}Usage: setup.sh [-a][-n][-d][-i][-m][-r][-k][-y][-s repo][-h]${END}"
     echo -e "Description - set up the build env of the treecore riscv processor"
     echo -e ""
     echo -e "${RIGHT}  -a: download and config all the repos${END}"
     echo -e "${RIGHT}  -n: download and config nemu${END}"
     echo -e "${RIGHT}  -d: download and config difftest${END}"
+    echo -e "${RIGHT}  -i: download and config dramsim3${END}"
     echo -e "${RIGHT}  -m: download and config abstract-machine${END}"
     echo -e "${RIGHT}  -r: download and config riscv-tests${END}"
     echo -e "${RIGHT}  -k: download and config am-kernels${END}"
+    echo -e "${RIGHT}  -y: download and config ysyx-soc${END}"
     echo -e "${RIGHT}  -s: download and config specific repo${END}"
-    echo -e "      sample: ./setup.sh -s [repo](default: nemu) ${INFO}[repo]: [nemu, diffttest, am, riscv-tests, am-kernels]${END}"
+    echo -e "sample: ./setup.sh -s [repo](default: nemu) ${INFO}[repo]: [nemu, diffttest, dramsim3, am, riscv-tests, am-kernels, ysyx-soc]${END}"
     echo -e "${RIGHT}  -h: help information${END}"
     
 }
@@ -209,6 +224,7 @@ configSpecRepo() {
         configDiffTest
         configNemu
         configDramSim3
+        configysyxSoC
     elif [[ -n $1 && $1 == "nemu" ]]; then
         configNemu
     elif [[ -n $1 && $1 == "difftest" ]]; then
@@ -221,13 +237,15 @@ configSpecRepo() {
         configRiscvTests
     elif [[ -n $1 && $1 == "am-kernels" ]]; then
         configAMKernels
+    elif [[ -n $1 && $1 == "ysyx-soc" ]]; then
+        configysyxSoC
     else
-        echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, am, riscv-tests, am-kernels]"
+        echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, dramsim3, am, riscv-tests, am-kernels, ysyx-soc]"
     fi
 }
 
 # Check parameters
-while getopts 'andimrks:h' OPT; do
+while getopts 'andimrkys:h' OPT; do
     case $OPT in
         a) configSpecRepo "all";;
         n) configNemu;;
@@ -236,6 +254,7 @@ while getopts 'andimrks:h' OPT; do
         m) configAbstractMachine;;
         r) configRiscvTests;;
         k) configAMKernels;;
+        y) configysyxSoC;;
         s) configSpecRepo $OPTARG;;
         h) helpInfo;;
         ?) 

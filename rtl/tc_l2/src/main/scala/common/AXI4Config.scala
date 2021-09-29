@@ -11,7 +11,7 @@ trait AXI4Config {
   val AxiReqNop = 2
 
   val AxiDataWidth = 64
-  val AxiAddrWidth = 64
+  val AxiAddrWidth = 32 // FIME: is right? the original val is 64
   val AxiProtLen   = 3
   val AxiIdLen     = 4
   val AxiUserLen   = 1
