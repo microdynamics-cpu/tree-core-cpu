@@ -15,7 +15,7 @@ class SoCTop(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AX
     // by 'master_r_bits_data[3:0]' in Makefile
   })
 
-  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge)
+  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge(ifSoC))
   io.master <> axiBridge.io.axi
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest, ifSoC))
@@ -35,4 +35,7 @@ class SoCTop(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AX
   io.slave.r.bits.last     := false.B
   io.slave.r.bits.id       := 0.U
   io.slave.r.bits.user     := 0.U
+  if (ifDiffTest) {
+  } else {
+  }
 }

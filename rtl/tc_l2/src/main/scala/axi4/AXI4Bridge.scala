@@ -62,7 +62,7 @@ object AXI4Bridge {
   val SIZE_D = "b11".U(2.W)
 }
 
-class AXI4Bridge extends Module with AXI4Config with InstConfig {
+class AXI4Bridge(val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = new AXI4USERIO
     val mem:  AXI4USERIO = new AXI4USERIO
@@ -301,7 +301,7 @@ class AXI4Bridge extends Module with AXI4Config with InstConfig {
 // ------------------Process Data------------------
   protected val ALIGNED_WIDTH = 3 // eval: log2(AxiDataWidth / 8)
   protected val OFFSET_WIDTH  = 6 // eval: log2(AxiDataWidth)
-  protected val AXI_SIZE      = 3.U // eval: log2(AxiDataWidth / 8)
+  protected val AXI_SIZE      = if (ifSoC) 2.U else 3.U // eval: log2(AxiDataWidth / 8)
   protected val MASK_WIDTH    = 128 // eval: AxiDataWidth * 2
   protected val TRANS_LEN     = 1 // eval: 1
   protected val BLOCK_TRANS   = false.B

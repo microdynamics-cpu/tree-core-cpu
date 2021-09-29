@@ -16,11 +16,15 @@ class SimTop(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AX
     // by 'memAXI_0_r_bits_data[3:0]' in Makefile
   })
 
-  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge)
+  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge(ifSoC))
   io.memAXI_0 <> axiBridge.io.axi
 
   protected val treeCoreL2 = Module(new TreeCoreL2(ifDiffTest, ifSoC))
   axiBridge.io.inst <> treeCoreL2.io.inst
   axiBridge.io.mem  <> treeCoreL2.io.mem
-  io.uart           <> treeCoreL2.io.uart
+  if (ifDiffTest) {
+    io.uart <> treeCoreL2.io.uart
+  } else {
+    io.uart <> DontCare
+  }
 }
