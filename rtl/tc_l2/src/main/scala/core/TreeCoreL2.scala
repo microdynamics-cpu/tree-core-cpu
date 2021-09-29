@@ -3,16 +3,16 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config with InstConfig {
+class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
     val uart: UARTIO     = new UARTIO
   })
 
-  protected val pcUnit      = Module(new PCReg)
+  protected val pcUnit      = Module(new PCReg(ifSoC))
   protected val if2id       = Module(new IFToID)
-  protected val regFile     = Module(new RegFile(ifDiffTest))
+  protected val regFileUnit = Module(new RegFile(ifDiffTest))
   protected val idUnit      = Module(new InstDecoderStage)
   protected val id2ex       = Module(new IDToEX)
   protected val execUnit    = Module(new ExecutionStage)
@@ -45,17 +45,17 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   maUnit.io.instIn <> ex2ma.io.instOut
   ma2wb.io.instIn  <> maUnit.io.instOut
 
-  idUnit.io.rdDataAIn := regFile.io.rdDataAOut
-  idUnit.io.rdDataBIn := regFile.io.rdDataBOut
+  idUnit.io.rdDataAIn := regFileUnit.io.rdDataAOut
+  idUnit.io.rdDataBIn := regFileUnit.io.rdDataBOut
 
   // for load correlation
   idUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
   idUnit.io.exuWtAddrIn   := id2ex.io.exWtAddrOut
 
-  regFile.io.rdEnaAIn  := idUnit.io.rdEnaAOut
-  regFile.io.rdAddrAIn := idUnit.io.rdAddrAOut
-  regFile.io.rdEnaBIn  := idUnit.io.rdEnaBOut
-  regFile.io.rdAddrBIn := idUnit.io.rdAddrBOut
+  regFileUnit.io.rdEnaAIn  := idUnit.io.rdEnaAOut
+  regFileUnit.io.rdAddrAIn := idUnit.io.rdAddrAOut
+  regFileUnit.io.rdEnaBIn  := idUnit.io.rdEnaBOut
+  regFileUnit.io.rdAddrBIn := idUnit.io.rdAddrBOut
 
   // id to ex
   id2ex.io.idAluOperTypeIn := idUnit.io.exuOperTypeOut
@@ -107,9 +107,9 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   ma2wb.io.memIntrEnterFlag  := csrUnit.io.memIntrEnterFlag
   ma2wb.io.intrJumpInfo      <> csrUnit.io.intrJumpInfo
   // wb
-  regFile.io.wtDataIn := ma2wb.io.wbDataOut
-  regFile.io.wtEnaIn  := ma2wb.io.wbWtEnaOut
-  regFile.io.wtAddrIn := ma2wb.io.wbWtAddrOut
+  regFileUnit.io.wtDataIn := ma2wb.io.wbDataOut
+  regFileUnit.io.wtEnaIn  := ma2wb.io.wbWtEnaOut
+  regFileUnit.io.wtAddrIn := ma2wb.io.wbWtAddrOut
 
   // forward control unit
   forwardUnit.io.exDataIn   := ex2ma.io.exDataIn
@@ -152,19 +152,18 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
   clintUnit.io.rd       <> ma2wb.io.clintWt
   clintUnit.io.intrInfo <> csrUnit.io.intrInfo
 
-  // output custom putch oper for 0x7B
-  io.uart.in.valid := false.B
-  when(RegNext(ma2wb.io.instOut.data) === 0x0000007b.U) {
-    io.uart.out.valid := true.B
-    io.uart.out.ch    := regFile.io.charDataOut
-  }.otherwise {
-    io.uart.out.valid := false.B
-    io.uart.out.ch    := 0.U
-  }
-  // ouput custom gpr val
-  regFile.io.debugIn := 0.U
-
   if (ifDiffTest) {
+    // output custom putch oper for 0x7B
+    io.uart.in.valid := false.B
+    when(RegNext(ma2wb.io.instOut.data) === 0x0000007b.U) {
+      io.uart.out.valid := true.B
+      io.uart.out.ch    := regFileUnit.io.charDataOut
+    }.otherwise {
+      io.uart.out.valid := false.B
+      io.uart.out.ch    := 0.U
+    }
+    // ouput custom gpr val
+    regFileUnit.io.debugIn := 0.U
     // commit
     val diffCommitState: DifftestInstrCommit = Module(new DifftestInstrCommit())
     val instValidWire = pcUnit.io.instEnaOut && !this.reset.asBool() && (pcUnit.io.instDataOut =/= 0.U)
@@ -322,5 +321,8 @@ class TreeCoreL2(val ifDiffTest: Boolean = false) extends Module with AXI4Config
     diffTrapState.io.pc       := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
     diffTrapState.io.cycleCnt := cycleCnt
     diffTrapState.io.instrCnt := instCnt
-  } // ifDiffTest
+  } else {
+    io.uart <> DontCare
+    regFileUnit.io.debugIn := DontCare
+  }
 }

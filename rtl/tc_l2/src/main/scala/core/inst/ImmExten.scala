@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util.{Cat, MuxLookup}
 import treecorel2.common.ConstVal._
 import treecorel2.common.getSignExtn
-import InstDecoderStage.{bInstType, iInstType, jInstType, nopInstType, rInstType, sInstType, uInstType}
+import InstDecoderStage._
 
 class ImmExten extends Module with InstConfig {
   val io = IO(new Bundle {

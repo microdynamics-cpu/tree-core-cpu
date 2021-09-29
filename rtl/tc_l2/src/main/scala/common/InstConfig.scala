@@ -10,8 +10,9 @@ trait InstConfig {
   val RegAddrLen   = 5
   val RegNum       = 32
 
-  val PcRegStartAddr = "h80000000"
-  val TrapInst       = "h0000006b"
+  val PCLoadStartAddr  = "h80000000"
+  val PCFlashStartAddr = "h30000000"
+  val TrapInst         = "h0000006b"
   // flush pipeline
   val NopInst = "h00000013"
 }

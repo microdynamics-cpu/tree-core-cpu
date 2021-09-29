@@ -19,6 +19,7 @@ DHRYSTONE_HOME   := $(AM_KERNEL_PATH)/benchmarks/dhrystone
 MICROBENCH_HOME  := $(AM_KERNEL_PATH)/benchmarks/microbench
 DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
+YSYXSOC_HOME     := $(ROOT_PATH)/ysyxSoC/ysyx
 
 export AM_HOME       := $(AM_FOLDER_PATH)/abstract-machine
 export NEMU_HOME     := $(ROOT_PATH)/NEMU
@@ -41,6 +42,34 @@ endef
 ###### chisel target ######
 millTest:
 	mill -i __.test
+
+diffPrvBuild:
+	@cp $(ROOT_PATH)/src/main/scala/top/SimTop.scala $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i 's/class SimTop/class SoCTop/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/val logCtrl/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/val perfInfo/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/val uart/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/io.uart/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i 's/memAXI_0/master/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i 's/val master = new AXI4IO/val master    = new AXI4IO/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/val master/i\    val interrupt = Input(Bool())' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/val master/a\    val slave     = Flipped(new AXI4IO)' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i 's/axiBridge.io.inst <> treeCoreL2.io.inst/axiBridge.io.inst        <> treeCoreL2.io.inst/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i 's/axiBridge.io.mem  <> treeCoreL2.io.mem/axiBridge.io.mem         <> treeCoreL2.io.mem/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/protected val treeCoreL2/a\  treeCoreL2.io.uart.in.ch := DontCare' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.user     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.id       := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.last     := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.data     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.resp     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.r.valid         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.ar.ready        := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.user     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.id       := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.resp     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.b.valid         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.w.ready         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
+	@sed -i '/axiBridge.io.mem/a\  io.slave.aw.ready        := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
 
 diffBuild:
 	mkdir -p $(BUILD_DIR)
@@ -74,13 +103,12 @@ dramsim3Build:
 ###### difftest target ######
 # if want to use the RamHelper, need to remove the 'WITH_DRAMSIM3=1'
 difftestBuild:
-	sed -i 's/io_memAXI_0_w_bits_data,/io_memAXI_0_w_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
-	sed -i 's/io_memAXI_0_r_bits_data,/io_memAXI_0_r_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
-	sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
-	sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
+	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
+	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
+	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
 
-diffAllBuild: diffBuild difftestBuild
+diffAllBuild: diffPrvBuild diffBuild difftestBuild
 
 simpleTestBuild:
 	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
@@ -181,6 +209,26 @@ $(cpuTestLogFile):
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME))
 
+###### soc name rule test target ######
+socTopModify:
+	@cp $(BUILD_DIR)/SoCTop.v $(BUILD_DIR)/ysyx_210324.v
+	@sed -i 's/module ysyx_210324_SoCTop/module ysyx_210324/g' $(BUILD_DIR)/ysyx_210324.v
+	@sed -i 's/io_\([a-z]*\)_\([a-z]*\)_[bits]*_*\([a-z]*\)/io_\1_\2\3/g' $(BUILD_DIR)/ysyx_210324.v
+
+# FIMXE: need a better solution, not just copy to dir everytime
+socNameCheck: socTopModify
+	@cp $(YSYXSOC_HOME)/soc/cpu-check.py $(BUILD_DIR)
+	@cd $(BUILD_DIR) && echo 324 | python3 cpu-check.py
+
+socLintCheck: socNameCheck
+	@cp $(BUILD_DIR)/ysyx_210324.v $(YSYXSOC_HOME)/lint/
+	@sed -i 's/ID = \([0-9]*\)/ID = 210324/g' $(YSYXSOC_HOME)/lint/Makefile
+	@echo -e "\033[1;32mstart lint check....\033[0m"
+	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint
+	@echo -e "\033[1;32mlint check done\033[0m"
+	@echo -e "\033[1;32mstart lint-unused check....\033[0m"
+	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
+	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
 ###### clean target ######
 cleanBuild:
@@ -194,6 +242,8 @@ cleanDepRepo:
 
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
+
 .PHONY: millTest diffBuild help compile bsp reformat checkformat \
-        nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest recursiveTest \
+		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
+		socTopModify socNameCheck \
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
