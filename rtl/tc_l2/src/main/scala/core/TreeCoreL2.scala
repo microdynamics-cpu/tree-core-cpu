@@ -3,16 +3,16 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
+class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
     val uart: UARTIO     = new UARTIO
   })
 
-  protected val pcUnit      = Module(new PCReg(ifSoC))
+  protected val pcUnit      = Module(new PCReg())
   protected val if2id       = Module(new IFToID)
-  protected val regFileUnit = Module(new RegFile(ifDiffTest))
+  protected val regFileUnit = Module(new RegFile())
   protected val idUnit      = Module(new InstDecoderStage)
   protected val id2ex       = Module(new IDToEX)
   protected val execUnit    = Module(new ExecutionStage)
@@ -21,7 +21,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
-  protected val csrUnit     = Module(new CSRReg(ifDiffTest))
+  protected val csrUnit     = Module(new CSRReg())
   protected val clintUnit   = Module(new CLINT)
 
   io.inst <> pcUnit.io.axi
@@ -152,7 +152,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   clintUnit.io.rd       <> ma2wb.io.clintWt
   clintUnit.io.intrInfo <> csrUnit.io.intrInfo
 
-  if (ifDiffTest) {
+  if (DiffEna) {
     // output custom putch oper for 0x7B
     io.uart.in.valid := false.B
     when(RegNext(ma2wb.io.instOut.data) === 0x0000007b.U) {

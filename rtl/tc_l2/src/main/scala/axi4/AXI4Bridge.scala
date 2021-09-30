@@ -62,11 +62,11 @@ object AXI4Bridge {
   val SIZE_D = "b11".U(2.W)
 }
 
-class AXI4Bridge(val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
+class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = new AXI4USERIO
     val mem:  AXI4USERIO = new AXI4USERIO
-    val axi:  AXI4IO     = new AXI4IO
+    val axi = if (SoCEna) new SOCAXI4IO else new AXI4IO
   })
 
   // preposition
@@ -301,7 +301,7 @@ class AXI4Bridge(val ifSoC: Boolean) extends Module with AXI4Config with InstCon
 // ------------------Process Data------------------
   protected val ALIGNED_WIDTH = 3 // eval: log2(AxiDataWidth / 8)
   protected val OFFSET_WIDTH  = 6 // eval: log2(AxiDataWidth)
-  protected val AXI_SIZE      = if (ifSoC) 2.U else 3.U // eval: log2(AxiDataWidth / 8)
+  protected val AXI_SIZE      = if (SoCEna) 2.U else 3.U // eval: log2(AxiDataWidth / 8)
   protected val MASK_WIDTH    = 128 // eval: AxiDataWidth * 2
   protected val TRANS_LEN     = 1 // eval: 1
   protected val BLOCK_TRANS   = false.B
@@ -439,24 +439,27 @@ class AXI4Bridge(val ifSoC: Boolean) extends Module with AXI4Config with InstCon
   io.mem.resp := memResp
 
   // ------------------Write Transaction------------------
-  io.axi.aw.valid       := wtStateAddr
-  io.axi.aw.bits.addr   := memAxiAddr
-  io.axi.aw.bits.prot   := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axi.aw.bits.id     := memAxiId
-  io.axi.aw.bits.user   := memAxiUser
-  io.axi.aw.bits.len    := memAxiLen
-  io.axi.aw.bits.size   := memAxiSize
-  io.axi.aw.bits.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axi.aw.bits.lock   := "b0".U(1.W)
-  io.axi.aw.bits.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axi.aw.bits.qos    := "h0".U(4.W)
-  io.axi.aw.bits.region := DontCare
+  io.axi.aw.valid      := wtStateAddr
+  io.axi.aw.bits.addr  := memAxiAddr
+  io.axi.aw.bits.id    := memAxiId
+  io.axi.aw.bits.len   := memAxiLen
+  io.axi.aw.bits.size  := memAxiSize
+  io.axi.aw.bits.burst := AXI4Bridge.AXI_BURST_TYPE_INCR
+
+  if (!SoCEna) {
+    val sim = io.axi.asInstanceOf[AXI4IO]
+    sim.aw.bits.prot  := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+    sim.aw.bits.user  := memAxiUser
+    sim.aw.bits.lock  := "b0".U(1.W)
+    sim.aw.bits.cache := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+    sim.aw.bits.qos   := "h0".U(4.W)
+  }
 
   protected val axiWtDataLow = WireDefault(UInt(AxiDataWidth.W), io.mem.wdata << memAlignedOffsetLow)
   protected val axiWtDataHig = WireDefault(UInt(AxiDataWidth.W), io.mem.wdata >> memAlignedOffsetHig)
 
-  io.axi.w.valid   := wtStateWrite
-  io.axi.w.bits.id := memAxiId
+  io.axi.w.valid := wtStateWrite
+  // io.axi.w.bits.id := memAxiId
   io.axi.w.bits.data := Mux(
     io.axi.w.valid,
     Mux(memTransLen(0, 0) === "b0".U(1.W), axiWtDataLow, axiWtDataHig),
@@ -468,48 +471,34 @@ class AXI4Bridge(val ifSoC: Boolean) extends Module with AXI4Config with InstCon
     Fill(AxiDataWidth / 8, "b0".U(1.W))
   )
   io.axi.w.bits.last := Mux(io.axi.w.valid, (memTransLen === memAxiLen), false.B)
-  io.axi.w.bits.user := DontCare
 
   // wt resp
-  io.axi.b.bits.id   := DontCare
-  io.axi.b.bits.user := DontCare
+  io.axi.b.bits.id := DontCare
+  if (!SoCEna) {
+    val sim = io.axi.asInstanceOf[AXI4IO]
+    sim.b.bits.user := DontCare
+  }
 
   io.axi.b.ready := wtStateResp
   // ------------------Read Transaction------------------
 
   // Read address channel signals
-  io.axi.ar.valid := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
-  io.axi.ar.bits.addr := (Fill(AxiAddrWidth, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiAddr) | (Fill(
-    AxiAddrWidth,
-    rdIfIDLEwithMemAR || rdIfRDwithMemAR
-  ) & memAxiAddr)
+  io.axi.ar.valid      := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
+  io.axi.ar.bits.addr  := (Fill(AxiAddrWidth, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiAddr) | (Fill(AxiAddrWidth, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiAddr)
+  io.axi.ar.bits.id    := (Fill(AxiIdLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiId) | (Fill(AxiIdLen, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiId)
+  io.axi.ar.bits.len   := (Fill(8, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiLen) | (Fill(8, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiLen)
+  io.axi.ar.bits.size  := (Fill(3, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiSize) | (Fill(3, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiSize)
+  io.axi.ar.bits.burst := AXI4Bridge.AXI_BURST_TYPE_INCR
 
-  io.axi.ar.bits.prot := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
-  io.axi.ar.bits.id := (Fill(AxiIdLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiId) | (Fill(
-    AxiIdLen,
-    rdIfIDLEwithMemAR || rdIfRDwithMemAR
-  ) & memAxiId)
+  if (!SoCEna) {
+    val sim = io.axi.asInstanceOf[AXI4IO]
+    sim.ar.bits.prot  := AXI4Bridge.AXI_PROT_UNPRIVILEGED_ACCESS | AXI4Bridge.AXI_PROT_SECURE_ACCESS | AXI4Bridge.AXI_PROT_DATA_ACCESS
+    sim.ar.bits.user  := (Fill(AxiUserLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiUser) | (Fill(AxiUserLen, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiUser)
+    sim.ar.bits.lock  := "b0".U(1.W)
+    sim.ar.bits.cache := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
+    sim.ar.bits.qos   := "h0".U(4.W)
+  }
 
-  io.axi.ar.bits.user := (Fill(AxiUserLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiUser) | (Fill(
-    AxiUserLen,
-    rdIfIDLEwithMemAR || rdIfRDwithMemAR
-  ) & memAxiUser)
-
-  io.axi.ar.bits.len := (Fill(8, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiLen) | (Fill(
-    8,
-    rdIfIDLEwithMemAR || rdIfRDwithMemAR
-  ) & memAxiLen)
-
-  io.axi.ar.bits.size := (Fill(3, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiSize) | (Fill(
-    3,
-    rdIfIDLEwithMemAR || rdIfRDwithMemAR
-  ) & memAxiSize)
-
-  io.axi.ar.bits.burst  := AXI4Bridge.AXI_BURST_TYPE_INCR
-  io.axi.ar.bits.lock   := "b0".U(1.W)
-  io.axi.ar.bits.cache  := AXI4Bridge.AXI_ARCACHE_NORMAL_NON_CACHEABLE_NON_BUFFERABLE
-  io.axi.ar.bits.qos    := "h0".U(4.W)
-  io.axi.ar.bits.region := DontCare
   // Read data channel signals
   io.axi.r.ready := rdIfARwithMemRD || rdIfIDLEwithMemRD || rdIfRDwithMemAR || rdIfRDwithMemIDLE || rdIfRDwithMemRD
 

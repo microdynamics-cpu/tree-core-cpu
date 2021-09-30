@@ -41,7 +41,7 @@ object RegFile {
   )
 }
 
-class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
+class RegFile() extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
     val rdEnaAIn:  Bool = Input(Bool())
@@ -77,7 +77,7 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
     0.U(BusWidth.W)
   )
 
-  if (ifDiffTest) {
+  if (DiffEna) {
     // for custom inst output
     io.charDataOut := regFile(10.U)
     for ((i, abi) <- RegFile.abiTable) {

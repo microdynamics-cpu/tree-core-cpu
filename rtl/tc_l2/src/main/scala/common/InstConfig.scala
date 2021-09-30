@@ -15,4 +15,14 @@ trait InstConfig {
   val TrapInst         = "h0000006b"
   // flush pipeline
   val NopInst = "h00000013"
+  // control the data gen
+  // |===============|
+  // |  diff |  soc  |
+  // |===============|
+  // | false | false |
+  // | true  | false |
+  // | false | true  |
+  // |===============|
+  val DiffEna = true
+  val SoCEna  = false
 }
