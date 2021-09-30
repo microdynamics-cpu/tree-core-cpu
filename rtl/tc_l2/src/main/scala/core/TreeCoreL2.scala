@@ -322,7 +322,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
     diffTrapState.io.cycleCnt := cycleCnt
     diffTrapState.io.instrCnt := instCnt
   } else {
-    io.uart <> DontCare
+    io.uart                <> DontCare
     regFileUnit.io.debugIn := DontCare
   }
 }

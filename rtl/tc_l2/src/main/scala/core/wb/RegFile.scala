@@ -94,6 +94,6 @@ class RegFile(val ifDiffTest: Boolean) extends Module with InstConfig {
       case (v, i) => v := Mux(i.U === 0.U(RegAddrLen.W), 0.U(BusWidth.W), regFile(i.U))
     })
   } else {
-      io.charDataOut := DontCare
+    io.charDataOut := DontCare
   }
 }

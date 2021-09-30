@@ -35,7 +35,5 @@ class SoCTop(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AX
   io.slave.r.bits.last     := false.B
   io.slave.r.bits.id       := 0.U
   io.slave.r.bits.user     := 0.U
-  if (ifDiffTest) {
-  } else {
-  }
+  if (ifDiffTest) {} else {}
 }
