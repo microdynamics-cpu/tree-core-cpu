@@ -43,34 +43,6 @@ endef
 millTest:
 	mill -i __.test
 
-diffPrvBuild:
-	@cp $(ROOT_PATH)/src/main/scala/top/SimTop.scala $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i 's/class SimTop/class SoCTop/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/val logCtrl/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/val perfInfo/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/val uart/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/io.uart/d' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i 's/memAXI_0/master/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i 's/val master = new AXI4IO/val master    = new AXI4IO/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/val master/i\    val interrupt = Input(Bool())' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/val master/a\    val slave     = Flipped(new AXI4IO)' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i 's/axiBridge.io.inst <> treeCoreL2.io.inst/axiBridge.io.inst        <> treeCoreL2.io.inst/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i 's/axiBridge.io.mem  <> treeCoreL2.io.mem/axiBridge.io.mem         <> treeCoreL2.io.mem/g' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/protected val treeCoreL2/a\  treeCoreL2.io.uart.in.ch := DontCare' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.user     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.id       := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.last     := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.data     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.bits.resp     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.r.valid         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.ar.ready        := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.user     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.id       := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.b.bits.resp     := 0.U' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.b.valid         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.w.ready         := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-	@sed -i '/axiBridge.io.mem/a\  io.slave.aw.ready        := false.B' $(ROOT_PATH)/src/main/scala/top/SoCTop.scala
-
 diffBuild:
 	mkdir -p $(BUILD_DIR)
 	mill -i tc_l2.runMain treecorel2.TopMain -td $(BUILD_DIR)
@@ -102,13 +74,15 @@ dramsim3Build:
 
 ###### difftest target ######
 # if want to use the RamHelper, need to remove the 'WITH_DRAMSIM3=1'
+# becuase the framework, now the 'memAXI_0_[r|w]_bits_data' need to be replaced
+# by 'memAXI_0_w_bits_data[3:0]' in Makefile
 difftestBuild:
 	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
 
-diffAllBuild: diffPrvBuild diffBuild difftestBuild
+diffAllBuild: diffBuild difftestBuild
 
 simpleTestBuild:
 	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
