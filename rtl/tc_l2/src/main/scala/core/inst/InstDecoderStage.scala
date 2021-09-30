@@ -144,8 +144,8 @@ class InstDecoderStage extends Module with InstConfig {
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
     val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
     // to ma
-    val lsuFunc3Out: UInt = Output(UInt(3.W))
-    val lsuWtEnaOut: Bool = Output(Bool())
+    val lsuFunc3MSBOut: UInt = Output(UInt(1.W))
+    val lsuWtEnaOut:    Bool = Output(Bool())
     // to regfile
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
@@ -171,8 +171,8 @@ class InstDecoderStage extends Module with InstConfig {
   immExtensionUnit.io.instDataIn := io.inst.data
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
-  io.lsuFunc3Out := io.inst.data(14, 12)
-  io.lsuWtEnaOut := decodeRes(6)
+  io.lsuFunc3MSBOut := io.inst.data(14)
+  io.lsuWtEnaOut    := decodeRes(6)
 
   when(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&

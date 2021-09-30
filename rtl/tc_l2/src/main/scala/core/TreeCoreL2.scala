@@ -63,7 +63,7 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   id2ex.io.idRsValBIn      := idUnit.io.rsValBOut
   id2ex.io.idWtEnaIn       := idUnit.io.wtEnaOut
   id2ex.io.idWtAddrIn      := idUnit.io.wtAddrOut
-  id2ex.io.lsuFunc3In      := idUnit.io.lsuFunc3Out
+  id2ex.io.lsuFunc3MSBIn   := idUnit.io.lsuFunc3MSBOut
   id2ex.io.lsuWtEnaIn      := idUnit.io.lsuWtEnaOut
   id2ex.io.ifFlushIn       := controlUnit.io.flushIdOut
 
@@ -79,7 +79,7 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   ex2ma.io.exWtEnaIn  := id2ex.io.exWtEnaOut
   ex2ma.io.exWtAddrIn := id2ex.io.exWtAddrOut
 
-  ex2ma.io.lsuFunc3In    := id2ex.io.lsuFunc3Out
+  ex2ma.io.lsuFunc3MSBIn := id2ex.io.lsuFunc3MSBOut
   ex2ma.io.lsuWtEnaIn    := id2ex.io.lsuWtEnaOut
   ex2ma.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
   ex2ma.io.lsuValAIn     := execUnit.io.rsValAIn
@@ -87,7 +87,7 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   ex2ma.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
 
   // ma
-  maUnit.io.memFunc3In    := ex2ma.io.lsuFunc3Out
+  maUnit.io.memFunc3MSBIn := ex2ma.io.lsuFunc3MSBOut
   maUnit.io.memOperTypeIn := ex2ma.io.lsuOperTypeOut
   maUnit.io.memValAIn     := ex2ma.io.lsuValAOut
   maUnit.io.memValBIn     := ex2ma.io.lsuValBOut

@@ -11,7 +11,7 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
-    val memFunc3In:    UInt = Input(UInt(3.W))
+    val memFunc3MSBIn: UInt = Input(UInt(3.W))
     val memOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
     // memValAin -> x[rs1]
@@ -54,7 +54,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   protected val memInstDataReg:    UInt = RegInit(0.U(InstWidth.W))
   protected val memInstSizeReg:    UInt = RegInit(0.U(2.W))
   protected val memOperTypeReg:    UInt = RegInit(0.U(InstOperTypeLen.W))
-  protected val memFunc3Reg:       UInt = RegInit(0.U(3.W))
+  protected val memFunc3MSBReg:    UInt = RegInit(0.U(1.W))
   protected val isFirstReg:        Bool = RegInit(true.B)
 
   protected val signExtnMidVal:  UInt = WireDefault(UInt(BusWidth.W), io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn, io.memOffsetIn(63)))
@@ -79,13 +79,13 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
 
       // save the mem oper type and memFunc3 type to sign ext the read data from the axi bus
       when(memOperTypeReg === lsuLBType || memOperTypeReg === lsuLBUType) {
-        io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
       }.elsewhen(memOperTypeReg === lsuLHType || memOperTypeReg === lsuLHUType) {
         // printf("prepare the mem wt data!!!!!!!!!\n")
         // printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
-        io.wtDataOut := Cat(Fill(BusWidth - 16, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(15))), io.axi.rdata(15, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 16, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(15))), io.axi.rdata(15, 0))
       }.elsewhen(memOperTypeReg === lsuLWType || memOperTypeReg === lsuLWUType) {
-        io.wtDataOut := Cat(Fill(BusWidth - 32, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(31))), io.axi.rdata(31, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 32, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(31))), io.axi.rdata(31, 0))
       }.otherwise {
         io.wtDataOut := io.axi.rdata
       }
@@ -137,7 +137,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memInstAddrReg    := io.instIn.addr
       memInstDataReg    := io.instIn.data
       memOperTypeReg    := io.memOperTypeIn
-      memFunc3Reg       := io.memFunc3In
+      memFunc3MSBReg    := io.memFunc3MSBIn
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
       isFirstReg    := true.B
       io.ifValidOut := true.B
