@@ -13,7 +13,6 @@ class ALU extends Module with InstConfig {
     val rsValBIn:      UInt = Input(UInt(BusWidth.W))
     // from csr
     val csrRdDataIn: UInt = Input(UInt(BusWidth.W))
-
     // to ex2ma
     val wtDataOut: UInt = Output(UInt(BusWidth.W))
     // to csr

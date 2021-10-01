@@ -8,9 +8,10 @@ import treecorel2.common.ConstVal._
 class CSRReg() extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
+    val inst:           INSTIO = new INSTIO
     val rdAddrIn:       UInt   = Input(UInt(CSRAddrLen.W))
     val instOperTypeIn: UInt   = Input(UInt(InstOperTypeLen.W))
-    val inst:           INSTIO = new INSTIO
+
     // from ex's out
     val wtEnaIn:  Bool = Input(Bool())
     val wtDataIn: UInt = Input(UInt(BusWidth.W))

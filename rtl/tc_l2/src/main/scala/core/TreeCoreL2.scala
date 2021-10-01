@@ -34,20 +34,17 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   if2id.io.instIn.addr := pcUnit.io.axi.addr
   if2id.io.instIn.data := pcUnit.io.instDataOut
   if2id.io.ifFlushIn   := ctrlUnit.io.flushIfOut
-
   // id
   idUnit.io.inst   <> if2id.io.instOut
   id2ex.io.instIn  <> if2id.io.instOut
   ex2ma.io.instIn  <> id2ex.io.instOut
   maUnit.io.instIn <> ex2ma.io.instOut
   ma2wb.io.instIn  <> maUnit.io.instOut
-
+  //
   idUnit.io.id2regfile <> regFileUnit.io.id2regfile
-
   // for load correlation
   idUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
   idUnit.io.exuWtAddrIn   := id2ex.io.exWtAddrOut
-
   // id to ex
   id2ex.io.idAluOperTypeIn := idUnit.io.exuOperTypeOut
   id2ex.io.idRsValAIn      := idUnit.io.rsValAOut
@@ -55,7 +52,6 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   id2ex.io.idWtEnaIn       := idUnit.io.wtEnaOut
   id2ex.io.idWtAddrIn      := idUnit.io.wtAddrOut
   id2ex.io.lsuFunc3MSBIn   := idUnit.io.lsuFunc3MSBOut
-  id2ex.io.lsuWtEnaIn      := idUnit.io.lsuWtEnaOut
   id2ex.io.ifFlushIn       := ctrlUnit.io.flushIdOut
   // ex
   execUnit.io.offsetIn      := idUnit.io.exuOffsetOut // important!!!
@@ -68,22 +64,14 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   ex2ma.io.wtIn.addr := id2ex.io.exWtAddrOut
   ex2ma.io.wtIn.data := execUnit.io.wtDataOut
 
-  ex2ma.io.lsuFunc3MSBIn := id2ex.io.lsuFunc3MSBOut
-  ex2ma.io.lsuWtEnaIn    := id2ex.io.lsuWtEnaOut
-  ex2ma.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
-  ex2ma.io.lsuValAIn     := execUnit.io.rsValAIn
-  ex2ma.io.lsuValBIn     := execUnit.io.rsValBIn
-  ex2ma.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
-
+  ex2ma.io.lsInstIn.func3MSB := id2ex.io.lsuFunc3MSBOut
+  ex2ma.io.lsInstIn.operType := execUnit.io.exuOperTypeIn
+  ex2ma.io.lsInstIn.valA     := execUnit.io.rsValAIn
+  ex2ma.io.lsInstIn.valB     := execUnit.io.rsValBIn
+  ex2ma.io.lsInstIn.offset   := RegNext(execUnit.io.offsetIn) // important!!
   // ma
-  maUnit.io.memFunc3MSBIn := ex2ma.io.lsuFunc3MSBOut
-  maUnit.io.memOperTypeIn := ex2ma.io.lsuOperTypeOut
-  maUnit.io.memValAIn     := ex2ma.io.lsuValAOut
-  maUnit.io.memValBIn     := ex2ma.io.lsuValBOut
-  maUnit.io.memOffsetIn   := ex2ma.io.lsuOffsetOut
-
-  maUnit.io.wtIn       <> ex2ma.io.wtOut
-  ex2ma.io.lsuWtEnaOut := DontCare
+  maUnit.io.wtIn     <> ex2ma.io.wtOut
+  maUnit.io.lsInstIn <> ex2ma.io.lsInstOut
 
   // ma to wb
   ma2wb.io.wtIn              <> maUnit.io.wtOut
@@ -95,26 +83,22 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   regFileUnit.io.wtIn <> ma2wb.io.wtOut
 
   // forward control unit
-  // forwardUnit.io.exIn <> ex2ma.io.wtIn
   forwardUnit.io.exIn.ena  := ex2ma.io.wtIn.ena
   forwardUnit.io.exIn.addr := ex2ma.io.wtIn.addr
   forwardUnit.io.exIn.data := ex2ma.io.wtIn.data
 
   // maDataIn only come from regfile and imm
   // maDataOut have right data include load/store inst and alu calc
-  forwardUnit.io.maIn.ena  := ma2wb.io.wtIn.ena
-  forwardUnit.io.maIn.addr := ma2wb.io.wtIn.addr
-  forwardUnit.io.maIn.data := ma2wb.io.wtIn.data
-
+  forwardUnit.io.maIn        <> maUnit.io.wtOut
   forwardUnit.io.idRdEnaAIn  := idUnit.io.id2regfile.rdA.ena
   forwardUnit.io.idRdAddrAIn := idUnit.io.id2regfile.rdA.addr
+  idUnit.io.fwRsEnaAIn       := forwardUnit.io.fwRsEnaAOut
+  idUnit.io.fwRsValAIn       := forwardUnit.io.fwRsValAOut
+
   forwardUnit.io.idRdEnaBIn  := idUnit.io.id2regfile.rdB.ena
   forwardUnit.io.idRdAddrBIn := idUnit.io.id2regfile.rdB.addr
-
-  idUnit.io.fwRsEnaAIn := forwardUnit.io.fwRsEnaAOut
-  idUnit.io.fwRsValAIn := forwardUnit.io.fwRsValAOut
-  idUnit.io.fwRsEnaBIn := forwardUnit.io.fwRsEnaBOut
-  idUnit.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
+  idUnit.io.fwRsEnaBIn       := forwardUnit.io.fwRsEnaBOut
+  idUnit.io.fwRsValBIn       := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
   ctrlUnit.io.excpJumpInfo     <> csrUnit.io.excpJumpInfo
@@ -235,10 +219,10 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
       // printf(p"[csr]io.debugMstatus = 0x${Hexadecimal(csrUnit.io.debugMstatus)}\n")
       // printf(p"[ex]io.wtDataOut = 0x${Hexadecimal(execUnit.io.wtDataOut)}\n")
 
-      // printf(p"[ma]io.memOperTypeIn = 0x${Hexadecimal(maUnit.io.memOperTypeIn)}\n")
-      // printf(p"[ma]io.memValAIn = 0x${Hexadecimal(maUnit.io.memValAIn)}\n")
-      // printf(p"[ma]io.memValBIn = 0x${Hexadecimal(maUnit.io.memValBIn)}\n")
-      // printf(p"[ma]io.memOffsetIn = 0x${Hexadecimal(maUnit.io.memOffsetIn)}\n")
+      // printf(p"[ma]io.lsInstIn.operType = 0x${Hexadecimal(maUnit.io.lsInstIn.operType)}\n")
+      // printf(p"[ma]io.lsInstIn.valA = 0x${Hexadecimal(maUnit.io.lsInstIn.valA)}\n")
+      // printf(p"[ma]io.lsInstIn.valB = 0x${Hexadecimal(maUnit.io.lsInstIn.valB)}\n")
+      // printf(p"[ma]io.lsInstIn.offset = 0x${Hexadecimal(maUnit.io.lsInstIn.offset)}\n")
       // printf(p"[ma]io.axi.addr = 0x${Hexadecimal(maUnit.io.axi.addr)}\n")
       // printf(p"[ma]io.axi.wdata = 0x${Hexadecimal(maUnit.io.axi.wdata)}\n")
       // printf(p"[ma]io.axi.size = 0x${Hexadecimal(maUnit.io.axi.size)}\n")

@@ -11,20 +11,13 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
-    val memFunc3MSBIn: UInt = Input(UInt(3.W))
-    val memOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
-    // memValAin -> x[rs1]
-    val memValAIn: UInt = Input(UInt(BusWidth.W))
-    // memValBIn -> x[rs2]
-    val memValBIn: UInt = Input(UInt(BusWidth.W))
-    // memOffsetIn -> offset
-    val memOffsetIn: UInt = Input(UInt(BusWidth.W))
-
-    val wtIn:   TRANSIO    = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from alu
-    val wtOut:  TRANSIO    = new TRANSIO(RegAddrLen, BusWidth) // to ma2wb
-    val axi:    AXI4USERIO = Flipped(new AXI4USERIO) // from axibridge
-    val instIn: INSTIO     = new INSTIO
+    // lsInstIn.valA -> x[rs1] lsInstIn.valB -> x[rs2] lsInstIn.offset -> offset
+    val lsInstIn: LSINSTIO   = Flipped(new LSINSTIO) // from ex2ma
+    val wtIn:     TRANSIO    = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from alu
+    val wtOut:    TRANSIO    = new TRANSIO(RegAddrLen, BusWidth) // to ma2wb
+    val axi:      AXI4USERIO = Flipped(new AXI4USERIO) // from axibridge
+    val instIn:   INSTIO     = new INSTIO
 
     // to ma2wb
     val ifValidOut:         Bool   = Output(Bool())
@@ -48,7 +41,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   protected val memFunc3MSBReg:    UInt = RegInit(0.U(1.W))
   protected val isFirstReg:        Bool = RegInit(true.B)
 
-  protected val signExtnMidVal:  UInt = WireDefault(UInt(BusWidth.W), io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn, io.memOffsetIn(63)))
+  protected val signExtnMidVal:  UInt = WireDefault(UInt(BusWidth.W), io.lsInstIn.valA + getSignExtn(BusWidth, io.lsInstIn.offset, io.lsInstIn.offset(63)))
   protected val memSignExtnAddr: UInt = WireDefault(UInt(BusWidth.W), getSignExtn(BusWidth, signExtnMidVal, signExtnMidVal(63)))
   protected val memZeroExtnAddr: UInt = WireDefault(UInt(BusWidth.W), getZeroExtn(BusWidth, signExtnMidVal))
 
@@ -107,7 +100,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
     io.wtOut.ena          := io.wtIn.ena
     io.wtOut.addr         := io.wtIn.addr
     io.wtOut.data         := io.wtIn.data
-    when(io.memOperTypeIn >= lsuLBType && io.memOperTypeIn <= lsuLDType) {
+    when(io.lsInstIn.operType >= lsuLBType && io.lsInstIn.operType <= lsuLDType) {
       isFirstReg    := true.B
       io.ifValidOut := true.B
       io.wtOut.ena  := false.B
@@ -127,9 +120,9 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memRegfileAddrReg := io.wtIn.addr
       memInstAddrReg    := io.instIn.addr
       memInstDataReg    := io.instIn.data
-      memOperTypeReg    := io.memOperTypeIn
-      memFunc3MSBReg    := io.memFunc3MSBIn
-    }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
+      memOperTypeReg    := io.lsInstIn.operType
+      memFunc3MSBReg    := io.lsInstIn.func3MSB
+    }.elsewhen(io.lsInstIn.operType >= lsuSBType && io.lsInstIn.operType <= lsuSDType) {
       isFirstReg    := true.B
       io.ifValidOut := true.B
       io.wtOut.ena  := false.B
@@ -138,13 +131,13 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
         io.ifValidOut   := false.B
         io.clintWt.ena  := true.B
         io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
-        io.clintWt.data := io.memValBIn
+        io.clintWt.data := io.lsInstIn.valB
       }.elsewhen(memSignExtnAddr === ClintBaseAddr + MTimeOffset) {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.ena  := true.B
         io.clintWt.addr := ClintBaseAddr + MTimeOffset
-        io.clintWt.data := io.memValBIn
+        io.clintWt.data := io.lsInstIn.valB
       }.otherwise {
         memValidReg := true.B
       }
@@ -157,65 +150,65 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
 
   // for load and store inst addr
   when(
-    io.memOperTypeIn === lsuLBUType ||
-      io.memOperTypeIn === lsuLHUType ||
-      io.memOperTypeIn === lsuLWUType
+    io.lsInstIn.operType === lsuLBUType ||
+      io.lsInstIn.operType === lsuLHUType ||
+      io.lsInstIn.operType === lsuLWUType
   ) {
     memAddrReg := memZeroExtnAddr
   }.elsewhen(
-    (io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) ||
-      (io.memOperTypeIn === lsuLBType) ||
-      (io.memOperTypeIn === lsuLHType) ||
-      (io.memOperTypeIn === lsuLWType) ||
-      (io.memOperTypeIn === lsuLDType)
+    (io.lsInstIn.operType >= lsuSBType && io.lsInstIn.operType <= lsuSDType) ||
+      (io.lsInstIn.operType === lsuLBType) ||
+      (io.lsInstIn.operType === lsuLHType) ||
+      (io.lsInstIn.operType === lsuLWType) ||
+      (io.lsInstIn.operType === lsuLDType)
   ) {
     memAddrReg := memSignExtnAddr
   }
 
   // prepare write data
   memDataReg := MuxLookup(
-    io.memOperTypeIn,
+    io.lsInstIn.operType,
     memDataReg,
     Seq(
-      // lsuSBType -> (io.memValBIn(7, 0) << (io.axi.addr(2, 0) * 8.U)),
-      // lsuSBType -> io.memValBIn(7, 0),
-      lsuSBType -> io.memValBIn,
+      // lsuSBType -> (io.lsInstIn.valB(7, 0) << (io.axi.addr(2, 0) * 8.U)),
+      // lsuSBType -> io.lsInstIn.valB(7, 0),
+      lsuSBType -> io.lsInstIn.valB,
       // (0x0, 0x1)->0, (0x2, 0x3)->1, (0x4, 0x5)->2, (0x6, 0x7)->3
       // shift bits: (addr(2, 0) / 2 * 16 bit)
-      // lsuSHType -> (io.memValBIn(15, 0) << (io.axi.addr(2, 0) * 8.U)),
-      lsuSHType -> io.memValBIn,
+      // lsuSHType -> (io.lsInstIn.valB(15, 0) << (io.axi.addr(2, 0) * 8.U)),
+      lsuSHType -> io.lsInstIn.valB,
       // (0x0...0x3)->0, (0x4...0x7)->1
       // shift bits: (addr(2, 0) / 4 * 32 bit)
-      // lsuSWType -> (io.memValBIn(31, 0) << (io.axi.addr(2, 0) * 8.U)),
-      lsuSWType -> io.memValBIn,
+      // lsuSWType -> (io.lsInstIn.valB(31, 0) << (io.axi.addr(2, 0) * 8.U)),
+      lsuSWType -> io.lsInstIn.valB,
       // (0x0...0x7)->0
-      lsuSDType -> io.memValBIn
+      lsuSDType -> io.lsInstIn.valB
     )
   )
 
   // io.axi.size := AXI4Bridge.SIZE_D // ? some bug
   io.axi.size := memInstSizeReg
   when(
-    io.memOperTypeIn === lsuLBType ||
-      io.memOperTypeIn === lsuLBUType ||
-      io.memOperTypeIn === lsuSBType
+    io.lsInstIn.operType === lsuLBType ||
+      io.lsInstIn.operType === lsuLBUType ||
+      io.lsInstIn.operType === lsuSBType
   ) {
     memInstSizeReg := AXI4Bridge.SIZE_B
   }.elsewhen(
-    io.memOperTypeIn === lsuLHType ||
-      io.memOperTypeIn === lsuLHUType ||
-      io.memOperTypeIn === lsuSHType
+    io.lsInstIn.operType === lsuLHType ||
+      io.lsInstIn.operType === lsuLHUType ||
+      io.lsInstIn.operType === lsuSHType
   ) {
     memInstSizeReg := AXI4Bridge.SIZE_H
   }.elsewhen(
-    io.memOperTypeIn === lsuLWType ||
-      io.memOperTypeIn === lsuLWUType ||
-      io.memOperTypeIn === lsuSWType
+    io.lsInstIn.operType === lsuLWType ||
+      io.lsInstIn.operType === lsuLWUType ||
+      io.lsInstIn.operType === lsuSWType
   ) {
     memInstSizeReg := AXI4Bridge.SIZE_W
   }.elsewhen(
-    io.memOperTypeIn === lsuLDType ||
-      io.memOperTypeIn === lsuSDType
+    io.lsInstIn.operType === lsuLDType ||
+      io.lsInstIn.operType === lsuSDType
   ) {
     memInstSizeReg := AXI4Bridge.SIZE_D
   }

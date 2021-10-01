@@ -8,8 +8,8 @@ class MAToWB extends Module with InstConfig {
     val wtIn:  TRANSIO = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from ma
     val wtOut: TRANSIO = new TRANSIO(RegAddrLen, BusWidth) // to wb
 
-    val ifValidIn:         Bool   = Input(Bool())
     val instIn:            INSTIO = new INSTIO
+    val ifValidIn:         Bool   = Input(Bool())
     val ifMemInstCommitIn: Bool   = Input(Bool())
     // from clint
     val clintWt: TRANSIO = Flipped(new TRANSIO(BusWidth, BusWidth))
@@ -18,8 +18,8 @@ class MAToWB extends Module with InstConfig {
     val memIntrEnterFlag: Bool   = Input(Bool())
 
     // to difftest
-    val diffMaSkipInstOut:  Bool   = Output(Bool())
     val instOut:            INSTIO = Flipped(new INSTIO)
+    val diffMaSkipInstOut:  Bool   = Output(Bool())
     val ifMemInstCommitOut: Bool   = Output(Bool())
   })
 
