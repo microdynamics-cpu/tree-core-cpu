@@ -14,7 +14,6 @@ class IDToEX extends Module with InstConfig {
     val idWtEnaIn:       Bool   = Input(Bool())
     val idWtAddrIn:      UInt   = Input(UInt(RegAddrLen.W))
     val lsuFunc3MSBIn:   UInt   = Input(UInt(1.W))
-    val lsuWtEnaIn:      Bool   = Input(Bool())
     val instIn:          INSTIO = new INSTIO
 
     // to ex
@@ -25,7 +24,6 @@ class IDToEX extends Module with InstConfig {
     val exWtAddrOut:      UInt = Output(UInt(RegAddrLen.W))
     // ex2ma
     val lsuFunc3MSBOut:    UInt   = Output(UInt(1.W))
-    val lsuWtEnaOut:       Bool   = Output(Bool())
     val diffIdSkipInstOut: Bool   = Output(Bool())
     val instOut:           INSTIO = Flipped(new INSTIO)
   })
@@ -37,7 +35,6 @@ class IDToEX extends Module with InstConfig {
   protected val wtEnaReg:          Bool = RegInit(false.B)
   protected val wtAddrReg:         UInt = RegInit(0.U(RegAddrLen.W))
   protected val lsuFunc3MSBReg:    UInt = RegInit(0.U(1.W))
-  protected val lsuWtEnaReg:       Bool = RegInit(false.B)
 
   //####################
   protected val instAddrReg: UInt = RegInit(0.U(BusWidth.W))
@@ -57,7 +54,6 @@ class IDToEX extends Module with InstConfig {
     wtEnaReg          := false.B
     wtAddrReg         := 0.U(RegAddrLen.W)
     lsuFunc3MSBReg    := 0.U(1.W)
-    lsuWtEnaReg       := false.B
   }.otherwise {
     diffIdSkipInstReg := false.B
     aluOperTypeReg    := io.idAluOperTypeIn
@@ -66,7 +62,6 @@ class IDToEX extends Module with InstConfig {
     wtEnaReg          := io.idWtEnaIn
     wtAddrReg         := io.idWtAddrIn
     lsuFunc3MSBReg    := io.lsuFunc3MSBIn
-    lsuWtEnaReg       := io.lsuWtEnaIn
   }
 
   io.diffIdSkipInstOut := diffIdSkipInstReg
@@ -76,5 +71,4 @@ class IDToEX extends Module with InstConfig {
   io.exWtEnaOut        := wtEnaReg
   io.exWtAddrOut       := wtAddrReg
   io.lsuFunc3MSBOut    := lsuFunc3MSBReg
-  io.lsuWtEnaOut       := lsuWtEnaReg
 }
