@@ -133,7 +133,6 @@ class InstDecoderStage extends Module with InstConfig {
     val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
     val fwRsEnaBIn: Bool = Input(Bool())
     val fwRsValBIn: UInt = Input(UInt(BusWidth.W))
-
     // to regfile
     val rdEnaAOut:  Bool = Output(Bool())
     val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
@@ -142,10 +141,9 @@ class InstDecoderStage extends Module with InstConfig {
     // to beu
     val exuOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
-    val exuOperNumOut:  UInt = Output(UInt(BusWidth.W))
     // to ma
-    val lsuFunc3Out: UInt = Output(UInt(3.W))
-    val lsuWtEnaOut: Bool = Output(Bool())
+    val lsuFunc3MSBOut: UInt = Output(UInt(1.W))
+    val lsuWtEnaOut:    Bool = Output(Bool())
     // to regfile
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
@@ -163,6 +161,7 @@ class InstDecoderStage extends Module with InstConfig {
   protected val rsRegAddrA: UInt = io.inst.data(19, 15)
   protected val rsRegAddrB: UInt = io.inst.data(24, 20)
   protected val rdRegAddr:  UInt = io.inst.data(11, 7)
+  protected val exuOperNum: UInt = Wire(UInt(BusWidth.W))
 
   protected val decodeRes = ListLookup(io.inst.data, InstDecoderStage.defDecodeRes, InstDecoderStage.decodeTable)
 
@@ -171,8 +170,8 @@ class InstDecoderStage extends Module with InstConfig {
   immExtensionUnit.io.instDataIn := io.inst.data
   immExtensionUnit.io.instTypeIn := decodeRes(1)
 
-  io.lsuFunc3Out := io.inst.data(14, 12)
-  io.lsuWtEnaOut := decodeRes(6)
+  io.lsuFunc3MSBOut := io.inst.data(14)
+  io.lsuWtEnaOut    := decodeRes(6)
 
   when(
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
@@ -215,16 +214,16 @@ class InstDecoderStage extends Module with InstConfig {
       decodeRes(3) === beuBGEType ||
       decodeRes(3) === beuBGEUType
   ) {
-    io.exuOperNumOut := io.inst.addr
+    exuOperNum := io.inst.addr
   }.elsewhen(decodeRes(3) === beuJALRType) {
     // import: maybe this time rdDataA have not been writen to the reg
     when(io.fwRsEnaAIn) {
-      io.exuOperNumOut := io.fwRsValAIn
+      exuOperNum := io.fwRsValAIn
     }.otherwise {
-      io.exuOperNumOut := io.rdDataAIn
+      exuOperNum := io.rdDataAIn
     }
   }.otherwise {
-    io.exuOperNumOut := 0.U(BusWidth.W)
+    exuOperNum := 0.U(BusWidth.W)
   }
 
   when(
@@ -287,7 +286,7 @@ class InstDecoderStage extends Module with InstConfig {
 
   // branch exec unit
   protected val beu = Module(new BEU)
-  beu.io.exuOperNumIn  := io.exuOperNumOut
+  beu.io.exuOperNumIn  := exuOperNum
   beu.io.exuOperTypeIn := io.exuOperTypeOut
   beu.io.rsValAIn      := io.rsValAOut
   beu.io.rsValBIn      := io.rsValBOut

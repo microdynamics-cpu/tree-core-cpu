@@ -3,16 +3,16 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module with AXI4Config with InstConfig {
+class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)
     val uart: UARTIO     = new UARTIO
   })
 
-  protected val pcUnit      = Module(new PCReg(ifSoC))
+  protected val pcUnit      = Module(new PCReg())
   protected val if2id       = Module(new IFToID)
-  protected val regFileUnit = Module(new RegFile(ifDiffTest))
+  protected val regFileUnit = Module(new RegFile())
   protected val idUnit      = Module(new InstDecoderStage)
   protected val id2ex       = Module(new IDToEX)
   protected val execUnit    = Module(new ExecutionStage)
@@ -21,7 +21,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
   protected val controlUnit = Module(new Control)
-  protected val csrUnit     = Module(new CSRReg(ifDiffTest))
+  protected val csrUnit     = Module(new CSRReg())
   protected val clintUnit   = Module(new CLINT)
 
   io.inst <> pcUnit.io.axi
@@ -63,7 +63,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   id2ex.io.idRsValBIn      := idUnit.io.rsValBOut
   id2ex.io.idWtEnaIn       := idUnit.io.wtEnaOut
   id2ex.io.idWtAddrIn      := idUnit.io.wtAddrOut
-  id2ex.io.lsuFunc3In      := idUnit.io.lsuFunc3Out
+  id2ex.io.lsuFunc3MSBIn   := idUnit.io.lsuFunc3MSBOut
   id2ex.io.lsuWtEnaIn      := idUnit.io.lsuWtEnaOut
   id2ex.io.ifFlushIn       := controlUnit.io.flushIdOut
 
@@ -79,7 +79,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   ex2ma.io.exWtEnaIn  := id2ex.io.exWtEnaOut
   ex2ma.io.exWtAddrIn := id2ex.io.exWtAddrOut
 
-  ex2ma.io.lsuFunc3In    := id2ex.io.lsuFunc3Out
+  ex2ma.io.lsuFunc3MSBIn := id2ex.io.lsuFunc3MSBOut
   ex2ma.io.lsuWtEnaIn    := id2ex.io.lsuWtEnaOut
   ex2ma.io.lsuOperTypeIn := execUnit.io.exuOperTypeIn
   ex2ma.io.lsuValAIn     := execUnit.io.rsValAIn
@@ -87,7 +87,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   ex2ma.io.lsuOffsetIn   := RegNext(execUnit.io.offsetIn) // important!!
 
   // ma
-  maUnit.io.memFunc3In    := ex2ma.io.lsuFunc3Out
+  maUnit.io.memFunc3MSBIn := ex2ma.io.lsuFunc3MSBOut
   maUnit.io.memOperTypeIn := ex2ma.io.lsuOperTypeOut
   maUnit.io.memValAIn     := ex2ma.io.lsuValAOut
   maUnit.io.memValBIn     := ex2ma.io.lsuValBOut
@@ -152,7 +152,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
   clintUnit.io.rd       <> ma2wb.io.clintWt
   clintUnit.io.intrInfo <> csrUnit.io.intrInfo
 
-  if (ifDiffTest) {
+  if (DiffEna) {
     // output custom putch oper for 0x7B
     io.uart.in.valid := false.B
     when(RegNext(ma2wb.io.instOut.data) === 0x0000007b.U) {
@@ -322,7 +322,7 @@ class TreeCoreL2(val ifDiffTest: Boolean, val ifSoC: Boolean) extends Module wit
     diffTrapState.io.cycleCnt := cycleCnt
     diffTrapState.io.instrCnt := instCnt
   } else {
-    io.uart <> DontCare
+    io.uart                <> DontCare
     regFileUnit.io.debugIn := DontCare
   }
 }

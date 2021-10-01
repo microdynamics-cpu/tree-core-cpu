@@ -5,7 +5,7 @@ import chisel3.util._
 import difftest._
 import treecorel2.common.ConstVal._
 
-class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
+class CSRReg() extends Module with InstConfig {
   val io = IO(new Bundle {
     // from id
     val rdAddrIn:       UInt   = Input(UInt(CSRAddrLen.W))
@@ -189,7 +189,7 @@ class CSRReg(val ifDiffTest: Boolean) extends Module with InstConfig {
     io.ifNeedSkip := false.B
   }
 
-  if (ifDiffTest) {
+  if (DiffEna) {
     val diffArchState = Module(new DifftestArchEvent())
     diffArchState.io.clock       := this.clock
     diffArchState.io.coreid      := 0.U

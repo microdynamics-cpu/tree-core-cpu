@@ -11,7 +11,7 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 class MemoryAccessStage extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
-    val memFunc3In:    UInt = Input(UInt(3.W))
+    val memFunc3MSBIn: UInt = Input(UInt(3.W))
     val memOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
     // memValAin -> x[rs1]
@@ -47,15 +47,19 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
 
   protected val memValidReg:       Bool = RegInit(false.B)
   protected val memReqReg:         UInt = RegInit(AxiReqNop.U(AxiReqLen.W))
-  protected val memAddrReg:        UInt = RegInit(0.U(AxiDataWidth.W))
+  protected val memAddrReg:        UInt = RegInit(0.U(AxiAddrWidth.W))
   protected val memDataReg:        UInt = RegInit(0.U(AxiDataWidth.W))
   protected val memRegfileAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
   protected val memInstAddrReg:    UInt = RegInit(0.U(BusWidth.W))
   protected val memInstDataReg:    UInt = RegInit(0.U(InstWidth.W))
   protected val memInstSizeReg:    UInt = RegInit(0.U(2.W))
   protected val memOperTypeReg:    UInt = RegInit(0.U(InstOperTypeLen.W))
-  protected val memFunc3Reg:       UInt = RegInit(0.U(3.W))
+  protected val memFunc3MSBReg:    UInt = RegInit(0.U(1.W))
   protected val isFirstReg:        Bool = RegInit(true.B)
+
+  protected val signExtnMidVal:  UInt = WireDefault(UInt(BusWidth.W), io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn, io.memOffsetIn(63)))
+  protected val memSignExtnAddr: UInt = WireDefault(UInt(BusWidth.W), getSignExtn(BusWidth, signExtnMidVal, signExtnMidVal(63)))
+  protected val memZeroExtnAddr: UInt = WireDefault(UInt(BusWidth.W), getZeroExtn(BusWidth, signExtnMidVal))
 
   io.axi.valid := memValidReg
   io.axi.req   := memReqReg
@@ -75,13 +79,13 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
 
       // save the mem oper type and memFunc3 type to sign ext the read data from the axi bus
       when(memOperTypeReg === lsuLBType || memOperTypeReg === lsuLBUType) {
-        io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 8, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(7))), io.axi.rdata(7, 0))
       }.elsewhen(memOperTypeReg === lsuLHType || memOperTypeReg === lsuLHUType) {
         // printf("prepare the mem wt data!!!!!!!!!\n")
         // printf(p"#############[ma]io.wtDataOut = 0x${Hexadecimal(io.wtDataOut)}\n")
-        io.wtDataOut := Cat(Fill(BusWidth - 16, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(15))), io.axi.rdata(15, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 16, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(15))), io.axi.rdata(15, 0))
       }.elsewhen(memOperTypeReg === lsuLWType || memOperTypeReg === lsuLWUType) {
-        io.wtDataOut := Cat(Fill(BusWidth - 32, Mux(memFunc3Reg(2), 0.U, io.axi.rdata(31))), io.axi.rdata(31, 0))
+        io.wtDataOut := Cat(Fill(BusWidth - 32, Mux(memFunc3MSBReg === 1.U, 0.U, io.axi.rdata(31))), io.axi.rdata(31, 0))
       }.otherwise {
         io.wtDataOut := io.axi.rdata
       }
@@ -117,17 +121,11 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       io.ifValidOut := true.B
       io.wtEnaOut   := false.B
       // *((uint64_t *) CLINT_MTIMECMP) += 7000000; just use the sd inst
-      when(
-        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
-          ClintBaseAddr + MTimeCmpOffset
-      ) {
+      when(memSignExtnAddr === ClintBaseAddr + MTimeCmpOffset) {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
-      }.elsewhen(
-        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
-          ClintBaseAddr + MTimeOffset
-      ) {
+      }.elsewhen(memSignExtnAddr === ClintBaseAddr + MTimeOffset) {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.addr := ClintBaseAddr + MTimeOffset
@@ -139,24 +137,18 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       memInstAddrReg    := io.instIn.addr
       memInstDataReg    := io.instIn.data
       memOperTypeReg    := io.memOperTypeIn
-      memFunc3Reg       := io.memFunc3In
+      memFunc3MSBReg    := io.memFunc3MSBIn
     }.elsewhen(io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) {
       isFirstReg    := true.B
       io.ifValidOut := true.B
       io.wtEnaOut   := false.B
-      when(
-        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
-          ClintBaseAddr + MTimeCmpOffset
-      ) {
+      when(memSignExtnAddr === ClintBaseAddr + MTimeCmpOffset) {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.ena  := true.B
         io.clintWt.addr := ClintBaseAddr + MTimeCmpOffset
         io.clintWt.data := io.memValBIn
-      }.elsewhen(
-        getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn)) ===
-          ClintBaseAddr + MTimeOffset
-      ) {
+      }.elsewhen(memSignExtnAddr === ClintBaseAddr + MTimeOffset) {
         memValidReg     := false.B
         io.ifValidOut   := false.B
         io.clintWt.ena  := true.B
@@ -178,7 +170,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       io.memOperTypeIn === lsuLHUType ||
       io.memOperTypeIn === lsuLWUType
   ) {
-    memAddrReg := getZeroExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    memAddrReg := memZeroExtnAddr
   }.elsewhen(
     (io.memOperTypeIn >= lsuSBType && io.memOperTypeIn <= lsuSDType) ||
       (io.memOperTypeIn === lsuLBType) ||
@@ -186,7 +178,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
       (io.memOperTypeIn === lsuLWType) ||
       (io.memOperTypeIn === lsuLDType)
   ) {
-    memAddrReg := getSignExtn(BusWidth, io.memValAIn + getSignExtn(BusWidth, io.memOffsetIn))
+    memAddrReg := memSignExtnAddr
   }
 
   // prepare write data

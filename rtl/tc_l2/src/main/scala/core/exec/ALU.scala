@@ -82,7 +82,7 @@ class ALU extends Module with InstConfig {
       io.exuOperTypeIn === aluSUBWType ||
       io.exuOperTypeIn === aluSRAWType
   ) {
-    io.wtDataOut := getSignExtn(BusWidth, res(31, 0))
+    io.wtDataOut := getSignExtn(BusWidth, res(31, 0), res(31))
   }.otherwise {
     io.wtDataOut := res
   }
