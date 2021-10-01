@@ -5,17 +5,10 @@ import AXI4Bridge._
 
 class PCReg() extends Module with AXI4Config with InstConfig {
   val io = IO(new Bundle {
-    // from control
-    val ifJumpIn:    Bool = Input(Bool())
-    val stallIfIn:   Bool = Input(Bool())
-    val maStallIfIn: Bool = Input(Bool())
-    // from id
-    val newInstAddrIn: UInt = Input(UInt(BusWidth.W))
-    // from axi
-    val axi: AXI4USERIO = Flipped(new AXI4USERIO)
-    // to id
-    val instDataOut: UInt = Output(UInt(InstWidth.W))
-    val instEnaOut:  Bool = Output(Bool())
+    val axi:         AXI4USERIO = Flipped(new AXI4USERIO) // from axi
+    val ctrl2pc:     CTRL2PCIO  = Flipped(new CTRL2PCIO) // from ctrl
+    val instEnaOut:  Bool       = Output(Bool())
+    val instDataOut: UInt       = Output(UInt(InstWidth.W)) // to id
   })
 
   protected val hdShkDone: Bool = WireDefault(io.axi.ready && io.axi.valid)
@@ -30,16 +23,16 @@ class PCReg() extends Module with AXI4Config with InstConfig {
   io.axi.addr  := pc
   io.axi.id    := 0.U
   // io.axi.valid := true.B // TODO: need to judge when mem need to read
-  io.axi.valid := ~io.maStallIfIn // TODO: maybe this code lead to cycle
+  io.axi.valid := ~io.ctrl2pc.maStall // TODO: maybe this code lead to cycle
   io.axi.size  := AXI4Bridge.SIZE_W
 
-  when(io.ifJumpIn) {
-    pc    := io.newInstAddrIn
+  when(io.ctrl2pc.jump) {
+    pc    := io.ctrl2pc.newPC
     dirty := true.B
-  }.elsewhen(io.stallIfIn) {
+  }.elsewhen(io.ctrl2pc.stall) {
     pc    := pc - 4.U(BusWidth.W) // because the stallIFin is come from ex stage
     dirty := true.B
-  }.elsewhen(io.maStallIfIn) {
+  }.elsewhen(io.ctrl2pc.maStall) {
     pc    := pc
     dirty := true.B
   }

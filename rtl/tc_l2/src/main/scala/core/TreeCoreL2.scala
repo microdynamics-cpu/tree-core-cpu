@@ -20,7 +20,7 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   protected val maUnit      = Module(new MemoryAccessStage)
   protected val ma2wb       = Module(new MAToWB)
   protected val forwardUnit = Module(new ForWard)
-  protected val controlUnit = Module(new Control)
+  protected val ctrlUnit    = Module(new Control)
   protected val csrUnit     = Module(new CSRReg())
   protected val clintUnit   = Module(new CLINT)
 
@@ -28,15 +28,12 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   io.mem  <> maUnit.io.axi
 
   // ex to pc
-  pcUnit.io.ifJumpIn      := controlUnit.io.ifJumpOut
-  pcUnit.io.newInstAddrIn := controlUnit.io.newInstAddrOut
-  pcUnit.io.stallIfIn     := controlUnit.io.stallIfOut
-  pcUnit.io.maStallIfIn   := controlUnit.io.maStallIfOut
+  pcUnit.io.ctrl2pc <> ctrlUnit.io.ctrl2pc
   // TODO: need to pass extra instAddr to the next stage?
   // if to id
   if2id.io.instIn.addr := pcUnit.io.axi.addr
   if2id.io.instIn.data := pcUnit.io.instDataOut
-  if2id.io.ifFlushIn   := controlUnit.io.flushIfOut
+  if2id.io.ifFlushIn   := ctrlUnit.io.flushIfOut
 
   // id
   idUnit.io.inst   <> if2id.io.instOut
@@ -45,17 +42,11 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   maUnit.io.instIn <> ex2ma.io.instOut
   ma2wb.io.instIn  <> maUnit.io.instOut
 
-  idUnit.io.rdDataAIn := regFileUnit.io.rdDataAOut
-  idUnit.io.rdDataBIn := regFileUnit.io.rdDataBOut
+  idUnit.io.id2regfile <> regFileUnit.io.id2regfile
 
   // for load correlation
   idUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
   idUnit.io.exuWtAddrIn   := id2ex.io.exWtAddrOut
-
-  regFileUnit.io.rdEnaAIn  := idUnit.io.rdEnaAOut
-  regFileUnit.io.rdAddrAIn := idUnit.io.rdAddrAOut
-  regFileUnit.io.rdEnaBIn  := idUnit.io.rdEnaBOut
-  regFileUnit.io.rdAddrBIn := idUnit.io.rdAddrBOut
 
   // id to ex
   id2ex.io.idAluOperTypeIn := idUnit.io.exuOperTypeOut
@@ -65,19 +56,17 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   id2ex.io.idWtAddrIn      := idUnit.io.wtAddrOut
   id2ex.io.lsuFunc3MSBIn   := idUnit.io.lsuFunc3MSBOut
   id2ex.io.lsuWtEnaIn      := idUnit.io.lsuWtEnaOut
-  id2ex.io.ifFlushIn       := controlUnit.io.flushIdOut
-
+  id2ex.io.ifFlushIn       := ctrlUnit.io.flushIdOut
   // ex
-  execUnit.io.offsetIn := idUnit.io.exuOffsetOut // important!!!
-
+  execUnit.io.offsetIn      := idUnit.io.exuOffsetOut // important!!!
   execUnit.io.exuOperTypeIn := id2ex.io.exAluOperTypeOut
   execUnit.io.rsValAIn      := id2ex.io.exRsValAOut
   execUnit.io.rsValBIn      := id2ex.io.exRsValBOut
   execUnit.io.csrRdDataIn   := RegNext(csrUnit.io.rdDataOut) // TODO: need to refactor
   // ex to ma
-  ex2ma.io.exDataIn   := execUnit.io.wtDataOut
-  ex2ma.io.exWtEnaIn  := id2ex.io.exWtEnaOut
-  ex2ma.io.exWtAddrIn := id2ex.io.exWtAddrOut
+  ex2ma.io.wtIn.ena  := id2ex.io.exWtEnaOut
+  ex2ma.io.wtIn.addr := id2ex.io.exWtAddrOut
+  ex2ma.io.wtIn.data := execUnit.io.wtDataOut
 
   ex2ma.io.lsuFunc3MSBIn := id2ex.io.lsuFunc3MSBOut
   ex2ma.io.lsuWtEnaIn    := id2ex.io.lsuWtEnaOut
@@ -93,39 +82,34 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   maUnit.io.memValBIn     := ex2ma.io.lsuValBOut
   maUnit.io.memOffsetIn   := ex2ma.io.lsuOffsetOut
 
-  maUnit.io.wtDataIn   := ex2ma.io.maDataOut
-  maUnit.io.wtEnaIn    := ex2ma.io.maWtEnaOut
-  maUnit.io.wtAddrIn   := ex2ma.io.maWtAddrOut
+  maUnit.io.wtIn       <> ex2ma.io.wtOut
   ex2ma.io.lsuWtEnaOut := DontCare
 
   // ma to wb
-  ma2wb.io.maDataIn          := maUnit.io.wtDataOut
-  ma2wb.io.maWtEnaIn         := maUnit.io.wtEnaOut
-  ma2wb.io.maWtAddrIn        := maUnit.io.wtAddrOut
+  ma2wb.io.wtIn              <> maUnit.io.wtOut
   ma2wb.io.ifValidIn         := maUnit.io.ifValidOut
   ma2wb.io.ifMemInstCommitIn := maUnit.io.ifMemInstCommitOut
   ma2wb.io.memIntrEnterFlag  := csrUnit.io.memIntrEnterFlag
   ma2wb.io.intrJumpInfo      <> csrUnit.io.intrJumpInfo
   // wb
-  regFileUnit.io.wtDataIn := ma2wb.io.wbDataOut
-  regFileUnit.io.wtEnaIn  := ma2wb.io.wbWtEnaOut
-  regFileUnit.io.wtAddrIn := ma2wb.io.wbWtAddrOut
+  regFileUnit.io.wtIn <> ma2wb.io.wtOut
 
   // forward control unit
-  forwardUnit.io.exDataIn   := ex2ma.io.exDataIn
-  forwardUnit.io.exWtEnaIn  := ex2ma.io.exWtEnaIn
-  forwardUnit.io.exWtAddrIn := ex2ma.io.exWtAddrIn
+  // forwardUnit.io.exIn <> ex2ma.io.wtIn
+  forwardUnit.io.exIn.ena  := ex2ma.io.wtIn.ena
+  forwardUnit.io.exIn.addr := ex2ma.io.wtIn.addr
+  forwardUnit.io.exIn.data := ex2ma.io.wtIn.data
 
   // maDataIn only come from regfile and imm
   // maDataOut have right data include load/store inst and alu calc
-  forwardUnit.io.maDataIn   := ma2wb.io.maDataIn
-  forwardUnit.io.maWtEnaIn  := ma2wb.io.maWtEnaIn
-  forwardUnit.io.maWtAddrIn := ma2wb.io.maWtAddrIn
+  forwardUnit.io.maIn.ena  := ma2wb.io.wtIn.ena
+  forwardUnit.io.maIn.addr := ma2wb.io.wtIn.addr
+  forwardUnit.io.maIn.data := ma2wb.io.wtIn.data
 
-  forwardUnit.io.idRdEnaAIn  := idUnit.io.rdEnaAOut
-  forwardUnit.io.idRdAddrAIn := idUnit.io.rdAddrAOut
-  forwardUnit.io.idRdEnaBIn  := idUnit.io.rdEnaBOut
-  forwardUnit.io.idRdAddrBIn := idUnit.io.rdAddrBOut
+  forwardUnit.io.idRdEnaAIn  := idUnit.io.id2regfile.rdA.ena
+  forwardUnit.io.idRdAddrAIn := idUnit.io.id2regfile.rdA.addr
+  forwardUnit.io.idRdEnaBIn  := idUnit.io.id2regfile.rdB.ena
+  forwardUnit.io.idRdAddrBIn := idUnit.io.id2regfile.rdB.addr
 
   idUnit.io.fwRsEnaAIn := forwardUnit.io.fwRsEnaAOut
   idUnit.io.fwRsValAIn := forwardUnit.io.fwRsValAOut
@@ -133,12 +117,12 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
   idUnit.io.fwRsValBIn := forwardUnit.io.fwRsValBOut
 
   // branch and load/store control
-  controlUnit.io.excpJumpInfo     <> csrUnit.io.excpJumpInfo
-  controlUnit.io.intrJumpInfo     <> csrUnit.io.intrJumpInfo
-  controlUnit.io.jumpTypeIn       := idUnit.io.jumpTypeOut
-  controlUnit.io.newInstAddrIn    := idUnit.io.newInstAddrOut
-  controlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
-  controlUnit.io.stallReqFromMaIn := maUnit.io.stallReqOut
+  ctrlUnit.io.excpJumpInfo     <> csrUnit.io.excpJumpInfo
+  ctrlUnit.io.intrJumpInfo     <> csrUnit.io.intrJumpInfo
+  ctrlUnit.io.jumpTypeIn       := idUnit.io.jumpTypeOut
+  ctrlUnit.io.newInstAddrIn    := idUnit.io.newInstAddrOut
+  ctrlUnit.io.stallReqFromIDIn := idUnit.io.stallReqFromIDOut
+  ctrlUnit.io.stallReqFromMaIn := maUnit.io.stallReqOut
   // csr
   csrUnit.io.rdAddrIn          := idUnit.io.csrAddrOut
   csrUnit.io.instOperTypeIn    := idUnit.io.csrInstTypeOut
@@ -197,13 +181,11 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
         (!(RegNext(ma2wb.io.diffMaSkipInstOut))) & (!RegNext(RegNext(RegNext(RegNext(csrUnit.io.intrJumpInfo.kind === 3.U)))))
     }
 
-    // diffCommitState.io.pc := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.axi.addr)))))
-    // diffCommitState.io.instr := RegNext(RegNext(RegNext(RegNext(RegNext(pcUnit.io.instDataOut))))) // important!!!
     diffCommitState.io.pc    := RegNext(ma2wb.io.instOut.addr)
     diffCommitState.io.instr := RegNext(ma2wb.io.instOut.data)
-    diffCommitState.io.wen   := RegNext(ma2wb.io.wbWtEnaOut)
-    diffCommitState.io.wdata := RegNext(ma2wb.io.wbDataOut)
-    diffCommitState.io.wdest := RegNext(ma2wb.io.wbWtAddrOut)
+    diffCommitState.io.wen   := RegNext(ma2wb.io.wtOut.ena)
+    diffCommitState.io.wdata := RegNext(ma2wb.io.wtOut.data)
+    diffCommitState.io.wdest := RegNext(ma2wb.io.wtOut.addr)
 
     val debugCnt: UInt = RegInit(0.U(5.W))
 
@@ -268,9 +250,9 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
       // printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(maUnit.io.wtEnaOut)}\n")
       // printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(maUnit.io.wtAddrOut)}\n")
 
-      // printf(p"[ma2wb]io.wbDataOut   = 0x${Hexadecimal(ma2wb.io.wbDataOut)}\n")
-      // printf(p"[ma2wb]io.wbWtEnaOut  = 0x${Hexadecimal(ma2wb.io.wbWtEnaOut)}\n")
-      // printf(p"[ma2wb]io.wbWtAddrOut = 0x${Hexadecimal(ma2wb.io.wbWtAddrOut)}\n")
+      // printf(p"[ma2wb.io.wtOut.data   = 0x${Hexadecimal(ma2wb.io.wtOut.data)}\n")
+      // printf(p"[ma2wb.io.wtOut.ena  = 0x${Hexadecimal(ma2wb.io.wtOut.ena)}\n")
+      // printf(p"[ma2wb]io.wbWtAddrOut = 0x${Hexadecimal(ma2wb.io.wtOut.addr)}\n")
 
       // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
       // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")
@@ -294,9 +276,9 @@ class TreeCoreL2() extends Module with AXI4Config with InstConfig {
       // printf(p"[ma]io.wtDataOut = 0x${Hexadecimal(maUnit.io.wtDataOut)}\n")
       // printf(p"[ma]io.wtEnaOut = 0x${Hexadecimal(maUnit.io.wtEnaOut)}\n")
       // printf(p"[ma]io.wtAddrOut = 0x${Hexadecimal(maUnit.io.wtAddrOut)}\n")
-      // printf(p"[ma2wb]io.wbDataOut = 0x${Hexadecimal(ma2wb.io.wbDataOut)}\n")
-      // printf(p"[ma2wb]io.wbWtEnaOut = 0x${Hexadecimal(ma2wb.io.wbWtEnaOut)}\n")
-      // printf(p"[ma2wb]io.wbWtAddrOut = 0x${Hexadecimal(ma2wb.io.wbWtAddrOut)}\n")
+      // printf(p"[ma2wb.io.wtOut.data = 0x${Hexadecimal(ma2wb.io.wtOut.data)}\n")
+      // printf(p"[ma2wb.io.wtOut.ena = 0x${Hexadecimal(ma2wb.io.wtOut.ena)}\n")
+      // printf(p"[ma2wb]io.wbWtAddrOut = 0x${Hexadecimal(ma2wb.io.wtOut.addr)}\n")
       // printf(p"[csr]io.debugMstatus = 0x${Hexadecimal(csrUnit.io.debugMstatus)}\n")
       // printf(p"[main]diffCommitState.io.pc = 0x${Hexadecimal(diffCommitState.io.pc)}\n")
       // printf(p"[main]diffCommitState.io.instr = 0x${Hexadecimal(diffCommitState.io.instr)}\n")

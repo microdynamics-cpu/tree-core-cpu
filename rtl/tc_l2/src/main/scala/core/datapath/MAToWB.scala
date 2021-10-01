@@ -5,22 +5,18 @@ import treecorel2.common.ConstVal._
 
 class MAToWB extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from ma
-    val maDataIn:          UInt   = Input(UInt(BusWidth.W))
-    val maWtEnaIn:         Bool   = Input(Bool())
-    val maWtAddrIn:        UInt   = Input(UInt(RegAddrLen.W))
+    val wtIn:  TRANSIO = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from ma
+    val wtOut: TRANSIO = new TRANSIO(RegAddrLen, BusWidth) // to wb
+
     val ifValidIn:         Bool   = Input(Bool())
     val instIn:            INSTIO = new INSTIO
     val ifMemInstCommitIn: Bool   = Input(Bool())
     // from clint
-    val clintWt: TRANSIO = Flipped(new TRANSIO)
+    val clintWt: TRANSIO = Flipped(new TRANSIO(BusWidth, BusWidth))
     // from csr
     val intrJumpInfo:     JUMPIO = Flipped(new JUMPIO)
     val memIntrEnterFlag: Bool   = Input(Bool())
-    // to wb
-    val wbDataOut:   UInt = Output(UInt(BusWidth.W))
-    val wbWtEnaOut:  Bool = Output(Bool())
-    val wbWtAddrOut: UInt = Output(UInt(RegAddrLen.W))
+
     // to difftest
     val diffMaSkipInstOut:  Bool   = Output(Bool())
     val instOut:            INSTIO = Flipped(new INSTIO)
@@ -43,27 +39,27 @@ class MAToWB extends Module with InstConfig {
   protected val diffMaSkipInstReg: Bool = RegInit(false.B)
   protected val memInstCommitReg:  Bool = RegInit(false.B)
 
-  resReg            := io.maDataIn
-  wtEnaReg          := io.maWtEnaIn
-  wtAddrReg         := io.maWtAddrIn
+  resReg            := io.wtIn.data
+  wtEnaReg          := io.wtIn.ena
+  wtAddrReg         := io.wtIn.addr
   diffMaSkipInstReg := io.ifValidIn
   memInstCommitReg  := io.ifMemInstCommitIn
 
   when(RegNext(io.clintWt.ena)) {
-    io.wbDataOut  := RegNext(io.clintWt.data) // FIXME: need to refactor
-    io.wbWtEnaOut := true.B
+    io.wtOut.data := RegNext(io.clintWt.data) // FIXME: need to refactor
+    io.wtOut.ena  := true.B
   }.elsewhen(RegNext(RegNext(RegNext(io.intrJumpInfo.kind === csrJumpType)))) { // solve the no l/d inst invalid wt when trigger interrupt
-    io.wbDataOut  := 0.U
-    io.wbWtEnaOut := false.B
+    io.wtOut.data := 0.U
+    io.wtOut.ena  := false.B
   }.elsewhen(io.ifMemInstCommitOut && io.memIntrEnterFlag) { // FIXME: solve l/d inst wt reg invalid
-    io.wbDataOut  := 0.U
-    io.wbWtEnaOut := false.B
+    io.wtOut.data := 0.U
+    io.wtOut.ena  := false.B
   }.otherwise {
-    io.wbDataOut  := resReg
-    io.wbWtEnaOut := wtEnaReg
+    io.wtOut.data := resReg
+    io.wtOut.ena  := wtEnaReg
   }
-  // io.wbWtEnaOut  := wtEnaReg
-  io.wbWtAddrOut := wtAddrReg
+  // io.wtOut.ena  := wtEnaReg
+  io.wtOut.addr := wtAddrReg
 
   io.diffMaSkipInstOut  := diffMaSkipInstReg
   io.ifMemInstCommitOut := memInstCommitReg

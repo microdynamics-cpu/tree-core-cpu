@@ -4,14 +4,9 @@ import chisel3._
 
 class ForWard extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from ex
-    val exDataIn:   UInt = Input(UInt(BusWidth.W))
-    val exWtEnaIn:  Bool = Input(Bool())
-    val exWtAddrIn: UInt = Input(UInt(RegAddrLen.W))
-    // from ma
-    val maDataIn:   UInt = Input(UInt(BusWidth.W))
-    val maWtEnaIn:  Bool = Input(Bool())
-    val maWtAddrIn: UInt = Input(UInt(RegAddrLen.W))
+    val exIn: TRANSIO = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from ex
+    val maIn: TRANSIO = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from ma
+
     // from regfile
     val idRdEnaAIn:  Bool = Input(Bool())
     val idRdAddrAIn: UInt = Input(UInt(RegAddrLen.W))
@@ -25,22 +20,22 @@ class ForWard extends Module with InstConfig {
   })
 
   //  =/= for addi x0, x1, 0x30 bypass can cause error
-  when(io.idRdAddrAIn === io.exWtAddrIn && io.idRdAddrAIn =/= 0.U(RegAddrLen.W) && io.idRdEnaAIn && io.exWtEnaIn) {
-    io.fwRsValAOut := io.exDataIn
+  when(io.idRdAddrAIn === io.exIn.addr && io.idRdAddrAIn =/= 0.U(RegAddrLen.W) && io.idRdEnaAIn && io.exIn.ena) {
+    io.fwRsValAOut := io.exIn.data
     io.fwRsEnaAOut := true.B
-  }.elsewhen(io.idRdAddrAIn === io.maWtAddrIn && io.idRdAddrAIn =/= 0.U(RegAddrLen.W) && io.idRdEnaAIn && io.maWtEnaIn) {
-    io.fwRsValAOut := io.maDataIn
+  }.elsewhen(io.idRdAddrAIn === io.maIn.addr && io.idRdAddrAIn =/= 0.U(RegAddrLen.W) && io.idRdEnaAIn && io.maIn.ena) {
+    io.fwRsValAOut := io.maIn.data
     io.fwRsEnaAOut := true.B
   }.otherwise {
     io.fwRsValAOut := 0.U(BusWidth.W)
     io.fwRsEnaAOut := false.B
   }
 
-  when(io.idRdAddrBIn === io.exWtAddrIn && io.idRdAddrBIn =/= 0.U(RegAddrLen.W) && io.idRdEnaBIn && io.exWtEnaIn) {
-    io.fwRsValBOut := io.exDataIn
+  when(io.idRdAddrBIn === io.exIn.addr && io.idRdAddrBIn =/= 0.U(RegAddrLen.W) && io.idRdEnaBIn && io.exIn.ena) {
+    io.fwRsValBOut := io.exIn.data
     io.fwRsEnaBOut := true.B
-  }.elsewhen(io.idRdAddrBIn === io.maWtAddrIn && io.idRdAddrBIn =/= 0.U(RegAddrLen.W) && io.idRdEnaBIn && io.maWtEnaIn) {
-    io.fwRsValBOut := io.maDataIn
+  }.elsewhen(io.idRdAddrBIn === io.maIn.addr && io.idRdAddrBIn =/= 0.U(RegAddrLen.W) && io.idRdEnaBIn && io.maIn.ena) {
+    io.fwRsValBOut := io.maIn.data
     io.fwRsEnaBOut := true.B
   }.otherwise {
     io.fwRsValBOut := 0.U(BusWidth.W)

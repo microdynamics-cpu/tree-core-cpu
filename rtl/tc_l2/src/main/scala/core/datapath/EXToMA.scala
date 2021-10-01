@@ -5,10 +5,10 @@ import treecorel2.common.ConstVal._
 
 class EXToMA extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from ex
-    val exDataIn:      UInt   = Input(UInt(BusWidth.W))
-    val exWtEnaIn:     Bool   = Input(Bool())
-    val exWtAddrIn:    UInt   = Input(UInt(RegAddrLen.W))
+
+    val wtIn:  TRANSIO = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from ex
+    val wtOut: TRANSIO = new TRANSIO(RegAddrLen, BusWidth) // to ma
+
     val lsuFunc3MSBIn: UInt   = Input(UInt(1.W))
     val lsuWtEnaIn:    Bool   = Input(Bool())
     val lsuOperTypeIn: UInt   = Input(UInt(InstOperTypeLen.W))
@@ -18,9 +18,6 @@ class EXToMA extends Module with InstConfig {
     val instIn:        INSTIO = new INSTIO
 
     // to ma
-    val maDataOut:      UInt   = Output(UInt(BusWidth.W))
-    val maWtEnaOut:     Bool   = Output(Bool())
-    val maWtAddrOut:    UInt   = Output(UInt(RegAddrLen.W))
     val lsuFunc3MSBOut: UInt   = Output(UInt(1.W))
     val lsuWtEnaOut:    Bool   = Output(Bool())
     val lsuOperTypeOut: UInt   = Output(UInt(InstOperTypeLen.W))
@@ -50,9 +47,9 @@ class EXToMA extends Module with InstConfig {
   protected val lsuValBReg:     UInt = RegInit(0.U(BusWidth.W))
   protected val lsuOffsetReg:   UInt = RegInit(0.U(BusWidth.W))
 
-  dataReg        := io.exDataIn
-  wtEnaReg       := io.exWtEnaIn
-  wtAddrReg      := io.exWtAddrIn
+  dataReg        := io.wtIn.data
+  wtEnaReg       := io.wtIn.ena
+  wtAddrReg      := io.wtIn.addr
   lsuFunc3MSBReg := io.lsuFunc3MSBIn
   lsuWtEnaReg    := io.lsuWtEnaIn
   lsuOperTypeReg := io.lsuOperTypeIn
@@ -60,9 +57,9 @@ class EXToMA extends Module with InstConfig {
   lsuValBReg     := io.lsuValBIn
   lsuOffsetReg   := io.lsuOffsetIn
 
-  io.maDataOut      := dataReg
-  io.maWtEnaOut     := wtEnaReg
-  io.maWtAddrOut    := wtAddrReg
+  io.wtOut.data     := dataReg
+  io.wtOut.ena      := wtEnaReg
+  io.wtOut.addr     := wtAddrReg
   io.lsuFunc3MSBOut := lsuFunc3MSBReg
   io.lsuWtEnaOut    := lsuWtEnaReg
   io.lsuOperTypeOut := lsuOperTypeReg
