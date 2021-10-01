@@ -1,18 +1,16 @@
 package treecorel2.common
 
 import chisel3._
-import chisel3.util.{Cat, Fill}
+import chisel3.util._
 
-object getMSBValue {
-  def apply(data: UInt): Bool = data(data.getWidth - 1).asBool()
-}
-
+// be careful to call this func, need to set the right msb val!!!
+// to minify the wire unused pin and bits in verilator
 object getSignExtn {
-  def apply(bitWidth: Int, data: UInt): UInt = {
+  def apply(bitWidth: Int, data: UInt, msb: UInt): UInt = {
     if (bitWidth - data.getWidth == 0) {
       data
     } else {
-      Cat(Fill(bitWidth - data.getWidth, getMSBValue(data).asUInt), data)
+      Cat(Fill(bitWidth - data.getWidth, msb), data)
     }
   }
 }
