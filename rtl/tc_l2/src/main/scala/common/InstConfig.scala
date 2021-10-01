@@ -9,6 +9,7 @@ trait InstConfig {
   val InstCacheLen = 128
   val RegAddrLen   = 5
   val RegNum       = 32
+  val MemOffsetLen = 12
 
   val PCLoadStartAddr  = "h80000000"
   val PCFlashStartAddr = "h30000000"
@@ -25,4 +26,7 @@ trait InstConfig {
   // |===============|
   val DiffEna = true
   val SoCEna  = false
+  //======================
+  // val DiffEna = false
+  // val SoCEna  = true
 }

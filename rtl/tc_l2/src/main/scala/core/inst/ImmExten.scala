@@ -17,19 +17,9 @@ class ImmExten extends Module with InstConfig {
   protected val rTypeImm: UInt = 0.U(BusWidth.W)
   protected val iTypeImm: UInt = getSignExtn(BusWidth, io.instDataIn(31, 20), io.instDataIn(31))
   protected val sTypeImm: UInt = getSignExtn(BusWidth, Cat(io.instDataIn(31, 25), io.instDataIn(11, 7)), io.instDataIn(31))
-  protected val bTypeImm: UInt =
-    getSignExtn(
-      BusWidth,
-      Cat(io.instDataIn(31), io.instDataIn(7), io.instDataIn(30, 25), io.instDataIn(11, 8), 0.U(1.W)),
-      io.instDataIn(31)
-    )
+  protected val bTypeImm: UInt = getSignExtn(BusWidth, Cat(io.instDataIn(31), io.instDataIn(7), io.instDataIn(30, 25), io.instDataIn(11, 8), 0.U(1.W)), io.instDataIn(31))
   protected val uTypeImm: UInt = getSignExtn(BusWidth, io.instDataIn(31, 12), io.instDataIn(31))
-  protected val jTypeImm: UInt =
-    getSignExtn(
-      BusWidth,
-      Cat(io.instDataIn(31), io.instDataIn(19, 12), io.instDataIn(20), io.instDataIn(30, 21), 0.U(1.W)),
-      io.instDataIn(31)
-    )
+  protected val jTypeImm: UInt = getSignExtn(BusWidth, Cat(io.instDataIn(31), io.instDataIn(19, 12), io.instDataIn(20), io.instDataIn(30, 21), 0.U(1.W)), io.instDataIn(31))
 
   io.immOut := MuxLookup(
     io.instTypeIn,
