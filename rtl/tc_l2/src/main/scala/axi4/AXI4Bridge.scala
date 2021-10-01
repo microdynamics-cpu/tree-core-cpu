@@ -71,7 +71,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 
   // preposition
   protected val instAxiId = Fill(AxiIdLen, "b0".U(1.W))
-  protected val memAxiId  = Cat(AxiIdLen.U - Fill(1, "b0".U(1.W)), "b1".U(1.W)) // TODO: bug? b1001
+  protected val memAxiId  = Fill(AxiIdLen, "b1".U(1.W))
 
   // only mem oper can write dram
   protected val wtTrans     = WireDefault(io.mem.req === AxiReqWt.U)
@@ -94,181 +94,166 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val instTransDone = WireDefault(instRdDone)
 
   // FSM for read/write
-  protected val fsmWtIDLE  = 0.U(3.W)
-  protected val fsmWtADDR  = 1.U(3.W)
-  protected val fsmWtWRITE = 2.U(3.W)
-  protected val fsmWtRESP  = 3.U(3.W)
-  protected val fsmWtRESP2 = 4.U(3.W)
+  protected val eumWtIDLE :: eumWtADDR :: eumWtWRITE :: eumWtRESP :: eumWtRESP2 :: Nil = Enum(5)
 
-  protected val fsmRdIDLE          = 0.U(4.W)
-  protected val fsmIfARwithMemIDLE = 1.U(4.W)
-  protected val fsmIfRDwithMemIDLE = 2.U(4.W)
-  protected val fsmIfRDwithMemAR   = 3.U(4.W)
-  protected val fsmIfARwithMemRD   = 4.U(4.W)
-  protected val fsmIfRDwithMemRD   = 5.U(4.W)
-  protected val fsmIfIDLEwithMemAR = 6.U(4.W)
-  protected val fsmIfIDLEwithMemRD = 7.U(4.W)
-  protected val fsmDelayRdIDLE     = 8.U(4.W) // var's name is the target fsm state
-  protected val fsmDelayARWithIDLE = 9.U(4.W)
-  protected val fsmDelayRdWithIDLE = 10.U(4.W)
+  protected val eumRdIDLE :: eumIfARwithMemIDLE :: eumIfRDwithMemIDLE :: eumIfRDwithMemAR :: eumIfARwithMemRD :: eumIfRDwithMemRD :: eumIfIDLEwithMemAR :: eumIfIDLEwithMemRD :: eumDelayRdIDLE :: eumDelayARWithIDLE :: fsmDelayRdWithIDLE :: Nil = Enum(11)
 
-  protected val wtStateReg = RegInit(fsmWtIDLE)
-  protected val rdStateReg = RegInit(fsmRdIDLE)
+  protected val wtStateReg = RegInit(eumWtIDLE)
+  protected val rdStateReg = RegInit(eumRdIDLE)
 
-  protected val wtStateIdle  = WireDefault(wtStateReg === fsmWtIDLE)
-  protected val wtStateAddr  = WireDefault(wtStateReg === fsmWtADDR)
-  protected val wtStateWrite = WireDefault(wtStateReg === fsmWtWRITE)
-  protected val wtStateResp  = WireDefault(wtStateReg === fsmWtRESP)
-
-  protected val rdStateIdle       = WireDefault(rdStateReg === fsmRdIDLE)
-  protected val rdIfARwithMemIDLE = WireDefault(rdStateReg === fsmIfARwithMemIDLE)
-  protected val rdIfRDwithMemIDLE = WireDefault(rdStateReg === fsmIfRDwithMemIDLE)
-  protected val rdIfRDwithMemAR   = WireDefault(rdStateReg === fsmIfRDwithMemAR)
-  protected val rdIfARwithMemRD   = WireDefault(rdStateReg === fsmIfARwithMemRD)
-  protected val rdIfRDwithMemRD   = WireDefault(rdStateReg === fsmIfRDwithMemRD)
-  protected val rdIfIDLEwithMemAR = WireDefault(rdStateReg === fsmIfIDLEwithMemAR)
-  protected val rdIfIDLEwithMemRD = WireDefault(rdStateReg === fsmIfIDLEwithMemRD)
+  protected val wtStateIdle       = WireDefault(wtStateReg === eumWtIDLE)
+  protected val wtStateAddr       = WireDefault(wtStateReg === eumWtADDR)
+  protected val wtStateWrite      = WireDefault(wtStateReg === eumWtWRITE)
+  protected val wtStateResp       = WireDefault(wtStateReg === eumWtRESP)
+  protected val rdStateIdle       = WireDefault(rdStateReg === eumRdIDLE)
+  protected val rdIfARwithMemIDLE = WireDefault(rdStateReg === eumIfARwithMemIDLE)
+  protected val rdIfRDwithMemIDLE = WireDefault(rdStateReg === eumIfRDwithMemIDLE)
+  protected val rdIfRDwithMemAR   = WireDefault(rdStateReg === eumIfRDwithMemAR)
+  protected val rdIfARwithMemRD   = WireDefault(rdStateReg === eumIfARwithMemRD)
+  protected val rdIfRDwithMemRD   = WireDefault(rdStateReg === eumIfRDwithMemRD)
+  protected val rdIfIDLEwithMemAR = WireDefault(rdStateReg === eumIfIDLEwithMemAR)
+  protected val rdIfIDLEwithMemRD = WireDefault(rdStateReg === eumIfIDLEwithMemRD)
 
   when(wtValid) {
     switch(wtStateReg) {
-      is(fsmWtIDLE) {
-        wtStateReg := fsmWtADDR
+      is(eumWtIDLE) {
+        wtStateReg := eumWtADDR
       }
-      is(fsmWtADDR) {
+      is(eumWtADDR) {
         // printf("[axi]write addr!!!!!!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi]io.axi.aw.bits.addr = 0x${Hexadecimal(io.axi.aw.bits.addr)}\n")
         when(awHdShk) {
-          wtStateReg := fsmWtWRITE
+          wtStateReg := eumWtWRITE
           // printf("[axi]change wt addr --> data\n")
         }
       }
-      is(fsmWtWRITE) {
+      is(eumWtWRITE) {
         // printf("[axi]write data!!!!!!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi]io.axi.w.bits.data = 0x${Hexadecimal(io.axi.w.bits.data)}\n")
         // printf(p"[axi]axiWtDataLow = 0x${Hexadecimal(axiWtDataLow)}\n")
         // printf(p"[axi]axiWtDataHig = 0x${Hexadecimal(axiWtDataHig)}\n")
         when(wtDone) {
-          wtStateReg := fsmWtRESP
+          wtStateReg := eumWtRESP
           // printf("[axi]change wt data --> resp\n")
         }
       }
-      is(fsmWtRESP) {
+      is(eumWtRESP) {
         when(wtbHdShk) {
-          wtStateReg := fsmWtRESP2
+          wtStateReg := eumWtRESP2
           // printf("[axi]change resp --> idle\n")
         }
       }
-      is(fsmWtRESP2) {
-        wtStateReg := fsmWtIDLE
+      is(eumWtRESP2) {
+        wtStateReg := eumWtIDLE
       }
     }
   }
 
   when(rdValid) {
     switch(rdStateReg) {
-      is(fsmRdIDLE) {
+      is(eumRdIDLE) {
         // printf("[axi] if-idle mem-idle!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.debug = 0x${Hexadecimal(io.debug)}\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         when(io.mem.valid && memRdTrans) {
-          rdStateReg := fsmIfIDLEwithMemAR
+          rdStateReg := eumIfIDLEwithMemAR
         }.otherwise {
-          rdStateReg := fsmIfARwithMemIDLE
+          rdStateReg := eumIfARwithMemIDLE
         }
       }
-      is(fsmIfIDLEwithMemAR) {
+      is(eumIfIDLEwithMemAR) {
         // printf("[axi] if-idle mem-ar!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         // printf(p"[axi] io.axi.ar.bits.addr = 0x${Hexadecimal(io.axi.ar.bits.addr)}\n")
         when(arHdShk && io.inst.valid && instRdTrans) {
-          rdStateReg := fsmIfARwithMemRD
+          rdStateReg := eumIfARwithMemRD
         }.elsewhen(arHdShk) {
-          rdStateReg := fsmIfIDLEwithMemRD
+          rdStateReg := eumIfIDLEwithMemRD
         }
       }
-      is(fsmIfARwithMemIDLE) {
+      is(eumIfARwithMemIDLE) {
         // printf("[axi] if-ar mem-idle!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         when(arHdShk && io.mem.valid && memRdTrans) {
-          rdStateReg := fsmIfRDwithMemAR
+          rdStateReg := eumIfRDwithMemAR
         }.elsewhen(arHdShk) {
-          rdStateReg := fsmIfRDwithMemIDLE
+          rdStateReg := eumIfRDwithMemIDLE
         }
       }
-      is(fsmIfARwithMemRD) {
+      is(eumIfARwithMemRD) {
         // printf("[axi] if-ar mem-rd!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         // printf(p"[axi] io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
         when(arHdShk && (~memRdDone)) {
-          rdStateReg := fsmIfRDwithMemRD
+          rdStateReg := eumIfRDwithMemRD
         }.elsewhen((~arHdShk) && memRdDone) {
-          // rdStateReg := fsmIfARwithMemIDLE
-          rdStateReg := fsmDelayARWithIDLE
+          // rdStateReg := eumIfARwithMemIDLE
+          rdStateReg := eumDelayARWithIDLE
         }.elsewhen(arHdShk && memRdDone) {
-          // rdStateReg := fsmIfRDwithMemIDLE
+          // rdStateReg := eumIfRDwithMemIDLE
           rdStateReg := fsmDelayRdWithIDLE
         }
       }
-      is(fsmIfIDLEwithMemRD) {
+      is(eumIfIDLEwithMemRD) {
         // printf("[axi] if-idle mem-rd!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         // printf(p"[axi] io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
         when(io.inst.valid && instRdTrans && (~memRdDone)) {
-          rdStateReg := fsmIfARwithMemRD
+          rdStateReg := eumIfARwithMemRD
         }.elsewhen((~(io.inst.valid && instRdTrans)) && memRdDone) {
-          // rdStateReg := fsmRdIDLE
-          rdStateReg := fsmDelayRdIDLE
+          // rdStateReg := eumRdIDLE
+          rdStateReg := eumDelayRdIDLE
         }.elsewhen(io.inst.valid && instRdTrans && memRdDone) {
-          // rdStateReg := fsmIfARwithMemIDLE
-          rdStateReg := fsmDelayARWithIDLE
+          // rdStateReg := eumIfARwithMemIDLE
+          rdStateReg := eumDelayARWithIDLE
         }
       }
-      is(fsmIfRDwithMemAR) {
+      is(eumIfRDwithMemAR) {
         // printf("[axi] if-rd mem-ar!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         // printf(p"[axi] io.axi.ar.bits.addr = 0x${Hexadecimal(io.axi.ar.bits.addr)}\n")
         when(arHdShk && (~instRdDone)) {
-          rdStateReg := fsmIfRDwithMemRD
+          rdStateReg := eumIfRDwithMemRD
         }.elsewhen((~arHdShk) && instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemAR
+          rdStateReg := eumIfIDLEwithMemAR
         }.elsewhen(arHdShk && instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemRD
+          rdStateReg := eumIfIDLEwithMemRD
         }
       }
-      is(fsmIfRDwithMemIDLE) {
+      is(eumIfRDwithMemIDLE) {
         // printf("[axi] if-rd mem-idle!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         when(io.mem.valid && memRdTrans && (~instRdDone)) {
-          rdStateReg := fsmIfRDwithMemAR
+          rdStateReg := eumIfRDwithMemAR
         }.elsewhen((~(io.mem.valid && memRdTrans)) && instRdDone) {
-          rdStateReg := fsmRdIDLE
+          rdStateReg := eumRdIDLE
         }.elsewhen(io.mem.valid && memRdTrans && instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemAR
+          rdStateReg := eumIfIDLEwithMemAR
         }
       }
-      is(fsmIfRDwithMemRD) {
+      is(eumIfRDwithMemRD) {
         // printf("[axi] if-rd mem-rd!!!!!!!!!!!!!!!!!!!!\n")
         // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
         // printf(p"[axi] io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
         when(instRdDone) {
-          rdStateReg := fsmIfIDLEwithMemRD
+          rdStateReg := eumIfIDLEwithMemRD
         }
         when(memRdDone) {
-          // rdStateReg := fsmIfRDwithMemIDLE
+          // rdStateReg := eumIfRDwithMemIDLE
           rdStateReg := fsmDelayRdWithIDLE
         }
       }
-      is(fsmDelayARWithIDLE) {
+      is(eumDelayARWithIDLE) {
         // printf("[axi] if-ar mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
-        rdStateReg := fsmIfARwithMemIDLE
+        rdStateReg := eumIfARwithMemIDLE
       }
-      is(fsmDelayRdIDLE) {
+      is(eumDelayRdIDLE) {
         // printf("[axi] if-idle mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
-        rdStateReg := fsmRdIDLE
+        rdStateReg := eumRdIDLE
       }
       is(fsmDelayRdWithIDLE) {
         // printf("[axi] if-rd mem-idle(delay)!!!!!!!!!!!!!!!!!!!!\n")
-        rdStateReg := fsmIfRDwithMemIDLE
+        rdStateReg := eumIfRDwithMemIDLE
       }
     }
   }
@@ -295,7 +280,6 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
     memTransLen := 0.U
   }.elsewhen(memTransLenIncrEna) {
     memTransLen := memTransLen + 1.U
-    // printf("memTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLenmemTransLen\n")
   }
 
 // ------------------Process Data------------------
@@ -318,7 +302,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   //      h: 0001
   //      w: 0011
   //      d: 0111
-  protected val instAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.inst.addr(ALIGNED_WIDTH - 1, 0)))
+  protected val instAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.inst.addr(ALIGNED_WIDTH-1, 0)))
   protected val instAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, instSizeByte) & "b0000".U(4.W))
@@ -375,7 +359,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val memSizeWord     = WireDefault(io.mem.size === AXI4Bridge.SIZE_W)
   protected val memSizeDouble   = WireDefault(io.mem.size === AXI4Bridge.SIZE_D)
 
-  protected val memAddrOpA = WireDefault(UInt(4.W), Cat(4.U - Fill(ALIGNED_WIDTH, 0.U), io.mem.addr(ALIGNED_WIDTH - 1, 0)))
+  protected val memAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.mem.addr(ALIGNED_WIDTH-1, 0)))
   protected val memAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, memSizeByte) & "b0000".U(4.W))
@@ -415,9 +399,8 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
       | ((Fill(8, memSizeDouble) & "b1111_1111".U(8.W)))
   )
 
-  protected val memStrbLow = WireDefault(UInt((AxiDataWidth / 8).W), memStrb << io.mem.addr(ALIGNED_WIDTH - 1, 0))
-  protected val memStrbHig =
-    WireDefault(UInt((AxiDataWidth / 8).W), memStrb >> ((AxiDataWidth / 8).U - io.mem.addr(ALIGNED_WIDTH - 1, 0)))
+  protected val memStrbLow = WireDefault(UInt((AxiDataWidth/8).W), memStrb << io.mem.addr(ALIGNED_WIDTH-1, 0))
+  protected val memStrbHig = WireDefault(UInt((AxiDataWidth/8).W), memStrb >> ((AxiDataWidth/8).U - io.mem.addr(ALIGNED_WIDTH-1, 0)))
 
   protected val memAxiUser  = Fill(AxiUserLen, "b0".U(1.W))
   protected val memReady    = RegInit(false.B)
@@ -459,7 +442,6 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val axiWtDataHig = WireDefault(UInt(AxiDataWidth.W), io.mem.wdata >> memAlignedOffsetHig)
 
   io.axi.w.valid := wtStateWrite
-  // io.axi.w.bits.id := memAxiId
   io.axi.w.bits.data := Mux(
     io.axi.w.valid,
     Mux(memTransLen(0, 0) === "b0".U(1.W), axiWtDataLow, axiWtDataHig),
@@ -470,7 +452,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
     Mux(memTransLen(0, 0) === "b0".U(1.W), memStrbLow, memStrbHig),
     Fill(AxiDataWidth / 8, "b0".U(1.W))
   )
-  io.axi.w.bits.last := Mux(io.axi.w.valid, (memTransLen === memAxiLen), false.B)
+  io.axi.w.bits.last := Mux(io.axi.w.valid, memTransLen === memAxiLen, false.B)
 
   // wt resp
   io.axi.b.bits.id := DontCare
