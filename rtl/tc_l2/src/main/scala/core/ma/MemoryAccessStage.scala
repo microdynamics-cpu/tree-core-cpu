@@ -47,7 +47,7 @@ class MemoryAccessStage extends Module with AXI4Config with InstConfig {
 
   protected val memValidReg:       Bool = RegInit(false.B)
   protected val memReqReg:         UInt = RegInit(AxiReqNop.U(AxiReqLen.W))
-  protected val memAddrReg:        UInt = RegInit(0.U(AxiDataWidth.W))
+  protected val memAddrReg:        UInt = RegInit(0.U(AxiAddrWidth.W))
   protected val memDataReg:        UInt = RegInit(0.U(AxiDataWidth.W))
   protected val memRegfileAddrReg: UInt = RegInit(0.U(RegAddrLen.W))
   protected val memInstAddrReg:    UInt = RegInit(0.U(BusWidth.W))
