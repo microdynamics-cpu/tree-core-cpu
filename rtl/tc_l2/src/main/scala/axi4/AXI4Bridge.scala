@@ -302,7 +302,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   //      h: 0001
   //      w: 0011
   //      d: 0111
-  protected val instAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.inst.addr(ALIGNED_WIDTH-1, 0)))
+  protected val instAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.inst.addr(ALIGNED_WIDTH - 1, 0)))
   protected val instAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, instSizeByte) & "b0000".U(4.W))
@@ -359,7 +359,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val memSizeWord     = WireDefault(io.mem.size === AXI4Bridge.SIZE_W)
   protected val memSizeDouble   = WireDefault(io.mem.size === AXI4Bridge.SIZE_D)
 
-  protected val memAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.mem.addr(ALIGNED_WIDTH-1, 0)))
+  protected val memAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.mem.addr(ALIGNED_WIDTH - 1, 0)))
   protected val memAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, memSizeByte) & "b0000".U(4.W))
@@ -399,8 +399,8 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
       | ((Fill(8, memSizeDouble) & "b1111_1111".U(8.W)))
   )
 
-  protected val memStrbLow = WireDefault(UInt((AxiDataWidth/8).W), memStrb << io.mem.addr(ALIGNED_WIDTH-1, 0))
-  protected val memStrbHig = WireDefault(UInt((AxiDataWidth/8).W), memStrb >> ((AxiDataWidth/8).U - io.mem.addr(ALIGNED_WIDTH-1, 0)))
+  protected val memStrbLow = WireDefault(UInt((AxiDataWidth / 8).W), memStrb << io.mem.addr(ALIGNED_WIDTH - 1, 0))
+  protected val memStrbHig = WireDefault(UInt((AxiDataWidth / 8).W), memStrb >> ((AxiDataWidth / 8).U - io.mem.addr(ALIGNED_WIDTH - 1, 0)))
 
   protected val memAxiUser  = Fill(AxiUserLen, "b0".U(1.W))
   protected val memReady    = RegInit(false.B)

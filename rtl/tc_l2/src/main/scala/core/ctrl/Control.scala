@@ -14,29 +14,25 @@ class Control extends Module with InstConfig {
     // from id(solve load coop)
     val stallReqFromIDIn: Bool = Input(Bool())
     // from ma(solve axi load/store)
-    val stallReqFromMaIn: Bool = Input(Bool())
-    // to if and id
-    val flushIfOut:   Bool = Output(Bool())
-    val stallIfOut:   Bool = Output(Bool())
-    val maStallIfOut: Bool = Output(Bool())
-    val flushIdOut:   Bool = Output(Bool())
-    val ifJumpOut:    Bool = Output(Bool())
-    // to pc
-    val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
+    val stallReqFromMaIn: Bool      = Input(Bool())
+    val ctrl2pc:          CTRL2PCIO = new CTRL2PCIO // to if
+
+    val flushIfOut: Bool = Output(Bool())
+    val flushIdOut: Bool = Output(Bool())
   })
 
-  io.flushIfOut   := false.B
-  io.stallIfOut   := false.B
-  io.maStallIfOut := false.B
-  io.flushIdOut   := false.B
-  io.ifJumpOut    := false.B
+  io.ctrl2pc.jump    := false.B
+  io.ctrl2pc.stall   := false.B
+  io.ctrl2pc.maStall := false.B
+  io.flushIfOut      := false.B
+  io.flushIdOut      := false.B
 
   when(io.excpJumpInfo.kind === csrJumpType) {
-    io.newInstAddrOut := io.excpJumpInfo.addr
+    io.ctrl2pc.newPC := io.excpJumpInfo.addr
   }.elsewhen(io.intrJumpInfo.kind === csrJumpType) {
-    io.newInstAddrOut := io.intrJumpInfo.addr
+    io.ctrl2pc.newPC := io.intrJumpInfo.addr
   }.otherwise {
-    io.newInstAddrOut := io.newInstAddrIn // make all control signal come from this oen unit
+    io.ctrl2pc.newPC := io.newInstAddrIn // make all control signal come from this oen unit
   }
 
   // 1. if branch type is jal or jalr, flush id stage
@@ -45,21 +41,21 @@ class Control extends Module with InstConfig {
   // load corrleation has higher priority, so io.stallReqFromIDIn is
   // in the first check statement
   when(io.stallReqFromIDIn) {
-    io.flushIfOut := true.B
-    io.flushIdOut := true.B
-    io.stallIfOut := true.B
-    io.ifJumpOut  := false.B // a case: when branch inst is after a load/store inst
+    io.flushIfOut    := true.B
+    io.flushIdOut    := true.B
+    io.ctrl2pc.stall := true.B
+    io.ctrl2pc.jump  := false.B // a case: when branch inst is after a load/store inst
   }.elsewhen(
     io.jumpTypeIn === uncJumpType ||
       io.jumpTypeIn === condJumpType ||
       io.excpJumpInfo.kind === csrJumpType ||
       io.intrJumpInfo.kind === csrJumpType
   ) {
-    io.flushIfOut := true.B
-    io.ifJumpOut  := true.B
+    io.flushIfOut   := true.B
+    io.ctrl2pc.jump := true.B
   }
 
   when(io.stallReqFromMaIn) {
-    io.maStallIfOut := true.B
+    io.ctrl2pc.maStall := true.B
   }
 }

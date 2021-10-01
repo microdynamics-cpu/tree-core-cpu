@@ -43,37 +43,26 @@ object RegFile {
 
 class RegFile() extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from id
-    val rdEnaAIn:  Bool = Input(Bool())
-    val rdAddrAIn: UInt = Input(UInt(RegAddrLen.W))
-    val rdEnaBIn:  Bool = Input(Bool())
-    val rdAddrBIn: UInt = Input(UInt(RegAddrLen.W))
-    val wtEnaIn:   Bool = Input(Bool())
-    val wtAddrIn:  UInt = Input(UInt(RegAddrLen.W))
-    val wtDataIn:  UInt = Input(UInt(BusWidth.W))
-    // from difftest
-    val debugIn: UInt = Input(UInt(RegNum.W))
-    // to id
-    val rdDataAOut: UInt = Output(UInt(BusWidth.W))
-    val rdDataBOut: UInt = Output(UInt(BusWidth.W))
-    // to top
-    val charDataOut: UInt = Output(UInt(BusWidth.W))
+    val id2regfile:  ID2REGFILEIO = Flipped(new ID2REGFILEIO) // from&to regfile
+    val wtIn:        TRANSIO      = Flipped(new TRANSIO(RegAddrLen, BusWidth)) // from wb
+    val debugIn:     UInt         = Input(UInt(RegNum.W)) // from difftest
+    val charDataOut: UInt         = Output(UInt(BusWidth.W)) // to top
   })
 
   protected val regFile = Mem(RegNum, UInt(BusWidth.W))
-  protected val wtAddr: UInt = io.wtAddrIn
-  protected val wtData: UInt = io.wtDataIn
+  protected val wtAddr: UInt = io.wtIn.addr
+  protected val wtData: UInt = io.wtIn.data
 
-  regFile.write(io.wtAddrIn, Mux(io.wtEnaIn, Mux(io.wtAddrIn === 0.U(RegAddrLen.W), 0.U(BusWidth.W), wtData), regFile(io.wtAddrIn)))
+  regFile.write(io.wtIn.addr, Mux(io.wtIn.ena, Mux(io.wtIn.addr === 0.U(RegAddrLen.W), 0.U(BusWidth.W), wtData), regFile(io.wtIn.addr)))
 
-  io.rdDataAOut := Mux(
-    io.rdEnaAIn,
-    Mux(io.rdAddrAIn =/= 0.U(RegAddrLen.W), Mux(io.rdAddrAIn === io.wtAddrIn, wtData, regFile(io.rdAddrAIn)), 0.U(BusWidth.W)),
+  io.id2regfile.rdA.data := Mux(
+    io.id2regfile.rdA.ena,
+    Mux(io.id2regfile.rdA.addr =/= 0.U(RegAddrLen.W), Mux(io.id2regfile.rdA.addr === io.wtIn.addr, wtData, regFile(io.id2regfile.rdA.addr)), 0.U(BusWidth.W)),
     0.U(BusWidth.W)
   )
-  io.rdDataBOut := Mux(
-    io.rdEnaBIn,
-    Mux(io.rdAddrBIn =/= 0.U(RegAddrLen.W), Mux(io.rdAddrBIn === io.wtAddrIn, wtData, regFile(io.rdAddrBIn)), 0.U(BusWidth.W)),
+  io.id2regfile.rdB.data := Mux(
+    io.id2regfile.rdB.ena,
+    Mux(io.id2regfile.rdB.addr =/= 0.U(RegAddrLen.W), Mux(io.id2regfile.rdB.addr === io.wtIn.addr, wtData, regFile(io.id2regfile.rdB.addr)), 0.U(BusWidth.W)),
     0.U(BusWidth.W)
   )
 

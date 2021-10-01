@@ -6,8 +6,8 @@ import treecorel2.common.ConstVal._
 
 class CLINT extends Module with InstConfig {
   val io = IO(new Bundle {
-    val wt:       TRANSIO = Flipped(new TRANSIO) // from ma
-    val rd:       TRANSIO = new TRANSIO // to wb
+    val wt:       TRANSIO = Flipped(new TRANSIO(BusWidth, BusWidth)) // from ma
+    val rd:       TRANSIO = new TRANSIO(BusWidth, BusWidth) // to wb
     val intrInfo: INTRIO  = new INTRIO // to csr
   })
 

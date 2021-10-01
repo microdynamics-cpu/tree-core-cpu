@@ -120,11 +120,8 @@ object InstDecoderStage {
 
 class InstDecoderStage extends Module with InstConfig {
   val io = IO(new Bundle {
-    // from pc
-    val inst: INSTIO = new INSTIO
-    // to id2ex
-    val rdDataAIn: UInt = Input(UInt(BusWidth.W))
-    val rdDataBIn: UInt = Input(UInt(BusWidth.W))
+    val inst:       INSTIO       = new INSTIO // from pc
+    val id2regfile: ID2REGFILEIO = new ID2REGFILEIO // from/to regfile
     // from ex
     val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
     val exuWtAddrIn:   UInt = Input(UInt(RegAddrLen.W))
@@ -133,18 +130,14 @@ class InstDecoderStage extends Module with InstConfig {
     val fwRsValAIn: UInt = Input(UInt(BusWidth.W))
     val fwRsEnaBIn: Bool = Input(Bool())
     val fwRsValBIn: UInt = Input(UInt(BusWidth.W))
-    // to regfile
-    val rdEnaAOut:  Bool = Output(Bool())
-    val rdAddrAOut: UInt = Output(UInt(RegAddrLen.W))
-    val rdEnaBOut:  Bool = Output(Bool())
-    val rdAddrBOut: UInt = Output(UInt(RegAddrLen.W))
-    // to beu
+
+    // to beu&
     val exuOperTypeOut: UInt = Output(UInt(InstOperTypeLen.W))
     val exuOffsetOut:   UInt = Output(UInt(BusWidth.W))
     // to ma
     val lsuFunc3MSBOut: UInt = Output(UInt(1.W))
     val lsuWtEnaOut:    Bool = Output(Bool())
-    // to regfile
+    // to id2ex
     val rsValAOut: UInt = Output(UInt(BusWidth.W))
     val rsValBOut: UInt = Output(UInt(BusWidth.W))
     val wtEnaOut:  Bool = Output(Bool())
@@ -177,11 +170,11 @@ class InstDecoderStage extends Module with InstConfig {
     (decodeRes(1) =/= InstDecoderStage.uInstType) &&
       (decodeRes(1) =/= InstDecoderStage.jInstType)
   ) {
-    io.rdEnaAOut  := true.B
-    io.rdAddrAOut := rsRegAddrA
+    io.id2regfile.rdA.ena  := true.B
+    io.id2regfile.rdA.addr := rsRegAddrA
   }.otherwise {
-    io.rdEnaAOut  := false.B
-    io.rdAddrAOut := 0.U(RegAddrLen.W)
+    io.id2regfile.rdA.ena  := false.B
+    io.id2regfile.rdA.addr := 0.U(RegAddrLen.W)
   }
 
   when(
@@ -189,11 +182,11 @@ class InstDecoderStage extends Module with InstConfig {
       (decodeRes(1) =/= InstDecoderStage.jInstType) &&
       (decodeRes(1) =/= InstDecoderStage.iInstType)
   ) {
-    io.rdEnaBOut  := true.B
-    io.rdAddrBOut := rsRegAddrB
+    io.id2regfile.rdB.ena  := true.B
+    io.id2regfile.rdB.addr := rsRegAddrB
   }.otherwise {
-    io.rdEnaBOut  := false.B
-    io.rdAddrBOut := 0.U(RegAddrLen.W)
+    io.id2regfile.rdB.ena  := false.B
+    io.id2regfile.rdB.addr := 0.U(RegAddrLen.W)
   }
 
   io.exuOperTypeOut := decodeRes(3)
@@ -220,7 +213,7 @@ class InstDecoderStage extends Module with InstConfig {
     when(io.fwRsEnaAIn) {
       exuOperNum := io.fwRsValAIn
     }.otherwise {
-      exuOperNum := io.rdDataAIn
+      exuOperNum := io.id2regfile.rdA.data
     }
   }.otherwise {
     exuOperNum := 0.U(BusWidth.W)
@@ -242,7 +235,7 @@ class InstDecoderStage extends Module with InstConfig {
     io.rsValAOut := io.fwRsValAIn
   }.otherwise {
     // if oper don't need rsvalA(such as jal), set this val to 0
-    io.rsValAOut := io.rdDataAIn
+    io.rsValAOut := io.id2regfile.rdA.data
   }
 
   when(decodeRes(2) === InstDecoderStage.immAluOperNumType) {
@@ -254,7 +247,7 @@ class InstDecoderStage extends Module with InstConfig {
   }.elsewhen(io.fwRsEnaBIn) {
     io.rsValBOut := io.fwRsValBIn
   }.otherwise {
-    io.rsValBOut := io.rdDataBIn
+    io.rsValBOut := io.id2regfile.rdB.data
   }
 
   io.wtEnaOut := decodeRes(0)
@@ -268,8 +261,8 @@ class InstDecoderStage extends Module with InstConfig {
   // if exist load correlation
   when(
     io.exuOperTypeIn >= lsuLBType && io.exuOperTypeIn <= lsuLDType &&
-      ((io.rdEnaAOut && io.exuWtAddrIn === io.rdAddrAOut) ||
-        (io.rdEnaBOut && io.exuWtAddrIn === io.rdAddrBOut))
+      ((io.id2regfile.rdA.ena && io.exuWtAddrIn === io.id2regfile.rdA.addr) ||
+        (io.id2regfile.rdB.ena && io.exuWtAddrIn === io.id2regfile.rdB.addr))
   ) {
     io.stallReqFromIDOut := true.B
   }.otherwise {
