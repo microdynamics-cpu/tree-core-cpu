@@ -42,10 +42,10 @@ public:
     if (args.dump_wave)
     {
       Verilated::traceEverOn(true);
-      printf("`dump-wave` enabled, waves will be written to \"vlt_dump.vcd\".\n");
+      printf("`dump-wave` enabled, waves will be written to \"soc.vcd\".\n");
       fp = new VerilatedVcdC;
       dut_ptr->trace(fp, 1);
-      fp->open("vlt_dump.vcd");
+      fp->open("soc.vcd");
       fp->dump(0);
     }
   }
