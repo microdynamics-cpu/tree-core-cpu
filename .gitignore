@@ -13,3 +13,4 @@ dramsim3.json
 dramsim3.txt
 dramsim3epoch.json
 *.vcd
+*.wave

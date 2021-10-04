@@ -40,11 +40,13 @@ SOC_VSRC_INCLPATH += -I$(ROOT_PATH)/ysyxSoC/ysyx/peripheral/spi/rtl
 SOC_CSRC_INCLPATH += -I$(SOC_CSRC_HOME)
 SOC_CSRC_INCLPATH += -I$(SOC_CSRC_LIB_HOME)
 
-SOC_CXXFLAGS += -std=c++11 -static -Wall $(SOC_CSRC_INCLPATH)
+# if want to ouput vcd wave, replace '-DDUMP_WAVE_FST' to '-DDUMP_WAVE_VCD',
+# replace '--trace-fst' to '--trace'
+SOC_CXXFLAGS += -std=c++11 -static -Wall $(SOC_CSRC_INCLPATH) -DDUMP_WAVE_FST
 SOC_FLAGS    += --cc --exe --top-module $(SOC_VSRC_TOP) 
 SOC_FLAGS    += --x-assign unique -O3 -CFLAGS "$(SOC_CXXFLAGS)"
-SOC_FLAGS    += --trace --assert --stats-vars --output-split 30000 --output-split-cfuncs 30000 
-SOC_FLAGS    += --timescale "1ns/1ns" -Wno-fatal --trace
+SOC_FLAGS    += --trace-fst --assert --stats-vars --output-split 30000 --output-split-cfuncs 30000 
+SOC_FLAGS    += --timescale "1ns/1ns" -Wno-fatal
 SOC_FLAGS    += -o $(BUILD_DIR)/soc/emu
 SOC_FLAGS    += -Mdir $(BUILD_DIR)/soc/emu-compile
 SOC_FLAGS    += $(SOC_VSRC_INCLPATH) $(SOC_CXXFILES) $(SOC_VXXFILES)
@@ -239,7 +241,7 @@ socLintCheck: socNameCheck
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
 	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
-socPrevBuild:
+socPrevBuild: diffAllBuild socTopModify
 # FIXME: if only need to moidfy core, commit it
 # @cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
 	@sed -i s/ysyx_000000/ysyx_210324/g $(BUILD_DIR)/soc/ysyxSoCFull.v
