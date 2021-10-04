@@ -111,8 +111,10 @@ object InstDecoderStage {
     CSRRSI -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRSIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     CSRRCI -> List(wtRegTrue, iInstType, nopAluOperNumType, csrRCIType, branchFalse, rdMemFalse, wtMemFalse, aluWtType),
     // system inst
-    ECALL -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysECALLType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
-    MRET  -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysMRETType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
+    ECALL   -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysECALLType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
+    MRET    -> List(wtRegFalse, nopInstType, nopAluOperNumType, sysMRETType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
+    FENCE   -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
+    FENCE_I -> List(wtRegFalse, nopInstType, nopAluOperNumType, aluNopType, branchFalse, rdMemFalse, wtMemFalse, nopWtType),
     // custom inst
     CUST -> List(wtRegFalse, nopInstType, nopAluOperNumType, custInstType, branchFalse, rdMemFalse, wtMemFalse, nopWtType)
   )

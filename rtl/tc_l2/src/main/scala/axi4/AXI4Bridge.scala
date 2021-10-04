@@ -285,7 +285,8 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 // ------------------Process Data------------------
   protected val ALIGNED_WIDTH = 3 // eval: log2(AxiDataWidth / 8)
   protected val OFFSET_WIDTH  = 6 // eval: log2(AxiDataWidth)
-  protected val AXI_SIZE      = if (SoCEna) 2.U else 3.U // eval: log2(AxiDataWidth / 8)
+  protected val AXI_INST_SIZE = if (SoCEna) 2.U else 3.U // because the flash only support 4 bytes access
+  protected val AXI_MEM_SIZE  = 3.U
   protected val MASK_WIDTH    = 128 // eval: AxiDataWidth * 2
   protected val TRANS_LEN     = 1 // eval: 1
   protected val BLOCK_TRANS   = false.B
@@ -315,8 +316,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val instOverstep = WireDefault(instAddrEnd(3, ALIGNED_WIDTH) =/= 0.U)
 
   instAxiLen := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
-  // TODO: bug?
-  protected val instAxiSize          = AXI_SIZE(2, 0);
+  protected val instAxiSize          = AXI_INST_SIZE
   protected val instAxiAddr          = Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val instAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val instAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
@@ -325,10 +325,10 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   instAlignedOffsetLow := Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.inst.addr(ALIGNED_WIDTH - 1, 0)) << 3
   instAlignedOffsetHig := BusWidth.U - instAlignedOffsetLow
   instMask := (
-    (Fill(MASK_WIDTH, instSizeByte) & Cat(MASK_WIDTH.U - Fill(8, "b0".U(1.W)), "hff".U(8.W)))
-      | (Fill(MASK_WIDTH, instSizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
-      | (Fill(MASK_WIDTH, instSizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
-      | (Fill(MASK_WIDTH, instSizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
+    (Fill(MASK_WIDTH, instSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
+      | (Fill(MASK_WIDTH, instSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
+      | (Fill(MASK_WIDTH, instSizeWord) & Cat(Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
+      | (Fill(MASK_WIDTH, instSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
   ) << instAlignedOffsetLow
 
   protected val instMaskLow  = instMask(AxiDataWidth - 1, 0)
@@ -373,7 +373,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 
   memAxiLen := Mux(memTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), memOverstep))
 
-  protected val memAxiSize          = AXI_SIZE(2, 0);
+  protected val memAxiSize          = AXI_MEM_SIZE
   protected val memAxiAddr          = Cat(io.mem.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val memAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val memAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
@@ -382,10 +382,10 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   memAlignedOffsetLow := Cat(OFFSET_WIDTH.U - Fill(ALIGNED_WIDTH, "b0".U(1.W)), io.mem.addr(ALIGNED_WIDTH - 1, 0)) << 3
   memAlignedOffsetHig := BusWidth.U - memAlignedOffsetLow
   memMask := (
-    (Fill(MASK_WIDTH, memSizeByte) & Cat(MASK_WIDTH.U - Fill(8, "b0".U(1.W)), "hff".U(8.W)))
-      | (Fill(MASK_WIDTH, memSizeHalf) & Cat(MASK_WIDTH.U - Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
-      | (Fill(MASK_WIDTH, memSizeWord) & Cat(MASK_WIDTH.U - Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
-      | (Fill(MASK_WIDTH, memSizeDouble) & Cat(MASK_WIDTH.U - Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
+    (Fill(MASK_WIDTH, memSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
+      | (Fill(MASK_WIDTH, memSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
+      | (Fill(MASK_WIDTH, memSizeWord) & Cat(Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
+      | (Fill(MASK_WIDTH, memSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
   ) << memAlignedOffsetLow
 
   protected val memMaskLow = memMask(AxiDataWidth - 1, 0)
@@ -508,12 +508,19 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   for (i <- 0 until TRANS_LEN) {
     when(rdHdShk && io.axi.r.bits.id === instAxiId) {
       when((~instTransAligned) && instOverstep) {
+        printf("inst not aligned!!!!!!\n")
         when(instTransLen(0, 0) =/= 0.U) {
           instDataReadReg := instDataReadReg | axiRdDataHig
         }.otherwise {
           instDataReadReg := axiRdDataLow
         }
       }.elsewhen(instTransLen === i.U) {
+        // printf("inst rdata align!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi4]instAlignedOffsetLow = 0x${Hexadecimal(instAlignedOffsetLow)}\n")
+        // printf(p"[axi4]instAlignedOffsetHig = 0x${Hexadecimal(instAlignedOffsetHig)}\n")
+        // printf(p"[axi4]instMask = 0x${Hexadecimal(instMask)}\n")
+        // printf(p"[axi4]instMaskLow = 0x${Hexadecimal(instMaskLow)}\n")
+        // printf(p"[axi4]instMaskHig = 0x${Hexadecimal(instMaskHig)}\n\n")
         instDataReadReg := axiRdDataLow
       }
     }
@@ -526,21 +533,35 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
       when((~memTransAligned) && memOverstep) {
         when(memTransLen(0, 0) =/= 0.U) {
           memDataReadReg := memDataReadReg | axiRdDataHig
-          // printf("rdata hig!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-          // printf(p"[axi4]memMask = 0x${Hexadecimal(memMask)}\n")
-          // printf(p"[axi4]memMaskHig = 0x${Hexadecimal(memMaskHig)}\n")
-
+          // printf("mem rdata hig!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
           // printf(p"[axi4]memAlignedOffsetLow = 0x${Hexadecimal(memAlignedOffsetLow)}\n")
           // printf(p"[axi4]memAlignedOffsetHig = 0x${Hexadecimal(memAlignedOffsetHig)}\n")
-          // printf(p"[axi4]axiRdDataHig = 0x${Hexadecimal(axiRdDataHig)}\n")
-          // printf(p"[axi4]memDataReadReg = 0x${Hexadecimal(memDataReadReg)}\n")
+          // printf(p"[axi4]memMask = 0x${Hexadecimal(memMask)}\n")
+          // printf(p"[axi4]memMaskLow = 0x${Hexadecimal(memMaskLow)}\n")
+          // printf(p"[axi4]memMaskHig = 0x${Hexadecimal(memMaskHig)}\n")
+          // printf(p"[axi4]io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
+          // printf(p"[axi4]axiRdDataHig = 0x${Hexadecimal(axiRdDataHig)}\n\n")
         }.otherwise {
           memDataReadReg := axiRdDataLow
-          // printf("rdata low!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+          // printf("mem rdata low!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+          // printf(p"[axi4]memAlignedOffsetLow = 0x${Hexadecimal(memAlignedOffsetLow)}\n")
+          // printf(p"[axi4]memAlignedOffsetHig = 0x${Hexadecimal(memAlignedOffsetHig)}\n")
+          // printf(p"[axi4]memMask = 0x${Hexadecimal(memMask)}\n")
+          // printf(p"[axi4]memMaskLow = 0x${Hexadecimal(memMaskLow)}\n")
+          // printf(p"[axi4]memMaskHig = 0x${Hexadecimal(memMaskHig)}\n")
+          // printf(p"[axi4]io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
+          // printf(p"[axi4]axiRdDataLow = 0x${Hexadecimal(axiRdDataLow)}\n\n")
         }
       }.elsewhen(memTransLen === i.U) {
         memDataReadReg := axiRdDataLow
-        // printf("rdata norm!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf("mem rdata align!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi4]memAlignedOffsetLow = 0x${Hexadecimal(memAlignedOffsetLow)}\n")
+        // printf(p"[axi4]memAlignedOffsetHig = 0x${Hexadecimal(memAlignedOffsetHig)}\n")
+        // printf(p"[axi4]memMask = 0x${Hexadecimal(memMask)}\n")
+        // printf(p"[axi4]memMaskLow = 0x${Hexadecimal(memMaskLow)}\n")
+        // printf(p"[axi4]memMaskHig = 0x${Hexadecimal(memMaskHig)}\n")
+        // printf(p"[axi4]io.axi.r.bits.data = 0x${Hexadecimal(io.axi.r.bits.data)}\n")
+        // printf(p"[axi4]axiRdDataLow = 0x${Hexadecimal(axiRdDataLow)}\n\n")
       }
     }
   }
