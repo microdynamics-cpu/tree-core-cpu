@@ -317,7 +317,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 
   instAxiLen := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
   protected val instAxiSize          = AXI_INST_SIZE
-  protected val instAxiAddr          = Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
+  protected val instAxiAddr          = if(SoCEna) io.inst.addr else Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val instAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val instAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
   protected val instMask             = Wire(UInt(MASK_WIDTH.W))
