@@ -2,6 +2,7 @@ package treecorel2
 
 import chisel3._
 import chisel3.util._
+import treecorel2.common.ConstVal._
 
 object AXI4Bridge {
   // Burst types
@@ -286,7 +287,6 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
   protected val ALIGNED_WIDTH = 3 // eval: log2(AxiDataWidth / 8)
   protected val OFFSET_WIDTH  = 6 // eval: log2(AxiDataWidth)
   protected val AXI_INST_SIZE = if (SoCEna) 2.U else 3.U // because the flash only support 4 bytes access
-  protected val AXI_MEM_SIZE  = 3.U
   protected val MASK_WIDTH    = 128 // eval: AxiDataWidth * 2
   protected val TRANS_LEN     = 1 // eval: 1
   protected val BLOCK_TRANS   = false.B
@@ -317,7 +317,7 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 
   instAxiLen := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
   protected val instAxiSize          = AXI_INST_SIZE
-  protected val instAxiAddr          = if(SoCEna) io.inst.addr else Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
+  protected val instAxiAddr          = if (SoCEna) io.inst.addr else Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val instAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val instAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
   protected val instMask             = Wire(UInt(MASK_WIDTH.W))
@@ -373,7 +373,20 @@ class AXI4Bridge() extends Module with AXI4Config with InstConfig {
 
   memAxiLen := Mux(memTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), memOverstep))
 
-  protected val memAxiSize          = AXI_MEM_SIZE
+  // flash only support 4 bytes rd(0x3000_0000~0x3fff_ffff)
+  // periph suport 4 bytes w/r(0x1000_0000~0x1000_1fff)
+  // chiplink suport 4 bytes w/r(0x4000_0000~0x7fff_ffff)
+  protected val memAxiSize = Wire(UInt(3.W))
+  when(
+    (io.mem.addr >= UartBaseAddr && io.mem.addr <= UartBoundAddr) ||
+      (io.mem.addr >= SpiBaseAddr && io.mem.addr <= SpiBoundAddr) ||
+      (io.mem.addr >= ChiplinkBaseAddr && io.mem.addr <= ChiplinkBoundAddr)
+  ) {
+    memAxiSize := 2.U
+  }.otherwise {
+    memAxiSize := 3.U
+  }
+
   protected val memAxiAddr          = Cat(io.mem.addr(AxiAddrWidth - 1, ALIGNED_WIDTH), Fill(ALIGNED_WIDTH, "b0".U(1.W)))
   protected val memAlignedOffsetLow = Wire(UInt(OFFSET_WIDTH.W))
   protected val memAlignedOffsetHig = Wire(UInt(OFFSET_WIDTH.W))
