@@ -17,12 +17,13 @@ class PCReg() extends Module with AXI4Config with InstConfig {
 
   // now we dont handle this resp info to check if the read oper is right
   // tmp
+  protected val tmpStall = if (SoCEna) RegNext(~io.ctrl2pc.maStall) else ~io.ctrl2pc.maStall
   io.axi.req   := 0.U // 0: read 1: write
   io.axi.wdata := DontCare
   io.axi.resp  := DontCare
   io.axi.addr  := pc
   io.axi.id    := 0.U
-  io.axi.valid := ~io.ctrl2pc.maStall // TODO: maybe this code lead to cycle
+  io.axi.valid := tmpStall // TODO: maybe this code lead to cycle
   io.axi.size  := AXI4Bridge.SIZE_W
 
   when(io.ctrl2pc.jump) {
