@@ -21,6 +21,40 @@ DIFFTEST_HOME    := $(ROOT_PATH)/difftest
 DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
 YSYXSOC_HOME     := $(ROOT_PATH)/ysyxSoC/ysyx
 
+###### soc var ######
+SOC_CSRC_HOME     += $(ROOT_PATH)/src/main/csrc
+SOC_CSRC_LIB_HOME += $(ROOT_PATH)/ysyxSoC/ysyx/peripheral/spiFlash
+SOC_CXXFILES      += $(shell find $(SOC_CSRC_HOME) -name "*.cpp")
+SOC_CXXFILES      += $(shell find $(SOC_CSRC_LIB_HOME) -name "*.cpp")
+
+SOC_VSRC_HOME     += $(BUILD_DIR)/soc
+SOC_COMPILE_HOME  := $(SOC_VSRC_HOME)/emu-compile
+SOC_VSRC_TOP      := ysyxSoCFull
+SOC_VSRC_LIB_HOME += $(ROOT_PATH)/ysyxSoC/ysyx/peripheral/
+SOC_VXXFILES      += $(shell find $(SOC_VSRC_HOME) -name "*.v")
+SOC_VXXFILES      += $(shell find $(SOC_VSRC_LIB_HOME) -name "*.v")
+
+SOC_VSRC_INCLPATH += -I$(SOC_VSRC_HOME)
+SOC_VSRC_INCLPATH += -I$(ROOT_PATH)/ysyxSoC/ysyx/peripheral/uart16550/rtl
+SOC_VSRC_INCLPATH += -I$(ROOT_PATH)/ysyxSoC/ysyx/peripheral/spi/rtl
+SOC_CSRC_INCLPATH += -I$(SOC_CSRC_HOME)
+SOC_CSRC_INCLPATH += -I$(SOC_CSRC_LIB_HOME)
+
+SOC_CXXFLAGS += -std=c++11 -static -Wall $(SOC_CSRC_INCLPATH)
+SOC_FLAGS    += --cc --exe --top-module $(SOC_VSRC_TOP) 
+SOC_FLAGS    += --x-assign unique -O3 -CFLAGS "$(SOC_CXXFLAGS)"
+SOC_FLAGS    += --trace --assert --stats-vars --output-split 30000 --output-split-cfuncs 30000 
+SOC_FLAGS    += --timescale "1ns/1ns" -Wno-fatal --trace
+SOC_FLAGS    += -o $(BUILD_DIR)/soc/emu
+SOC_FLAGS    += -Mdir $(BUILD_DIR)/soc/emu-compile
+SOC_FLAGS    += $(SOC_VSRC_INCLPATH) $(SOC_CXXFILES) $(SOC_VXXFILES)
+
+CCACHE := $(if $(shell which ccache),ccache,)
+ifneq ($(CCACHE),)
+export OBJCACHE = ccache
+endif
+
+
 export AM_HOME       := $(AM_FOLDER_PATH)/abstract-machine
 export NEMU_HOME     := $(ROOT_PATH)/NEMU
 export NOOP_HOME     := $(ROOT_PATH)
@@ -80,7 +114,7 @@ difftestBuild:
 	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
-	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
+	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1
 
 diffAllBuild: diffBuild difftestBuild
 
@@ -185,17 +219,18 @@ $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 
 ###### soc name rule test target ######
 socTopModify:
-	@cp $(BUILD_DIR)/SoCTop.v $(BUILD_DIR)/ysyx_210324.v
-	@sed -i 's/module ysyx_210324_SoCTop/module ysyx_210324/g' $(BUILD_DIR)/ysyx_210324.v
-	@sed -i 's/io_\([a-z]*\)_\([a-z]*\)_[bits]*_*\([a-z]*\)/io_\1_\2\3/g' $(BUILD_DIR)/ysyx_210324.v
+	@mkdir -p $(BUILD_DIR)/soc
+	@cp $(BUILD_DIR)/SoCTop.v $(BUILD_DIR)/soc/ysyx_210324.v
+	@sed -i 's/module ysyx_210324_SoCTop/module ysyx_210324/g' $(BUILD_DIR)/soc/ysyx_210324.v
+	@sed -i 's/io_\([a-z]*\)_\([a-z]*\)_[bits]*_*\([a-z]*\)/io_\1_\2\3/g' $(BUILD_DIR)/soc/ysyx_210324.v
 
 # FIMXE: need a better solution, not just copy to dir everytime
 socNameCheck: socTopModify
-	@cp $(YSYXSOC_HOME)/soc/cpu-check.py $(BUILD_DIR)
-	@cd $(BUILD_DIR) && echo 324 | python3 cpu-check.py
+	@cp $(YSYXSOC_HOME)/soc/cpu-check.py $(BUILD_DIR)/soc
+	@cd $(BUILD_DIR)/soc && echo 324 | python3 cpu-check.py
 
 socLintCheck: socNameCheck
-	@cp $(BUILD_DIR)/ysyx_210324.v $(YSYXSOC_HOME)/lint/
+	@cp $(BUILD_DIR)/soc/ysyx_210324.v $(YSYXSOC_HOME)/lint/
 	@sed -i 's/ID = \([0-9]*\)/ID = 210324/g' $(YSYXSOC_HOME)/lint/Makefile
 	@echo -e "\033[1;32mstart lint check....\033[0m"
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint
@@ -203,6 +238,18 @@ socLintCheck: socNameCheck
 	@echo -e "\033[1;32mstart lint-unused check....\033[0m"
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
 	@echo -e "\033[1;32mlint-unused check done\033[0m"
+
+socPrevBuild:
+# FIXME: if only need to moidfy core, commit it
+# @cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
+	@sed -i s/ysyx_000000/ysyx_210324/g $(BUILD_DIR)/soc/ysyxSoCFull.v
+	verilator $(SOC_FLAGS)
+
+socBuild: socPrevBuild
+	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk
+
+socSimRun:
+	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin --dump-wave
 
 ###### clean target ######
 cleanBuild:
@@ -219,5 +266,5 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 .PHONY: millTest diffBuild help compile bsp reformat checkformat \
 		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
-		socTopModify socNameCheck \
+		socTopModify socNameCheck socBuild\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
