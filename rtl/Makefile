@@ -114,7 +114,7 @@ difftestBuild:
 	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
-	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1
+	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1
 
 diffAllBuild: diffBuild difftestBuild
 
