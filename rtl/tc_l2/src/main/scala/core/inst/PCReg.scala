@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import AXI4Bridge._
 
-class PCReg() extends Module with AXI4Config with InstConfig {
+class PCReg() extends Module with AXI4Config {
   val io = IO(new Bundle {
     val axi:         AXI4USERIO = Flipped(new AXI4USERIO) // from axi
     val ctrl2pc:     CTRL2PCIO  = Flipped(new CTRL2PCIO) // from ctrl
