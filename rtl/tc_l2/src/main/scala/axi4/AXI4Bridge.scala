@@ -271,12 +271,11 @@ class AXI4Bridge() extends Module with AXI4Config {
     instTransLen := instTransLen + 1.U
   }
 
-  protected val memTransLen      = RegInit(0.U(8.W))
-  protected val memTransLenReset = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
-  protected val memAxiLen        = Wire(UInt(8.W))
-  protected val memTransLenIncrEna = WireDefault(
-    (memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && (io.axi.r.bits.id === memAxiId)))
-  )
+  protected val memTransLen        = RegInit(0.U(8.W))
+  protected val memTransLenReset   = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
+  protected val memAxiLen          = Wire(UInt(8.W))
+  protected val memTransLenIncrEna = WireDefault((memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && (io.axi.r.bits.id === memAxiId))))
+
   when(memTransLenReset) {
     memTransLen := 0.U
   }.elsewhen(memTransLenIncrEna) {
@@ -289,16 +288,17 @@ class AXI4Bridge() extends Module with AXI4Config {
   protected val MASK_INST_WIDTH    = AxiInstDataWidth * 2
   protected val AXI_INST_SIZE      = if (SoCEna) 2.U else 3.U // because the flash only support 4 bytes access
 
-  protected val ALIGNED_MEM_WIDTH = log2Ceil(AxiDataWidth / 8)
-  protected val OFFSET_MEM_WIDTH  = log2Ceil(AxiDataWidth)
-  protected val MASK_MEM_WIDTH    = AxiDataWidth * 2
-
-  protected val TRANS_LEN   = 1 // eval: 1
-  protected val BLOCK_TRANS = false.B
+  protected val ALIGNED_MEM_WIDTH        = log2Ceil(AxiDataWidth / 8)
+  protected val OFFSET_MEM_WIDTH         = log2Ceil(AxiDataWidth)
+  protected val MASK_MEM_WIDTH           = AxiDataWidth * 2
+  protected val ALIGNED_PERIPH_MEM_WIDTH = log2Ceil(AxiPerifDataWidth / 8)
+  protected val OFFSET_PERIPH_MEM_WIDTH  = log2Ceil(AxiPerifDataWidth)
+  protected val MASK_PERIPH_MEM_WIDTH    = AxiPerifDataWidth * 2
+  protected val TRANS_LEN                = 1
 
   // ================================inst data=======================
   // no-aligned visit
-  protected val instTransAligned = WireDefault(BLOCK_TRANS || io.inst.addr(ALIGNED_INST_WIDTH - 1, 0) === 0.U)
+  protected val instTransAligned = WireDefault(io.inst.addr(ALIGNED_INST_WIDTH - 1, 0) === 0.U)
   protected val instSizeByte     = WireDefault(io.inst.size === AXI4Bridge.SIZE_B)
   protected val instSizeHalf     = WireDefault(io.inst.size === AXI4Bridge.SIZE_H)
   protected val instSizeWord     = WireDefault(io.inst.size === AXI4Bridge.SIZE_W)
@@ -328,7 +328,7 @@ class AXI4Bridge() extends Module with AXI4Config {
   protected val instMask             = Wire(UInt(MASK_INST_WIDTH.W))
 
   instAlignedOffsetLow := Cat(OFFSET_INST_WIDTH.U - Fill(ALIGNED_INST_WIDTH, "b0".U(1.W)), io.inst.addr(ALIGNED_INST_WIDTH - 1, 0)) << 3
-  instAlignedOffsetHig := BusWidth.U - instAlignedOffsetLow
+  instAlignedOffsetHig := AxiInstDataWidth.U - instAlignedOffsetLow
   instMask := (
     (Fill(MASK_INST_WIDTH, instSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
       | (Fill(MASK_INST_WIDTH, instSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
@@ -358,13 +358,12 @@ class AXI4Bridge() extends Module with AXI4Config {
   io.inst.resp := instResp
 
   // ================================mem data=======================
-  protected val memTransAligned = WireDefault(BLOCK_TRANS || io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0) === 0.U)
+  protected val memTransAligned = Wire(Bool())
   protected val memSizeByte     = WireDefault(io.mem.size === AXI4Bridge.SIZE_B)
   protected val memSizeHalf     = WireDefault(io.mem.size === AXI4Bridge.SIZE_H)
   protected val memSizeWord     = WireDefault(io.mem.size === AXI4Bridge.SIZE_W)
   protected val memSizeDouble   = WireDefault(io.mem.size === AXI4Bridge.SIZE_D)
-
-  protected val memAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0)))
+  protected val memAddrOpA      = Wire(UInt(4.W))
   protected val memAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, memSizeByte) & "b0000".U(4.W))
@@ -373,43 +372,20 @@ class AXI4Bridge() extends Module with AXI4Config {
       | (Fill(4, memSizeDouble) & "b0111".U(4.W))
   )
 
-  protected val memAddrEnd  = WireDefault(UInt(4.W), memAddrOpA + memAddrOpB)
-  protected val memOverstep = WireDefault(memAddrEnd(3, ALIGNED_MEM_WIDTH) =/= 0.U)
-
-  memAxiLen := Mux(memTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), memOverstep))
-
-  // flash only support 4 bytes rd(0x3000_0000~0x3fff_ffff)
-  // periph suport 4 bytes w/r(0x1000_0000~0x1000_1fff)
-  // chiplink suport 4 bytes w/r(0x4000_0000~0x7fff_ffff)
-  protected val memAxiSize = Wire(UInt(3.W))
-  when(
-    (io.mem.addr >= UartBaseAddr && io.mem.addr <= UartBoundAddr) ||
-      (io.mem.addr >= SpiBaseAddr && io.mem.addr <= SpiBoundAddr) ||
-      (io.mem.addr >= ChiplinkBaseAddr && io.mem.addr <= ChiplinkBoundAddr)
-  ) {
-    memAxiSize := 2.U
-  }.otherwise {
-    memAxiSize := 3.U
-  }
-
-  protected val memAxiAddr          = Cat(io.mem.addr(AxiAddrWidth - 1, ALIGNED_MEM_WIDTH), Fill(ALIGNED_MEM_WIDTH, "b0".U(1.W)))
+  protected val memAddrEnd          = WireDefault(UInt(4.W), memAddrOpA + memAddrOpB)
+  protected val memOverstep         = Wire(Bool())
+  protected val memAxiSize          = Wire(UInt(3.W))
+  protected val memAxiAddr          = Wire(UInt(AxiAddrWidth.W))
   protected val memAlignedOffsetLow = Wire(UInt(OFFSET_MEM_WIDTH.W))
   protected val memAlignedOffsetHig = Wire(UInt(OFFSET_MEM_WIDTH.W))
   protected val memMask             = Wire(UInt(MASK_MEM_WIDTH.W))
+  protected val memMaskLow          = Wire(UInt(AxiDataWidth.W))
+  protected val memMaskHig          = Wire(UInt(AxiDataWidth.W))
+  protected val memStrb             = Wire(UInt((AxiDataWidth / 8).W))
+  protected val memStrbLow          = Wire(UInt((AxiDataWidth / 8).W))
+  protected val memStrbHig          = Wire(UInt((AxiDataWidth / 8).W))
 
-  memAlignedOffsetLow := Cat(OFFSET_MEM_WIDTH.U - Fill(ALIGNED_MEM_WIDTH, "b0".U(1.W)), io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0)) << 3
-  memAlignedOffsetHig := BusWidth.U - memAlignedOffsetLow
-  memMask := (
-    (Fill(MASK_MEM_WIDTH, memSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
-      | (Fill(MASK_MEM_WIDTH, memSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
-      | (Fill(MASK_MEM_WIDTH, memSizeWord) & Cat(Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
-      | (Fill(MASK_MEM_WIDTH, memSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
-  ) << memAlignedOffsetLow
-
-  protected val memMaskLow = memMask(AxiDataWidth - 1, 0)
-  protected val memMaskHig = memMask(MASK_MEM_WIDTH - 1, AxiDataWidth)
-  protected val memStrb    = Wire(UInt((AxiDataWidth / 8).W))
-
+  memAxiLen := Mux(memTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), memOverstep))
   memStrb := (
     (Fill(8, memSizeByte) & "b1".U(8.W))
       | ((Fill(8, memSizeHalf) & "b11".U(8.W)))
@@ -417,8 +393,52 @@ class AXI4Bridge() extends Module with AXI4Config {
       | ((Fill(8, memSizeDouble) & "b1111_1111".U(8.W)))
   )
 
-  protected val memStrbLow = WireDefault(UInt((AxiDataWidth / 8).W), memStrb << io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0))
-  protected val memStrbHig = WireDefault(UInt((AxiDataWidth / 8).W), memStrb >> ((AxiDataWidth / 8).U - io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0)))
+  // flash only support 4 bytes rd(0x3000_0000~0x3fff_ffff)
+  // periph suport 4 bytes w/r(0x1000_0000~0x1000_1fff)
+  // chiplink suport 4 bytes w/r(0x4000_0000~0x7fff_ffff)
+  when(
+    (io.mem.addr >= UartBaseAddr && io.mem.addr <= UartBoundAddr) ||
+      (io.mem.addr >= SpiBaseAddr && io.mem.addr <= SpiBoundAddr) ||
+      (io.mem.addr >= ChiplinkBaseAddr && io.mem.addr <= ChiplinkBoundAddr)
+  ) {
+    memTransAligned     := io.mem.addr(ALIGNED_PERIPH_MEM_WIDTH - 1, 0) === 0.U
+    memAddrOpA          := Cat(0.U, io.mem.addr(ALIGNED_PERIPH_MEM_WIDTH - 1, 0))
+    memOverstep         := memAddrEnd(3, ALIGNED_PERIPH_MEM_WIDTH) =/= 0.U
+    memAxiSize          := 2.U
+    memAxiAddr          := Cat(io.mem.addr(AxiAddrWidth - 1, ALIGNED_PERIPH_MEM_WIDTH), Fill(ALIGNED_PERIPH_MEM_WIDTH, "b0".U(1.W)))
+    memAlignedOffsetLow := Cat(OFFSET_PERIPH_MEM_WIDTH.U - Fill(ALIGNED_PERIPH_MEM_WIDTH, "b0".U(1.W)), io.mem.addr(ALIGNED_PERIPH_MEM_WIDTH - 1, 0)) << 3
+    memAlignedOffsetHig := AxiPerifDataWidth.U - memAlignedOffsetLow
+    memMask := (
+      (Fill(MASK_PERIPH_MEM_WIDTH, memSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
+        | (Fill(MASK_PERIPH_MEM_WIDTH, memSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
+        | (Fill(MASK_PERIPH_MEM_WIDTH, memSizeWord) & Cat(Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
+        | (Fill(MASK_PERIPH_MEM_WIDTH, memSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
+    ) << memAlignedOffsetLow
+
+    memMaskLow := memMask(AxiPerifDataWidth - 1, 0)
+    memMaskHig := memMask(MASK_PERIPH_MEM_WIDTH - 1, AxiPerifDataWidth)
+    memStrbLow := memStrb << io.mem.addr(ALIGNED_PERIPH_MEM_WIDTH - 1, 0)
+    memStrbHig := memStrb >> (AxiPerifDataWidth / 8).U - io.mem.addr(ALIGNED_PERIPH_MEM_WIDTH - 1, 0)
+  }.otherwise {
+    memTransAligned     := io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0) === 0.U
+    memAddrOpA          := Cat(0.U, io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0))
+    memOverstep         := memAddrEnd(3, ALIGNED_MEM_WIDTH) =/= 0.U
+    memAxiSize          := 3.U
+    memAxiAddr          := Cat(io.mem.addr(AxiAddrWidth - 1, ALIGNED_MEM_WIDTH), Fill(ALIGNED_MEM_WIDTH, "b0".U(1.W)))
+    memAlignedOffsetLow := Cat(OFFSET_MEM_WIDTH.U - Fill(ALIGNED_MEM_WIDTH, "b0".U(1.W)), io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0)) << 3
+    memAlignedOffsetHig := AxiDataWidth.U - memAlignedOffsetLow
+    memMask := (
+      (Fill(MASK_MEM_WIDTH, memSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
+        | (Fill(MASK_MEM_WIDTH, memSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
+        | (Fill(MASK_MEM_WIDTH, memSizeWord) & Cat(Fill(32, "b0".U(1.W)), "hffffffff".U(32.W)))
+        | (Fill(MASK_MEM_WIDTH, memSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
+    ) << memAlignedOffsetLow
+
+    memMaskLow := memMask(AxiDataWidth - 1, 0)
+    memMaskHig := memMask(MASK_MEM_WIDTH - 1, AxiDataWidth)
+    memStrbLow := memStrb << io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0)
+    memStrbHig := memStrb >> ((AxiDataWidth / 8).U - io.mem.addr(ALIGNED_MEM_WIDTH - 1, 0))
+  }
 
   protected val memAxiUser  = Fill(AxiUserLen, "b0".U(1.W))
   protected val memReady    = RegInit(false.B)
