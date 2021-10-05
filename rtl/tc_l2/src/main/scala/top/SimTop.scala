@@ -4,7 +4,7 @@ import chisel3._
 import treecorel2._
 import difftest._
 
-class SimTop() extends Module with AXI4Config with InstConfig {
+class SimTop() extends Module with AXI4Config {
   val io = IO(new Bundle {
     val logCtrl  = new LogCtrlIO
     val perfInfo = new PerfInfoIO

@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import difftest._
 
-class TreeCoreL2() extends Module with AXI4Config with InstConfig {
+class TreeCoreL2() extends Module with AXI4Config {
   val io = IO(new Bundle {
     val inst: AXI4USERIO = Flipped(new AXI4USERIO)
     val mem:  AXI4USERIO = Flipped(new AXI4USERIO)

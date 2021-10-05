@@ -4,7 +4,7 @@ import chisel3._
 import treecorel2._
 import difftest._
 
-class SoCTop() extends Module with AXI4Config with InstConfig {
+class SoCTop() extends Module with AXI4Config {
   val io = IO(new Bundle {
     val interrupt = Input(Bool())
     val master    = new SOCAXI4IO

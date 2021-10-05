@@ -9,7 +9,11 @@ object ConstVal {
   val InstOperTypeLen   = 6
   val CSRAddrLen        = 12
   val CLINTAddrLen      = 64
-  val PrivModeLen       = 2
+  val UARTAddrLen       = 32
+  val SPIAddrLen        = 32
+  val CHIPLINKAddrLen   = 32
+
+  val PrivModeLen = 2
   // exu inst type
   val aluADDIType  = 0.U(InstOperTypeLen.W)
   val aluADDIWType = 1.U(InstOperTypeLen.W)
@@ -99,11 +103,22 @@ object ConstVal {
   val mCycleAddr   = 0xb00.U(CSRAddrLen.W)
   // clint addr
   val ClintTickCnt   = 2
-  val ClintBaseAddr  = 0x2000000.U(CLINTAddrLen.W)
-  val ClintBoundAddr = 0x200bfff.U(CLINTAddrLen.W)
+  val ClintBaseAddr  = 0x02000000.U(CLINTAddrLen.W)
+  val ClintBoundAddr = 0x0200bfff.U(CLINTAddrLen.W)
   val MSipOffset     = 0x0.U(CLINTAddrLen.W)
   val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
   val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
+
+  // UART addr
+  val UartBaseAddr  = 0x10000000.U(UARTAddrLen.W)
+  val UartBoundAddr = 0x10000fff.U(UARTAddrLen.W)
+  // SPI addr
+  val SpiBaseAddr  = 0x10001000.U(SPIAddrLen.W)
+  val SpiBoundAddr = 0x10001fff.U(SPIAddrLen.W)
+  // ChipLink addr
+  val ChiplinkBaseAddr  = 0x40000000.U(CHIPLINKAddrLen.W)
+  val ChiplinkBoundAddr = 0x7fffffff.U(CHIPLINKAddrLen.W)
+
   // privMode
   val mPrivMode = 3.U(PrivModeLen.W)
   val sPrivMode = 1.U(PrivModeLen.W)
