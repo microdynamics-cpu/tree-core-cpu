@@ -4,7 +4,7 @@
 // import chisel3.util._
 // import AXI4Bridge._
 
-// class AXI4SigBridge extends Module with AXI4Config with InstConfig {
+// class AXI4SigBridge extends Module with AXI4Config {
 //   val io = IO(new Bundle {
 //     val rw:  AXI4USERIO = new AXI4USERIO
 //     val axi: AXI4IO     = new AXI4IO

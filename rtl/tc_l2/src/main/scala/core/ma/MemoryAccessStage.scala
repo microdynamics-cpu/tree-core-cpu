@@ -8,7 +8,7 @@ import treecorel2.common.{getSignExtn, getZeroExtn}
 
 // read data addr is calc by alu
 // write data addr is passed from id stage directly
-class MemoryAccessStage extends Module with AXI4Config with InstConfig {
+class MemoryAccessStage extends Module with AXI4Config {
   val io = IO(new Bundle {
     // wt mem ena signal is send from ex2ma stage
     // example: sd -> M[x[rs1]+ sext(offset)] = x[rs2][7:0]
