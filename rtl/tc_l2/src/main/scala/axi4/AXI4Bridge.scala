@@ -259,7 +259,6 @@ class AXI4Bridge() extends Module with AXI4Config {
     }
   }
 
-  // ------------------Number of transmission------------------
   protected val instTransLen        = RegInit(0.U(8.W))
   protected val instTransLenReset   = WireDefault(this.reset.asBool() || (instRdTrans && rdStateIdle))
   protected val instAxiLen          = Wire(UInt(8.W))
@@ -271,32 +270,12 @@ class AXI4Bridge() extends Module with AXI4Config {
     instTransLen := instTransLen + 1.U
   }
 
-  protected val memTransLen        = RegInit(0.U(8.W))
-  protected val memTransLenReset   = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
-  protected val memAxiLen          = Wire(UInt(8.W))
-  protected val memTransLenIncrEna = WireDefault((memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && (io.axi.r.bits.id === memAxiId))))
-
-  when(memTransLenReset) {
-    memTransLen := 0.U
-  }.elsewhen(memTransLenIncrEna) {
-    memTransLen := memTransLen + 1.U
-  }
-
-// ------------------Process Data------------------
   protected val ALIGNED_INST_WIDTH = log2Ceil(AxiInstDataWidth / 8)
   protected val OFFSET_INST_WIDTH  = log2Ceil(AxiInstDataWidth)
   protected val MASK_INST_WIDTH    = AxiInstDataWidth * 2
   protected val AXI_INST_SIZE      = if (SoCEna) 2.U else 3.U // because the flash only support 4 bytes access
+  protected val TRANS_LEN          = 1
 
-  protected val ALIGNED_MEM_WIDTH        = log2Ceil(AxiDataWidth / 8)
-  protected val OFFSET_MEM_WIDTH         = log2Ceil(AxiDataWidth)
-  protected val MASK_MEM_WIDTH           = AxiDataWidth * 2
-  protected val ALIGNED_PERIPH_MEM_WIDTH = log2Ceil(AxiPerifDataWidth / 8)
-  protected val OFFSET_PERIPH_MEM_WIDTH  = log2Ceil(AxiPerifDataWidth)
-  protected val MASK_PERIPH_MEM_WIDTH    = AxiPerifDataWidth * 2
-  protected val TRANS_LEN                = 1
-
-  // ================================inst data=======================
   // no-aligned visit
   protected val instTransAligned = WireDefault(io.inst.addr(ALIGNED_INST_WIDTH - 1, 0) === 0.U)
   protected val instSizeByte     = WireDefault(io.inst.size === AXI4Bridge.SIZE_B)
@@ -357,7 +336,25 @@ class AXI4Bridge() extends Module with AXI4Config {
   }
   io.inst.resp := instResp
 
-  // ================================mem data=======================
+  // ================================mem================================
+  protected val memTransLen        = RegInit(0.U(8.W))
+  protected val memTransLenReset   = WireDefault(this.reset.asBool() || (wtTrans && wtStateIdle) || (memRdTrans && rdStateIdle))
+  protected val memAxiLen          = Wire(UInt(8.W))
+  protected val memTransLenIncrEna = WireDefault((memTransLen =/= memAxiLen) && (wtHdShk || (rdHdShk && (io.axi.r.bits.id === memAxiId))))
+
+  when(memTransLenReset) {
+    memTransLen := 0.U
+  }.elsewhen(memTransLenIncrEna) {
+    memTransLen := memTransLen + 1.U
+  }
+
+  protected val ALIGNED_MEM_WIDTH        = log2Ceil(AxiDataWidth / 8)
+  protected val OFFSET_MEM_WIDTH         = log2Ceil(AxiDataWidth)
+  protected val MASK_MEM_WIDTH           = AxiDataWidth * 2
+  protected val ALIGNED_PERIPH_MEM_WIDTH = log2Ceil(AxiPerifDataWidth / 8)
+  protected val OFFSET_PERIPH_MEM_WIDTH  = log2Ceil(AxiPerifDataWidth)
+  protected val MASK_PERIPH_MEM_WIDTH    = AxiPerifDataWidth * 2
+
   protected val memTransAligned = Wire(Bool())
   protected val memSizeByte     = WireDefault(io.mem.size === AXI4Bridge.SIZE_B)
   protected val memSizeHalf     = WireDefault(io.mem.size === AXI4Bridge.SIZE_H)
@@ -500,7 +497,6 @@ class AXI4Bridge() extends Module with AXI4Config {
   }
 
   io.axi.b.ready := wtStateResp
-  // ------------------Read Transaction------------------
 
   // Read address channel signals
   io.axi.ar.valid      := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
