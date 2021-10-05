@@ -248,7 +248,7 @@ socPrevBuild: diffAllBuild socTopModify
 	verilator $(SOC_FLAGS)
 
 socBuild: socPrevBuild
-	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk
+	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
 
 socSimRun:
 	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin --dump-wave
