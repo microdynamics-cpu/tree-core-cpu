@@ -1,7 +1,7 @@
 <p align="center">
     <img width="200px" src="./.images/tree_core_logo.svg" align="center" alt="Tree Core CPU" />
     <h1 align="center">TreeCore CPU</h1>
-    <p align="center">A series of RISCV soft core processor written from scratch</p>
+    <p align="center">A series of RISCV soft core processors written from scratch</p>
 </p>
 <p align="center">
     <a href="./LICENSE">
@@ -19,15 +19,23 @@
 </p>
 
 ## Overview
-the TreeCore L2 is the riscv64 software core developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU). OSCPU was initiated by ICTCAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchain to design, develop open-source chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has achieved two season. Now Season 3 is in progress in 2021.
+The TreeCore processors are the riscv64 software core developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU). OSCPU was initiated by ICTCAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchain to design, develop open-source chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has achieved two season. Now Season 3 is in progress in 2021.
+
+Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning Core 1_**) and TreeCoreL2(**_TreeCore Learning Core 2_**).
 
 ## Feature
-* 64-bits single-issue, five-stage pipeline RISCV ISA CPU core.
-* support RISCV integer(I) instruction set.
-* supports machine mode privilege levels.
-* supports AXI4 inst and mem acess.
-* can boot rt-thread.
-* develop under all open-source toolchain.
+TreeCoreL1
+* 64-bits single period riscv core
+* written by verilog
+
+TreeCoreL2
+* 64-bits single-issue, five-stage pipeline riscv core
+* written by chisel3
+* support RISCV integer(I) instruction set
+* supports machine mode privilege levels
+* supports AXI4 inst and mem acess
+* can boot rt-thread
+* develop under all open-source toolchain
 
 ## Develop Schedule
 Now, the develop schedule is recorded by the **Tencent Document**. You can click this link [schedule table](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2) to view it.
@@ -56,17 +64,17 @@ Now, the develop schedule is recorded by the **Tencent Document**. You can click
 #### Enviroment setup(ubuntu 20.04 LTS)
 install verilator, mill and dep lib: 
 ```bash
-$ sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
-$ ./setup.sh -a
+sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
+./setup.sh -a
 ```
 
 change the sim memory from 8G to 256MB. need to enter 'make menuconfig' and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually.
 cd in root rtl dir
 ```bash
-$ make nemuBuild
-$ make diffBuild
-$ make difftestBuild
-$ make demoTest
+make nemuBuild
+make diffBuild
+make difftestBuild
+make demoTest
 ```
 
 ### Software test

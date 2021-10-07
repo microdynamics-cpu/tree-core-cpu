@@ -11,6 +11,7 @@ object ConstVal {
   val CLINTAddrLen      = 64
   val UARTAddrLen       = 32
   val SPIAddrLen        = 32
+  val FLASHAddrLen      = 32
   val CHIPLINKAddrLen   = 32
 
   val PrivModeLen = 2
@@ -115,6 +116,9 @@ object ConstVal {
   // SPI addr
   val SpiBaseAddr  = 0x10001000.U(SPIAddrLen.W)
   val SpiBoundAddr = 0x10001fff.U(SPIAddrLen.W)
+  // Flash addr
+  val FlashBaseAddr  = 0x30000000.U(FLASHAddrLen.W)
+  val FlashBoundAddr = 0x3fffffff.U(FLASHAddrLen.W)
   // ChipLink addr
   val ChiplinkBaseAddr  = 0x40000000.U(CHIPLINKAddrLen.W)
   val ChiplinkBoundAddr = 0x7fffffff.U(CHIPLINKAddrLen.W)
