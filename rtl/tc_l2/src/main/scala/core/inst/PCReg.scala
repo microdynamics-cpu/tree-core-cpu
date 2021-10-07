@@ -14,7 +14,13 @@ class PCReg() extends Module with AXI4Config {
   protected val hdShkDone: Bool = WireDefault(io.axi.ready && io.axi.valid)
   protected val pc:        UInt = if (SoCEna) RegInit(PCFlashStartAddr.U(BusWidth.W)) else RegInit(PCLoadStartAddr.U(BusWidth.W))
   protected val dirty:     Bool = RegInit(false.B)
+  protected val socRdCnt:  UInt = RegInit(0.U(1.W))
+  protected val validctrl: Bool = RegInit(false.B)
 
+  // fix the ready sig is triggered when mem access bug
+  when(!io.axi.valid && io.axi.ready) {
+    validctrl := true.B
+  }
   // now we dont handle this resp info to check if the read oper is right
   // tmp
   protected val tmpStall = if (SoCEna) RegNext(~io.ctrl2pc.maStall) else ~io.ctrl2pc.maStall
@@ -37,20 +43,28 @@ class PCReg() extends Module with AXI4Config {
     dirty := true.B
   }
 
-  when(hdShkDone) {
-    when(!dirty) {
-      pc            := pc + 4.U(BusWidth.W)
-      io.instEnaOut := true.B
-      // printf("handshake done!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
-      // printf(p"[pc]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
-      io.instDataOut := io.axi.rdata(31, 0)
+  when(SoCEna.B && socRdCnt === 0.U && hdShkDone && pc >= "h8000_0000".U) {
+    socRdCnt       := socRdCnt + 1.U
+    io.instEnaOut  := false.B
+    io.instDataOut := NopInst.U
+  }.otherwise {
+    when(hdShkDone || (io.axi.valid && validctrl)) {
+      socRdCnt := 0.U
+      when(!dirty) {
+        pc            := pc + 4.U(BusWidth.W)
+        io.instEnaOut := true.B
+        // printf("handshake done!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[pc]io.axi.rdata = 0x${Hexadecimal(io.axi.rdata)}\n")
+        io.instDataOut := io.axi.rdata(31, 0)
+        validctrl      := false.B
+      }.otherwise {
+        dirty          := false.B
+        io.instEnaOut  := false.B
+        io.instDataOut := NopInst.U
+      }
     }.otherwise {
-      dirty          := false.B
       io.instEnaOut  := false.B
       io.instDataOut := NopInst.U
     }
-  }.otherwise {
-    io.instEnaOut  := false.B
-    io.instDataOut := NopInst.U
   }
 }
