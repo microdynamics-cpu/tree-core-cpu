@@ -258,6 +258,20 @@ class AXI4Bridge() extends Module with AXI4Config {
         rdStateReg := eumIfRDwithMemIDLE
       }
     }
+  }.otherwise {
+    switch(rdStateReg) {
+      is(eumIfRDwithMemIDLE) {
+        // printf("[axi] if-rd mem-idle!!!!!!!!!!!!!!!!!!!!\n")
+        // printf(p"[axi] io.axi.aw.bits.len = 0x${Hexadecimal(io.axi.aw.bits.len)}\n")
+        when(io.mem.valid && memRdTrans && (~instRdDone)) {
+          rdStateReg := eumIfRDwithMemAR
+        }.elsewhen((~(io.mem.valid && memRdTrans)) && instRdDone) {
+          rdStateReg := eumRdIDLE
+        }.elsewhen(io.mem.valid && memRdTrans && instRdDone) {
+          rdStateReg := eumIfIDLEwithMemAR
+        }
+      }
+    }
   }
 
   protected val instTransLen        = RegInit(0.U(8.W))
@@ -271,24 +285,23 @@ class AXI4Bridge() extends Module with AXI4Config {
     instTransLen := instTransLen + 1.U
   }
 
-  protected val ALIGNED_INST_WIDTH = log2Ceil(AxiInstDataWidth / 8)
-  protected val OFFSET_INST_WIDTH  = log2Ceil(AxiInstDataWidth)
-  protected val MASK_INST_WIDTH    = AxiInstDataWidth * 2
-  protected val AXI_INST_SIZE      = if (SoCEna) 2.U else 3.U // because the flash only support 4 bytes access
-  protected val TRANS_LEN          = 1
+  protected val ALIGNED_INST_WIDTH       = log2Ceil(AxiDataWidth / 8)
+  protected val OFFSET_INST_WIDTH        = log2Ceil(AxiDataWidth)
+  protected val MASK_INST_WIDTH          = AxiDataWidth * 2
+  protected val AXI_INST_SIZE            = 3.U
+  protected val ALIGNED_FLASH_INST_WIDTH = log2Ceil(AxiFlashDataWidth / 8)
+  protected val OFFSET_FLASH_INST_WIDTH  = log2Ceil(AxiFlashDataWidth)
+  protected val MASK_FLASH_INST_WIDTH    = AxiFlashDataWidth * 2
+  protected val AXI_FLASH_INST_SIZE      = 2.U // because the flash only support 4 bytes access
+  protected val TRANS_LEN                = 1
 
   // no-aligned visit
-  protected val instTransAligned = WireDefault(io.inst.addr(ALIGNED_INST_WIDTH - 1, 0) === 0.U)
+  protected val instTransAligned = Wire(Bool())
   protected val instSizeByte     = WireDefault(io.inst.size === AXI4Bridge.SIZE_B)
   protected val instSizeHalf     = WireDefault(io.inst.size === AXI4Bridge.SIZE_H)
   protected val instSizeWord     = WireDefault(io.inst.size === AXI4Bridge.SIZE_W)
   protected val instSizeDouble   = WireDefault(io.inst.size === AXI4Bridge.SIZE_D)
-  // opa:    0xxx
-  // opb: b: 0000
-  //      h: 0001
-  //      w: 0011
-  //      d: 0111
-  protected val instAddrOpA = WireDefault(UInt(4.W), Cat(0.U, io.inst.addr(ALIGNED_INST_WIDTH - 1, 0)))
+  protected val instAddrOpA      = Wire(UInt(4.W))
   protected val instAddrOpB = WireDefault(
     UInt(4.W),
     (Fill(4, instSizeByte) & "b0000".U(4.W))
@@ -298,17 +311,14 @@ class AXI4Bridge() extends Module with AXI4Config {
   )
 
   protected val instAddrEnd          = WireDefault(UInt(4.W), instAddrOpA + instAddrOpB)
-  protected val instOverstep         = WireDefault(instAddrEnd(3, ALIGNED_INST_WIDTH) =/= 0.U)
-  protected val instAxiSize          = AXI_INST_SIZE
+  protected val instOverstep         = Wire(Bool())
+  protected val instAxiSize          = Wire(UInt(3.W))
   protected val instAxiAddr          = Wire(UInt(AxiAddrWidth.W))
   protected val instAlignedOffsetLow = Wire(UInt(OFFSET_INST_WIDTH.W))
   protected val instAlignedOffsetHig = Wire(UInt(OFFSET_INST_WIDTH.W))
   protected val instMask             = Wire(UInt(MASK_INST_WIDTH.W))
 
-  instAxiAddr          := Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_INST_WIDTH), Fill(ALIGNED_INST_WIDTH, "b0".U(1.W)))
-  instAxiLen           := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
-  instAlignedOffsetLow := Cat(OFFSET_INST_WIDTH.U, io.inst.addr(ALIGNED_INST_WIDTH - 1, 0)) << 3
-  instAlignedOffsetHig := AxiInstDataWidth.U - instAlignedOffsetLow
+  instAxiLen := Mux(instTransAligned.asBool(), (TRANS_LEN - 1).U, Cat(Fill(7, "b0".U(1.W)), instOverstep))
   instMask := (
     (Fill(MASK_INST_WIDTH, instSizeByte) & Cat(Fill(8, "b0".U(1.W)), "hff".U(8.W)))
       | (Fill(MASK_INST_WIDTH, instSizeHalf) & Cat(Fill(16, "b0".U(1.W)), "hffff".U(16.W)))
@@ -316,26 +326,52 @@ class AXI4Bridge() extends Module with AXI4Config {
       | (Fill(MASK_INST_WIDTH, instSizeDouble) & Cat(Fill(64, "b0".U(1.W)), "hffffffff_ffffffff".U(64.W)))
   ) << instAlignedOffsetLow
 
-  protected val instMaskLow  = instMask(AxiInstDataWidth - 1, 0)
-  protected val instMaskHig  = instMask(MASK_INST_WIDTH - 1, AxiInstDataWidth)
+  protected val instMaskLow  = Wire(UInt(AxiDataWidth.W))
+  protected val instMaskHig  = Wire(UInt(AxiDataWidth.W))
   protected val instAxiUser  = WireDefault(UInt(AxiUserLen.W), Fill(AxiUserLen, "b0".U(1.W)))
   protected val instReady    = RegInit(false.B)
   protected val instReadyNxt = WireDefault(instTransDone)
   protected val instReadyEna = WireDefault(instTransDone || instReady)
+  protected val instResp     = RegInit(0.U(2.W))
+  protected val instRespNxt  = io.axi.r.bits.resp
+  protected val instRespEna  = WireDefault(instTransDone)
 
   when(instReadyEna) {
     instReady := instReadyNxt
   }
   io.inst.ready := instReady
 
-  protected val instResp    = RegInit(0.U(2.W))
-  protected val instRespNxt = io.axi.r.bits.resp
-  protected val instRespEna = WireDefault(instTransDone)
-
   when(instRespEna) {
     instResp := instRespNxt
   }
   io.inst.resp := instResp
+
+  when(
+    (io.inst.addr >= UartBaseAddr && io.inst.addr <= UartBoundAddr) ||
+      (io.inst.addr >= SpiBaseAddr && io.inst.addr <= SpiBoundAddr) ||
+      (io.inst.addr >= FlashBaseAddr && io.inst.addr <= FlashBoundAddr) ||
+      (io.inst.addr >= ChiplinkBaseAddr && io.inst.addr <= ChiplinkBoundAddr)
+  ) {
+    instTransAligned     := io.inst.addr(ALIGNED_FLASH_INST_WIDTH - 1, 0) === 0.U
+    instAddrOpA          := Cat(0.U, io.inst.addr(ALIGNED_FLASH_INST_WIDTH - 1, 0))
+    instOverstep         := instAddrEnd(3, ALIGNED_FLASH_INST_WIDTH) =/= 0.U
+    instAxiSize          := AXI_FLASH_INST_SIZE
+    instAxiAddr          := Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_FLASH_INST_WIDTH), Fill(ALIGNED_FLASH_INST_WIDTH, "b0".U(1.W)))
+    instAlignedOffsetLow := Cat(io.inst.addr(ALIGNED_FLASH_INST_WIDTH - 1, 0), 0.U, 0.U, 0.U)
+    instAlignedOffsetHig := AxiFlashDataWidth.U - instAlignedOffsetLow
+    instMaskLow          := instMask(AxiFlashDataWidth - 1, 0)
+    instMaskHig          := instMask(MASK_FLASH_INST_WIDTH - 1, AxiFlashDataWidth)
+  }.otherwise {
+    instTransAligned     := io.inst.addr(ALIGNED_INST_WIDTH - 1, 0) === 0.U
+    instAddrOpA          := Cat(0.U, io.inst.addr(ALIGNED_INST_WIDTH - 1, 0))
+    instOverstep         := instAddrEnd(3, ALIGNED_INST_WIDTH) =/= 0.U
+    instAxiSize          := AXI_INST_SIZE
+    instAxiAddr          := Cat(io.inst.addr(AxiAddrWidth - 1, ALIGNED_INST_WIDTH), Fill(ALIGNED_INST_WIDTH, "b0".U(1.W)))
+    instAlignedOffsetLow := Cat(OFFSET_INST_WIDTH.U, io.inst.addr(ALIGNED_INST_WIDTH - 1, 0)) << 3
+    instAlignedOffsetHig := AxiDataWidth.U - instAlignedOffsetLow
+    instMaskLow          := instMask(AxiDataWidth - 1, 0)
+    instMaskHig          := instMask(MASK_INST_WIDTH - 1, AxiDataWidth)
+  }
 
   // ================================mem================================
   protected val memTransLen        = RegInit(0.U(8.W))
@@ -466,15 +502,14 @@ class AXI4Bridge() extends Module with AXI4Config {
   protected val memReady    = RegInit(false.B)
   protected val memReadyNxt = WireDefault(memTransDone)
   protected val memReadyEna = WireDefault(memTransDone || memReady)
+  protected val memResp     = RegInit(0.U(2.W))
+  protected val memRespNxt  = Mux(wtTrans, io.axi.b.bits.resp, io.axi.r.bits.resp)
+  protected val memRespEna  = WireDefault(memTransDone)
 
   when(memReadyEna) {
     memReady := memReadyNxt
   }
   io.mem.ready := memReady
-
-  protected val memResp    = RegInit(0.U(2.W))
-  protected val memRespNxt = Mux(wtTrans, io.axi.b.bits.resp, io.axi.r.bits.resp)
-  protected val memRespEna = WireDefault(memTransDone)
 
   when(memRespEna) {
     memResp := memRespNxt
@@ -524,8 +559,14 @@ class AXI4Bridge() extends Module with AXI4Config {
   io.axi.b.ready := wtStateResp
 
   // Read address channel signals
-  io.axi.ar.valid      := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
-  io.axi.ar.bits.addr  := (Fill(AxiAddrWidth, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiAddr) | (Fill(AxiAddrWidth, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiAddr)
+  io.axi.ar.valid := rdIfARwithMemIDLE || rdIfIDLEwithMemAR || rdIfRDwithMemAR || rdIfARwithMemRD
+  // loader: 0x8000_0000~0x8xxxx_xxxx program is loaded from flash
+  // when(loaderReg && (rdIfARwithMemIDLE || rdIfARwithMemRD) && io.inst.addr >= "h8000_0004".U) {
+  //   io.axi.ar.bits.addr := instAxiAddr + 4.U
+  // }.otherwise {
+  io.axi.ar.bits.addr := (Fill(AxiAddrWidth, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiAddr) | (Fill(AxiAddrWidth, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiAddr)
+  // }
+
   io.axi.ar.bits.id    := (Fill(AxiIdLen, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiId) | (Fill(AxiIdLen, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiId)
   io.axi.ar.bits.len   := (Fill(8, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiLen) | (Fill(8, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiLen)
   io.axi.ar.bits.size  := (Fill(3, rdIfARwithMemIDLE || rdIfARwithMemRD) & instAxiSize) | (Fill(3, rdIfIDLEwithMemAR || rdIfRDwithMemAR) & memAxiSize)

@@ -10,7 +10,7 @@ trait AXI4Config extends InstConfig {
   val AxiReqNop = 2
 
   val AxiDataWidth      = 64
-  val AxiInstDataWidth  = if (SoCEna) 32 else 64
+  val AxiFlashDataWidth = 32
   val AxiPerifDataWidth = 32
   val AxiAddrWidth      = 32 // FIME: is right? the original val is 64
   val AxiProtLen        = 3
