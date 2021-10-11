@@ -254,7 +254,7 @@ socRun:
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/memtest-flash.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/rtthread-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin --dump-wave
+# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/memtest-loader.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/rtthread-loader.bin
 ###### clean target ######
