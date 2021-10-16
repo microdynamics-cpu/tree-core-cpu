@@ -24,9 +24,9 @@ trait InstConfig {
   // | true  | false |
   // | false | true  |
   // |===============|
-  val DiffEna = true
-  val SoCEna  = false
+  // val DiffEna = true
+  // val SoCEna  = false
   //======================
-  // val DiffEna = false
-  // val SoCEna  = true
+  val DiffEna = false
+  val SoCEna  = true
 }
