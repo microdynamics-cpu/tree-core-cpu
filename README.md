@@ -21,7 +21,9 @@
 ## Overview
 The TreeCore processors are the riscv64 software core developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU). OSCPU was initiated by ICTCAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchain to design, develop open-source chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has achieved two season. Now Season 3 is in progress in 2021.
 
-Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning Core 1_**) and TreeCoreL2(**_TreeCore Learning Core 2_**).
+Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning Core 1_**) and TreeCoreL2(**_TreeCore Learning Core 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
+
+
 
 ## Feature
 TreeCoreL1
@@ -34,7 +36,18 @@ TreeCoreL2
 * support RISCV integer(I) instruction set
 * supports machine mode privilege levels
 * supports AXI4 inst and mem acess
+* supports ICache and DCache
+* supports branch prediction
 * can boot rt-thread
+* develop under all open-source toolchain
+
+TreeCoreL3(**under development**)
+* 64-bits two-issue, eight-stage pipeline riscv core
+* written by chisel3
+* support RV64IMAC instruction set
+* supports machine mode privilege levels
+* supports AXI4 inst and mem acess
+* can boot linux
 * develop under all open-source toolchain
 
 ## Develop Schedule
