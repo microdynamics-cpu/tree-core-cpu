@@ -196,8 +196,6 @@ configysyxSoC() {
         echo -e "${INFO}[no download]: git clone${END}"
         git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
     fi
-
-    git checkout 53540d0
 }
 
 helpInfo() {
