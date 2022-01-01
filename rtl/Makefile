@@ -81,10 +81,10 @@ millTest:
 
 chiselBuild:
 	mkdir -p $(BUILD_DIR)
-	mill -i tc_l2.runMain treecorel2.TopMain -td $(BUILD_DIR)
+	mill -i tc_l2.runMain top.TopMain -td $(BUILD_DIR)
 
 help:
-	mill -i tc_l2.runMain treecorel2.TopMain --help
+	mill -i tc_l2.runMain top.TopMain --help
 
 compile:
 	mill -i __.compile
@@ -92,7 +92,7 @@ compile:
 bsp:
 	mill -i mill.bsp.BSP/install
 
-reformat:
+format:
 	mill -i __.reformat
 
 checkformat:
@@ -219,6 +219,8 @@ $(cpuTestLogFile):
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME))
 
+unit-test: diffAllBuild riscvRecursiveTest cpuRecursiveTest
+
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -274,7 +276,7 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: millTest chiselBuild help compile bsp reformat checkformat \
+.PHONY: millTest chiselBuild help compile bsp format checkformat \
 		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
 		socTopModify socNameCheck socBuild\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
