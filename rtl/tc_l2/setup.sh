@@ -110,11 +110,11 @@ configDiffTest() {
         # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
-        git clone https://github.com/OpenXiangShan/difftest.git
+        git clone https://gitee.com/oscpu/difftest.git
     fi
 
     cd ${DIFFTEST_FOLDER_PATH}
-    git checkout 0d666c3ef08190cc7cebab753c1b3b8709c4418c
+    git checkout 56d947b
     # change the ram size from 8G to 256MB
     sed -i 's/^\/\/\s\+\(#define\s\+EMU_RAM_SIZE\s\+(256\)/\1/' src/test/csrc/common/ram.h
     sed -i 's/^#define\s\+EMU_RAM_SIZE\s\+(8/\/\/ &/' src/test/csrc/common/ram.h
@@ -133,11 +133,11 @@ configNemu() {
         # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
-        git clone https://github.com/OpenXiangShan/NEMU.git
+        git clone https://gitee.com/oscpu/NEMU.git
     fi
 
     cd ${NEMU_FOLDER_PATH}
-    git checkout b5375505a157ae8bd0d945ffbc90915727133a43
+    git checkout e402575
 
     if [[ -z $NEMU_HOME ]]; then
         echo -e "${INFO}NEMU_HOME is empty, set NEMU_HOME...${END}"
@@ -196,6 +196,8 @@ configysyxSoC() {
         echo -e "${INFO}[no download]: git clone${END}"
         git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
     fi
+
+    git checkout 53540d0
 }
 
 helpInfo() {
