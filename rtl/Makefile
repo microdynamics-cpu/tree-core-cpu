@@ -79,7 +79,7 @@ endef
 millTest:
 	mill -i __.test
 
-diffBuild:
+chiselBuild:
 	mkdir -p $(BUILD_DIR)
 	mill -i tc_l2.runMain treecorel2.TopMain -td $(BUILD_DIR)
 
@@ -118,7 +118,7 @@ difftestBuild:
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1
 
-diffAllBuild: diffBuild difftestBuild
+diffAllBuild: chiselBuild difftestBuild
 
 simpleTestBuild:
 	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
@@ -241,14 +241,18 @@ socLintCheck: socNameCheck
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
 	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
-socPrevBuild: diffAllBuild socTopModify
+# socPrevBuild: diffAllBuild socTopModify
+socPrevBuild:
 # FIXME: if only need to moidfy core, commit it
 # @cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
 	@sed -i s/ysyx_000000/ysyx_210324/g $(BUILD_DIR)/soc/ysyxSoCFull.v
 	verilator $(SOC_FLAGS)
 
-socBuild: socPrevBuild
-	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
+# socBuild: socPrevBuild
+# 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
+
+socBuild:
+	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu/projects/soc/vsrc/
 
 socRun:
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
@@ -270,7 +274,7 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: millTest diffBuild help compile bsp reformat checkformat \
+.PHONY: millTest chiselBuild help compile bsp reformat checkformat \
 		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
 		socTopModify socNameCheck socBuild\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
