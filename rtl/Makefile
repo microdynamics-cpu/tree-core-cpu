@@ -79,20 +79,20 @@ endef
 millTest:
 	mill -i __.test
 
-diffBuild:
+chiselBuild:
 	mkdir -p $(BUILD_DIR)
-	mill -i tc_l2.runMain treecorel2.TopMain -td $(BUILD_DIR)
+	mill -i tc_l2.runMain top.TopMain -td $(BUILD_DIR)
 
-help:
-	mill -i tc_l2.runMain treecorel2.TopMain --help
+chiselHelp:
+	mill -i tc_l2.runMain top.TopMain --help
 
-compile:
+millCompile:
 	mill -i __.compile
 
-bsp:
+millBsp:
 	mill -i mill.bsp.BSP/install
 
-reformat:
+format:
 	mill -i __.reformat
 
 checkformat:
@@ -118,7 +118,13 @@ difftestBuild:
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
 	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1
 
-diffAllBuild: diffBuild difftestBuild
+changeTargetToSimTop:
+	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)true/SoCEna\1=\2false/g' $(ROOT_PATH)/src/main/scala/common/InstConfig.scala
+
+changeTargetToSoCTop:
+	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)false/SoCEna\1=\2true/g' $(ROOT_PATH)/src/main/scala/common/InstConfig.scala
+
+simBuild: changeTargetToSimTop chiselBuild difftestBuild
 
 simpleTestBuild:
 	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
@@ -219,6 +225,8 @@ $(cpuTestLogFile):
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME))
 
+unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
+
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -241,14 +249,20 @@ socLintCheck: socNameCheck
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
 	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
-socPrevBuild: diffAllBuild socTopModify
+socPrevBuild: chiselBuild socTopModify
 # FIXME: if only need to moidfy core, commit it
 # @cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
 	@sed -i s/ysyx_000000/ysyx_210324/g $(BUILD_DIR)/soc/ysyxSoCFull.v
 	verilator $(SOC_FLAGS)
 
-socBuild: socPrevBuild
-	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
+# socBuild: socPrevBuild
+# 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
+
+socBuild: changeTargetToSoCTop chiselBuild socNameCheck
+	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu/projects/soc/vsrc/
+
+socSubmit:
+	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
 
 socRun:
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
@@ -270,7 +284,10 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: millTest diffBuild help compile bsp reformat checkformat \
-		nemuBuild difftestBuild riscvTestBuild cpuTestBuild amTestBuild demoTest \
-		socTopModify socNameCheck socBuild\
+.PHONY: millTest chiselBuild chiselHelp millCompile millBsp format checkformat \
+		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
+		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
+		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
+		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest unit-test \
+		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socRun\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll

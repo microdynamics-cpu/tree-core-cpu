@@ -14,3 +14,4 @@ dramsim3.txt
 dramsim3epoch.json
 *.vcd
 *.wave
+__pycache__

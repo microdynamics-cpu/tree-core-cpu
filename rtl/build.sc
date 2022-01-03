@@ -1,9 +1,7 @@
-// import Mill dependency
 import mill._
 import mill.scalalib._
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.scalalib.TestModule.Utest
-// support BSP
 import mill.bsp._
 
 object tc_l2 extends ScalaModule with ScalafmtModule { m =>
