@@ -1,103 +1,53 @@
 package treecorel2
 
 import chisel3._
-import chisel3.util.{Cat, MuxLookup}
-import treecorel2.common.ConstVal._
-import treecorel2.common.{getSignExtn, getZeroExtn}
+import chisel3.util._
 
-class ALU extends Module with InstConfig {
+class ALU extends Module {
   val io = IO(new Bundle {
-    // from id
-    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val rsValAIn:      UInt = Input(UInt(BusWidth.W))
-    val rsValBIn:      UInt = Input(UInt(BusWidth.W))
-    // from csr
-    val csrRdDataIn: UInt = Input(UInt(BusWidth.W))
-    // to ex2ma
-    val wtDataOut: UInt = Output(UInt(BusWidth.W))
-    // to csr
-    val csrwtEnaOut:  Bool = Output(Bool())
-    val csrWtDataOut: UInt = Output(UInt(BusWidth.W))
+    val isa  = Input(new ISAIO)
+    val src1 = Input(UInt(64.W))
+    val src2 = Input(UInt(64.W))
+    val imm  = Input(new IMMIO)
+    val res  = Output(UInt(64.W))
   })
 
-  protected val res: UInt = Wire(UInt(BusWidth.W))
+  protected val addi  = SignExt(io.isa.ADDI.asUInt, 64) & (io.src1 + io.imm.I)
+  protected val add   = SignExt(io.isa.ADD.asUInt, 64) & (io.src1 + io.src2)
+  protected val lui   = SignExt(io.isa.LUI.asUInt, 64) & (io.imm.U)
+  protected val sub   = SignExt(io.isa.SUB.asUInt, 64) & (io.src1 - io.src2)
+  protected val addiw = SignExt(io.isa.ADDIW.asUInt, 64) & SignExt((io.src1 + io.imm.I)(31, 0), 64)
+  protected val addw  = SignExt(io.isa.ADDW.asUInt, 64) & SignExt((io.src1 + io.src2)(31, 0), 64)
+  protected val subw  = SignExt(io.isa.SUBW.asUInt, 64) & SignExt((io.src1 - io.src2)(31, 0), 64)
+  protected val arith = addi | add | lui | sub | addiw | addw | subw
 
-  res := MuxLookup(
-    io.exuOperTypeIn,
-    0.U((BusWidth.W)),
-    Seq(
-      aluADDIType  -> (io.rsValAIn + io.rsValBIn),
-      aluADDIWType -> (io.rsValAIn + io.rsValBIn),
-      aluSLTIType  -> Cat(0.U((BusWidth - 1).W), io.rsValAIn.asSInt < io.rsValBIn.asSInt),
-      aluSLTIUType -> (io.rsValAIn < io.rsValBIn),
-      aluANDIType  -> (io.rsValAIn & io.rsValBIn),
-      aluORIType   -> (io.rsValAIn | io.rsValBIn),
-      aluXORIType  -> (io.rsValAIn ^ io.rsValBIn),
-      aluSLLIType  -> (io.rsValAIn << io.rsValBIn(5, 0)),
-      aluSLLIWType -> (io.rsValAIn << io.rsValBIn(4, 0)),
-      aluSRLIType  -> (io.rsValAIn >> io.rsValBIn(5, 0)),
-      aluSRLIWType -> (io.rsValAIn(31, 0) >> io.rsValBIn(4, 0)),
-      aluSRAIType  -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
-      aluSRAIWType -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
-      aluLUIType   -> (io.rsValBIn << 12),
-      aluAUIPCType -> (io.rsValAIn + (io.rsValBIn << 12)),
-      aluADDType   -> (io.rsValAIn + io.rsValBIn),
-      aluADDWType  -> (io.rsValAIn + io.rsValBIn),
-      aluSLTType   -> Cat(0.U((BusWidth - 1).W), io.rsValAIn.asSInt < io.rsValBIn.asSInt),
-      aluSLTUType  -> (io.rsValAIn < io.rsValBIn),
-      aluANDType   -> (io.rsValAIn & io.rsValBIn),
-      aluORType    -> (io.rsValAIn | io.rsValBIn),
-      aluXORType   -> (io.rsValAIn ^ io.rsValBIn),
-      aluSLLType   -> (io.rsValAIn << io.rsValBIn(5, 0)),
-      aluSLLWType  -> (io.rsValAIn << io.rsValBIn(4, 0)),
-      aluSRLType   -> (io.rsValAIn >> io.rsValBIn(5, 0)),
-      aluSRLWType  -> (io.rsValAIn(31, 0) >> io.rsValBIn(4, 0)),
-      aluSUBType   -> (io.rsValAIn - io.rsValBIn),
-      aluSUBWType  -> (io.rsValAIn - io.rsValBIn),
-      aluSRAType   -> ((io.rsValAIn.asSInt >> io.rsValBIn(5, 0)).asUInt),
-      aluSRAWType  -> ((io.rsValAIn(31, 0).asSInt >> io.rsValBIn(4, 0)).asUInt),
-      // special jal and jalr oper
-      beuJALType  -> (io.rsValAIn + io.rsValBIn),
-      beuJALRType -> (io.rsValAIn + io.rsValBIn),
-      aluNopType  -> (io.rsValAIn + io.rsValBIn),
-      // csr inst
-      csrRWType  -> io.csrRdDataIn,
-      csrRSType  -> io.csrRdDataIn,
-      csrRCType  -> io.csrRdDataIn,
-      csrRWIType -> io.csrRdDataIn,
-      csrRSIType -> io.csrRdDataIn,
-      csrRCIType -> io.csrRdDataIn
-    )
-  )
+  protected val andi = SignExt(io.isa.ANDI.asUInt, 64) & (io.src1 & io.imm.I)
+  protected val and  = SignExt(io.isa.AND.asUInt, 64) & (io.src1 & io.src2)
+  protected val ori  = SignExt(io.isa.ORI.asUInt, 64) & (io.src1 | io.imm.I)
+  protected val or   = SignExt(io.isa.OR.asUInt, 64) & (io.src1 | io.src2)
+  protected val xori = SignExt(io.isa.XORI.asUInt, 64) & (io.src1 ^ io.imm.I)
+  protected val xor  = SignExt(io.isa.XOR.asUInt, 64) & (io.src1 ^ io.src2)
+  protected val logc = andi | and | ori | or | xori | xor
 
-  when(
-    io.exuOperTypeIn === aluADDIWType ||
-      io.exuOperTypeIn === aluSLLIWType ||
-      io.exuOperTypeIn === aluSRLIWType ||
-      io.exuOperTypeIn === aluSRAIWType ||
-      io.exuOperTypeIn === aluADDWType ||
-      io.exuOperTypeIn === aluSLLWType ||
-      io.exuOperTypeIn === aluSRLWType ||
-      io.exuOperTypeIn === aluSUBWType ||
-      io.exuOperTypeIn === aluSRAWType
-  ) {
-    io.wtDataOut := getSignExtn(BusWidth, res(31, 0), res(31))
-  }.otherwise {
-    io.wtDataOut := res
-  }
+  protected val slt   = Mux((io.isa.SLT && (io.src1.asSInt < io.src2.asSInt)), 1.U(64.W), 0.U(64.W))
+  protected val slti  = Mux((io.isa.SLTI && (io.src1.asSInt < io.imm.I.asSInt)), 1.U(64.W), 0.U(64.W))
+  protected val sltu  = Mux((io.isa.SLTU && (io.src1.asUInt < io.src2.asUInt)), 1.U(64.W), 0.U(64.W))
+  protected val sltiu = Mux((io.isa.SLTIU && (io.src1.asUInt < io.imm.I.asUInt)), 1.U(64.W), 0.U(64.W))
+  protected val comp  = slt | slti | sltu | sltiu
 
-  when(io.exuOperTypeIn === csrRWType || io.exuOperTypeIn === csrRWIType) {
-    io.csrwtEnaOut  := true.B
-    io.csrWtDataOut := io.rsValAIn
+  protected val sll   = SignExt(io.isa.SLL.asUInt, 64) & (io.src1 << io.src2(5, 0))(63, 0)
+  protected val srl   = SignExt(io.isa.SRL.asUInt, 64) & (io.src1 >> io.src2(5, 0))
+  protected val sra   = SignExt(io.isa.SRA.asUInt, 64) & (io.src1.asSInt >> io.src2(5, 0)).asUInt
+  protected val slli  = SignExt(io.isa.SLLI.asUInt, 64) & (io.src1 << io.imm.I(5, 0))(63, 0)
+  protected val srli  = SignExt(io.isa.SRLI.asUInt, 64) & (io.src1 >> io.imm.I(5, 0))
+  protected val srai  = SignExt(io.isa.SRAI.asUInt, 64) & (io.src1.asSInt >> io.imm.I(5, 0)).asUInt
+  protected val sllw  = SignExt(io.isa.SLLW.asUInt, 64) & SignExt((io.src1 << io.src2(4, 0))(31, 0), 64)
+  protected val srlw  = SignExt(io.isa.SRLW.asUInt, 64) & SignExt((io.src1(31, 0) >> io.src2(4, 0)), 64)
+  protected val sraw  = SignExt(io.isa.SRAW.asUInt, 64) & SignExt((io.src1(31, 0).asSInt >> io.src2(4, 0)).asUInt, 64)
+  protected val slliw = SignExt(io.isa.SLLIW.asUInt, 64) & SignExt((io.src1 << io.imm.I(4, 0))(31, 0), 64)
+  protected val srliw = SignExt(io.isa.SRLIW.asUInt, 64) & SignExt((io.src1(31, 0) >> io.imm.I(4, 0)), 64)
+  protected val sraiw = SignExt(io.isa.SRAIW.asUInt, 64) & SignExt((io.src1(31, 0).asSInt >> io.imm.I(4, 0)).asUInt, 64)
+  protected val shift = sll | srl | sra | slli | srli | srai | sllw | srlw | sraw | slliw | srliw | sraiw
 
-  }.elsewhen(io.exuOperTypeIn === csrRSType || io.exuOperTypeIn === csrRSIType) {
-    io.csrwtEnaOut  := true.B
-    io.csrWtDataOut := io.wtDataOut | io.rsValAIn
-  }.elsewhen(io.exuOperTypeIn === csrRCType || io.exuOperTypeIn === csrRCIType) {
-    io.csrwtEnaOut  := true.B
-    io.csrWtDataOut := io.wtDataOut & (~io.rsValAIn)
-  }.otherwise {
-    io.csrwtEnaOut  := false.B
-    io.csrWtDataOut := 0.U(BusWidth.W)
-  }
+  io.res := arith | logc | comp | shift
 }

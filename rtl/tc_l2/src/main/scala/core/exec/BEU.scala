@@ -1,69 +1,41 @@
 package treecorel2
 
 import chisel3._
-import chisel3.util.{Cat, MuxLookup}
-import treecorel2.common.ConstVal._
+import chisel3.util._
 
-class BEU extends Module with InstConfig {
+class BEU extends Module {
   val io = IO(new Bundle {
-    // from id
-    val exuOperNumIn:  UInt = Input(UInt(BusWidth.W))
-    val exuOperTypeIn: UInt = Input(UInt(InstOperTypeLen.W))
-    val rsValAIn:      UInt = Input(UInt(BusWidth.W))
-    val rsValBIn:      UInt = Input(UInt(BusWidth.W))
-    val offsetIn:      UInt = Input(UInt(BusWidth.W))
-    // to id
-    val newInstAddrOut: UInt = Output(UInt(BusWidth.W))
-    val jumpTypeOut:    UInt = Output(UInt(JumpTypeLen.W))
+    val isa    = Input(new ISAIO)
+    val imm    = Input(new IMMIO)
+    val src1   = Input(UInt(64.W))
+    val src2   = Input(UInt(64.W))
+    val pc     = Input(UInt(64.W))
+    val branch = Output(Bool())
+    val tgt    = Output(UInt(64.W))
   })
 
-  protected val ifJump: Bool = Wire(Bool())
-  // pass it to if stage to set new pc
-  ifJump := MuxLookup(
-    io.exuOperTypeIn,
-    false.B,
-    Seq(
-      beuJALType  -> true.B,
-      beuJALRType -> true.B,
-      beuBEQType  -> (io.rsValAIn === io.rsValBIn),
-      beuBNEType  -> (io.rsValAIn =/= io.rsValBIn),
-      beuBLTType  -> (io.rsValAIn.asSInt() < io.rsValBIn.asSInt()),
-      beuBLTUType -> (io.rsValAIn < io.rsValBIn),
-      beuBGEType  -> (io.rsValAIn.asSInt() >= io.rsValBIn.asSInt()),
-      beuBGEUType -> (io.rsValAIn >= io.rsValBIn)
-    )
-  )
+  protected val beq  = io.isa.BEQ && (io.src1 === io.src2)
+  protected val bne  = io.isa.BNE && (io.src1 =/= io.src2)
+  protected val bgeu = io.isa.BGEU && (io.src1 >= io.src2)
+  protected val bltu = io.isa.BLTU && (io.src1 < io.src2)
+  protected val bge  = io.isa.BGE && (io.src1.asSInt >= io.src2.asSInt)
+  protected val blt  = io.isa.BLT && (io.src1.asSInt < io.src2.asSInt)
+  protected val b    = beq | bne | bgeu | bltu | bge | blt
 
-  //pass it to control to flush pipeline
-  io.jumpTypeOut := MuxLookup(
-    io.exuOperTypeIn,
-    noJumpType,
-    Seq(
-      beuJALType  -> uncJumpType,
-      beuJALRType -> uncJumpType,
-      beuBEQType  -> Mux(ifJump, condJumpType, noJumpType),
-      beuBNEType  -> Mux(ifJump, condJumpType, noJumpType),
-      beuBLTType  -> Mux(ifJump, condJumpType, noJumpType),
-      beuBLTUType -> Mux(ifJump, condJumpType, noJumpType),
-      beuBGEType  -> Mux(ifJump, condJumpType, noJumpType),
-      beuBGEUType -> Mux(ifJump, condJumpType, noJumpType)
-    )
-  )
-  // io.jumpTypeOut := uncJumpType
+  protected val jal  = io.isa.JAL
+  protected val jalr = io.isa.JALR
 
-  protected val newInstAddr: UInt = Wire(UInt(BusWidth.W))
+  protected val b_tgt    = io.pc + io.imm.B
+  protected val jal_tgt  = io.pc + io.imm.J
+  protected val jalr_tgt = io.src1 + io.imm.I
 
-  // if no jump, the newInstAddr is zero
-  newInstAddr       := io.exuOperNumIn + io.offsetIn
-  io.newInstAddrOut := Mux(io.exuOperTypeIn === beuJALRType, newInstAddr & (~(1.U(BusWidth.W))), newInstAddr)
+  io.branch := b | jal | jalr
 
-  //@printf(p"[beu]io.ifJumpOut = 0x${Hexadecimal(io.ifJumpOut)}\n")
-  //@printf(p"[beu]io.jumpTypeOut = 0x${Hexadecimal(io.jumpTypeOut)}\n")
-  // printf(p"[beu]~(1.U(BusWidth.W) = 0x${Hexadecimal(~(1.U(BusWidth.W)))}\n")
-  // printf(p"[beu]io.exuOperNumIn = 0x${Hexadecimal(io.exuOperNumIn)}\n")
-  // printf(p"[beu]io.offsetIn = 0x${Hexadecimal(io.offsetIn)}\n")
-  // printf(p"[beu]io.rsValAIn = 0x${Hexadecimal(io.rsValAIn)}\n")
-  // printf(p"[beu]io.rsValBIn = 0x${Hexadecimal(io.rsValBIn)}\n")
-  // printf(p"[beu]io.newInstAddrOut = 0x${Hexadecimal(io.newInstAddrOut)}\n")
-  // printf("\n")
+  when(jal) {
+    io.tgt := jal_tgt
+  }.elsewhen(jalr) {
+    io.tgt := jalr_tgt
+  }.otherwise {
+    io.tgt := b_tgt
+  }
 }

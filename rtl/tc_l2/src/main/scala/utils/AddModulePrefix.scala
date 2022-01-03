@@ -1,6 +1,6 @@
 // ref: https://github.com/OSCPU/ysyxSoC/blob/master/ysyx/module-prefix/AddModulePrefix.scala
 // thanks to (Jiawei Lin)https://github.com/ljwljwljwljw
-package treecorel2 // modify to your package name
+package sim // modify to your package name
 
 import firrtl._
 import firrtl.annotations.{ModuleTarget, NoTargetAnnotation}
@@ -26,7 +26,8 @@ class AddModulePrefix extends Transform with DependencyAPIMigration {
     }.get
 
     val blacklist = List(
-      "S011HD1P_X32Y2D128"
+      "S011HD1P_X32Y2D128",
+      "ysyx_210324"
     )
 
     val extModules = state.circuit.modules
