@@ -1,9 +1,10 @@
-package treecorel2
+package top
 
-import treecorel2.common.ConstVal
+import sim._
+import treecorel2.common.InstConfig
 
 object TopMain extends App with InstConfig {
-  if (DiffEn) {
+  if (!SoCEna) {
     (new chisel3.stage.ChiselStage).execute(
       args,
       Seq(
