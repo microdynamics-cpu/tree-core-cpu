@@ -67,5 +67,4 @@ class ISAIO extends Bundle {
   val SRET       = Bool()
   val WFI        = Bool()
   val SFENCE_VMA = Bool()
-  val ILL        = Bool()
 }
