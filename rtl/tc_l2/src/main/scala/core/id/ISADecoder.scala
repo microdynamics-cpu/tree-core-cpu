@@ -76,23 +76,22 @@ class ISADecoder extends Module {
   io.isa.AUIPC      := (io.inst === BitPat("b?????????????????????_?????_0010111"))
   io.isa.JAL        := (io.inst === BitPat("b?????????????????????_?????_1101111"))
 
-  protected val arith    = io.isa.ADD || io.isa.ADDW || io.isa.ADDI || io.isa.ADDIW || io.isa.SUB || io.isa.SUBW || io.isa.LUI || io.isa.AUIPC
-  protected val logic    = io.isa.XOR || io.isa.XORI || io.isa.OR || io.isa.ORI || io.isa.AND || io.isa.ANDI
-  protected val shift    = io.isa.SLL || io.isa.SLLI || io.isa.SLLW || io.isa.SLLIW || io.isa.SRL || io.isa.SRLI || io.isa.SRLW || io.isa.SRLIW || io.isa.SRA || io.isa.SRAI || io.isa.SRAW || io.isa.SRAIW
-  protected val comp     = io.isa.SLT || io.isa.SLTI || io.isa.SLTU || io.isa.SLTIU
-  protected val branch   = io.isa.BEQ || io.isa.BNE || io.isa.BLT || io.isa.BGE || io.isa.BLTU || io.isa.BGEU
-  protected val jumpLink = io.isa.JAL || io.isa.JALR
-  protected val sync     = io.isa.FENCE || io.isa.FENCE_I
-  protected val env      = io.isa.ECALL || io.isa.EBREAK
-  protected val csr      = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
-  protected val load     = io.isa.LD || io.isa.LW || io.isa.LH || io.isa.LB || io.isa.LWU || io.isa.LHU || io.isa.LBU
-  protected val store    = io.isa.SD || io.isa.SW || io.isa.SH || io.isa.SB
-  protected val priv     = io.isa.MRET || io.isa.SRET || io.isa.WFI || io.isa.SFENCE_VMA
+  protected val arith  = io.isa.ADD || io.isa.ADDW || io.isa.ADDI || io.isa.ADDIW || io.isa.SUB || io.isa.SUBW || io.isa.LUI || io.isa.AUIPC
+  protected val logc   = io.isa.XOR || io.isa.XORI || io.isa.OR || io.isa.ORI || io.isa.AND || io.isa.ANDI
+  protected val shift  = io.isa.SLL || io.isa.SLLI || io.isa.SLLW || io.isa.SLLIW || io.isa.SRL || io.isa.SRLI || io.isa.SRLW || io.isa.SRLIW || io.isa.SRA || io.isa.SRAI || io.isa.SRAW || io.isa.SRAIW
+  protected val comp   = io.isa.SLT || io.isa.SLTI || io.isa.SLTU || io.isa.SLTIU
+  protected val link   = io.isa.JAL || io.isa.JALR
+  protected val branch = io.isa.BEQ || io.isa.BNE || io.isa.BLT || io.isa.BGE || io.isa.BLTU || io.isa.BGEU
+  protected val load   = io.isa.LD || io.isa.LW || io.isa.LH || io.isa.LB || io.isa.LWU || io.isa.LHU || io.isa.LBU
+  protected val store  = io.isa.SD || io.isa.SW || io.isa.SH || io.isa.SB
+  protected val sync   = io.isa.FENCE || io.isa.FENCE_I
+  protected val env    = io.isa.ECALL || io.isa.EBREAK
+  protected val csr    = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
+  protected val priv   = io.isa.MRET || io.isa.SRET || io.isa.WFI || io.isa.SFENCE_VMA
 
   protected val immExten = Module(new ImmExten)
   immExten.io.inst := io.inst
   io.imm           := immExten.io.imm
-
-  io.csr := csr
-  io.wen := arith || logic || shift || comp || jumpLink || load || csr
+  io.csr           := csr
+  io.wen           := arith || logc || shift || comp || link || load || csr
 }
