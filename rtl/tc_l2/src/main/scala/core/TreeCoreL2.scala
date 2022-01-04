@@ -23,7 +23,7 @@ class TreeCoreL2 extends Module {
 
   protected val ifUnit   = Module(new IFU)
   protected val idUnit   = Module(new InstDecode)
-  protected val execUnit = Module(new Execute)
+  protected val execUnit = Module(new EXU)
   protected val maUnit   = Module(new Memory)
   protected val wbUnit   = Module(new WriteBack)
 

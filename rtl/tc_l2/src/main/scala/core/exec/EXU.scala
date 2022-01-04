@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class Execute extends Module {
+class EXU extends Module {
   val io = IO(new Bundle {
     val globalEn  = Input(Bool())
     val mtip      = Input(Bool())
