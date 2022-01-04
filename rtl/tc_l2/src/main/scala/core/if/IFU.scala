@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class InstFetch extends Module {
+class IFU extends Module {
   val io = IO(new Bundle {
     val globalEn = Input(Bool())
     val stall    = Input(Bool())

@@ -21,7 +21,7 @@ class TreeCoreL2 extends Module {
     val archEvt         = Flipped(new DiffArchEventIO)
   })
 
-  protected val ifUnit   = Module(new InstFetch)
+  protected val ifUnit   = Module(new IFU)
   protected val idUnit   = Module(new InstDecode)
   protected val execUnit = Module(new Execute)
   protected val maUnit   = Module(new Memory)
