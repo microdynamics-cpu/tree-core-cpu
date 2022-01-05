@@ -18,6 +18,9 @@ class IFU extends Module {
   protected val inst      = io.fetch.data
   protected val pc        = RegInit(startAddr)
 
+  // protected val bpu = Module(new BPU)
+  // bpu.io.in := 0.U
+
   when(io.globalEn) {
     when(io.nxtPC.trap) {
       pc := io.nxtPC.mtvec
