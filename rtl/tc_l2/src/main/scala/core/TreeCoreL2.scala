@@ -21,48 +21,48 @@ class TreeCoreL2 extends Module {
     val archEvt         = Flipped(new DiffArchEventIO)
   })
 
-  protected val ifUnit   = Module(new IFU)
-  protected val idUnit   = Module(new InstDecode)
-  protected val execUnit = Module(new EXU)
-  protected val maUnit   = Module(new Memory)
-  protected val wbUnit   = Module(new WriteBack)
+  protected val ifu = Module(new IFU)
+  protected val idu = Module(new IDU)
+  protected val exu = Module(new EXU)
+  protected val mau = Module(new Memory)
+  protected val wbu = Module(new WriteBack)
 
-  ifUnit.io.socEn := io.socEn
-  wbUnit.io.socEn := io.socEn
+  ifu.io.socEn := io.socEn
+  wbu.io.socEn := io.socEn
 
   // datapath
-  ifUnit.io.if2id    <> idUnit.io.if2id
-  idUnit.io.id2ex    <> execUnit.io.id2ex
-  execUnit.io.ex2mem <> maUnit.io.ex2mem
-  maUnit.io.mem2wb   <> wbUnit.io.mem2wb
+  ifu.io.if2id  <> idu.io.if2id
+  idu.io.id2ex  <> exu.io.id2ex
+  exu.io.ex2mem <> mau.io.ex2mem
+  mau.io.mem2wb <> wbu.io.mem2wb
 
-  execUnit.io.stall <> idUnit.io.stall
-  execUnit.io.stall <> ifUnit.io.stall
+  exu.io.stall <> idu.io.stall
+  exu.io.stall <> ifu.io.stall
 
   // bypass
-  idUnit.io.wbdata      <> wbUnit.io.wbdata
-  execUnit.io.bypassMem <> maUnit.io.bypassMem
-  execUnit.io.bypassWb  <> wbUnit.io.wbdata
-  execUnit.io.nxtPC     <> ifUnit.io.nxtPC
-  execUnit.io.mtip      <> maUnit.io.mtip
+  idu.io.wbdata    <> wbu.io.wbdata
+  exu.io.bypassMem <> mau.io.bypassMem
+  exu.io.bypassWb  <> wbu.io.wbdata
+  exu.io.nxtPC     <> ifu.io.nxtPC
+  exu.io.mtip      <> mau.io.mtip
 
-  protected val isStall            = execUnit.io.stall
+  protected val isStall            = exu.io.stall
   protected val (tickCnt, cntWrap) = Counter(io.globalEn && isStall, 3)
   protected val stallCycle1        = isStall && (tickCnt === 0.U)
   protected val stallCycle2        = isStall && (tickCnt === 1.U)
   protected val stallCycle3        = isStall && (tickCnt === 2.U)
 
-  ifUnit.io.stall := stallCycle1
-  idUnit.io.stall := stallCycle1
+  ifu.io.stall := stallCycle1
+  idu.io.stall := stallCycle1
 
-  ifUnit.io.globalEn   := io.globalEn
-  idUnit.io.globalEn   := io.globalEn
-  execUnit.io.globalEn := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
-  maUnit.io.globalEn   := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
-  wbUnit.io.globalEn   := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
+  ifu.io.globalEn := io.globalEn
+  idu.io.globalEn := io.globalEn
+  exu.io.globalEn := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
+  mau.io.globalEn := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
+  wbu.io.globalEn := Mux(stallCycle1 || stallCycle2, false.B, io.globalEn)
 
-  idUnit.io.wbdata := Mux(stallCycle1 || stallCycle2, 0.U.asTypeOf(new WBDATAIO), wbUnit.io.wbdata)
-  ifUnit.io.nxtPC  := Mux(stallCycle1, execUnit.io.nxtPC, 0.U.asTypeOf(new NXTPCIO))
+  idu.io.wbdata := Mux(stallCycle1 || stallCycle2, 0.U.asTypeOf(new WBDATAIO), wbu.io.wbdata)
+  ifu.io.nxtPC  := Mux(stallCycle1, exu.io.nxtPC, 0.U.asTypeOf(new NXTPCIO))
 
   protected val ldDataInStall = RegInit(0.U(64.W))
 
@@ -75,25 +75,25 @@ class TreeCoreL2 extends Module {
   }
 
   // communicate with extern io
-  io.fetch <> ifUnit.io.fetch
+  io.fetch <> ifu.io.fetch
 
   //Even load can change machine state
   protected val lsStall = RegEnable(stallCycle1, false.B, io.globalEn) || RegEnable(stallCycle2, false.B, io.globalEn)
-  io.ld.en          := maUnit.io.ld.en && ~lsStall
-  io.ld.addr        := maUnit.io.ld.addr
-  maUnit.io.ld.data := Mux(lsStall, ldDataInStall, io.ld.data)
-  io.ld.size        := maUnit.io.ld.size
+  io.ld.en       := mau.io.ld.en && ~lsStall
+  io.ld.addr     := mau.io.ld.addr
+  mau.io.ld.data := Mux(lsStall, ldDataInStall, io.ld.data)
+  io.ld.size     := mau.io.ld.size
 
-  io.sd.en   := maUnit.io.sd.en && ~lsStall
-  io.sd.addr := maUnit.io.sd.addr
-  io.sd.data := maUnit.io.sd.data
-  io.sd.mask := maUnit.io.sd.mask
+  io.sd.en   := mau.io.sd.en && ~lsStall
+  io.sd.addr := mau.io.sd.addr
+  io.sd.data := mau.io.sd.data
+  io.sd.mask := mau.io.sd.mask
 
-  idUnit.io.gpr      <> wbUnit.io.gpr
-  io.instComm        <> wbUnit.io.instComm
-  io.archIntRegState <> wbUnit.io.archIntRegState
-  io.csrState        <> wbUnit.io.csrState
-  io.trapEvt         <> wbUnit.io.trapEvt
-  io.archFpRegState  <> wbUnit.io.archFpRegState
-  io.archEvt         <> wbUnit.io.archEvt
+  idu.io.gpr         <> wbu.io.gpr
+  io.instComm        <> wbu.io.instComm
+  io.archIntRegState <> wbu.io.archIntRegState
+  io.csrState        <> wbu.io.csrState
+  io.trapEvt         <> wbu.io.trapEvt
+  io.archFpRegState  <> wbu.io.archFpRegState
+  io.archEvt         <> wbu.io.archEvt
 }
