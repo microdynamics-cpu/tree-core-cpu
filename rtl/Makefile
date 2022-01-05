@@ -63,10 +63,11 @@ export NOOP_HOME     := $(ROOT_PATH)
 export DRAMSIM3_HOME := $(DRAMSIM3_HOME)
 
 define getRecursiveTestRes
+	@printf "[%2d/%d]" $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) $(2)
 	@echo $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) > $(1)/build/log/allcasenum-log.txt
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
 
-	@printf "[%30s] " $@
+	@printf "[%25s] " $@
 	@if (grep 'HIT GOOD TRAP' $(1)/build/log/$@-log.txt > /dev/null) then \
 		echo -e "\033[1;32mPASS! ipc =$$(grep 'IPC' $(1)/build/log/$@-log.txt | cut -d = -f4)\033[0m" \
 		$$(echo $$(echo $$(cat $(1)/build/log/passcasenum-log.txt) + 1 | bc) > $(1)/build/log/passcasenum-log.txt); \
@@ -190,6 +191,7 @@ $(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bi
 riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
 riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-mycpu, riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
+riscvNum = 50
 $(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
@@ -203,7 +205,7 @@ $(riscvTestLogFile):
 	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
-	$(call getRecursiveTestRes, $(RISCVTEST_HOME))
+	$(call getRecursiveTestRes, $(RISCVTEST_HOME), $(riscvNum))
 
 
 ###### cpu test recursive test target ######
@@ -223,7 +225,7 @@ $(cpuTestLogFile):
 	$(shell echo 0 > $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
-	$(call getRecursiveTestRes, $(CPUTEST_HOME))
+	$(call getRecursiveTestRes, $(CPUTEST_HOME), 34)
 
 unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
 
