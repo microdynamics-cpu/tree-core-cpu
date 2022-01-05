@@ -1,8 +1,13 @@
 package treecorel2.common
 
 import chisel3._
+import chisel3.util.log2Ceil
 
 object ConstVal {
+  // addr width
+  val AddrLen      = 64
+  val AddrAlignLen = log2Ceil(AddrLen / 8)
+
   val CSRAddrLen   = 12
   val CLINTAddrLen = 64
   // csr addr
@@ -22,4 +27,12 @@ object ConstVal {
   val MSipOffset     = 0x0.U(CLINTAddrLen.W)
   val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
   val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
+
+  // branch prediction
+  val GHRLen    = 5
+  val PHTSize   = 1 << GHRLen
+  val BTBIdxLen = 6
+  val BTBPcLen  = AddrLen - BTBIdxLen - AddrAlignLen
+  val BTBTgtLen = AddrLen - AddrAlignLen
+  val BTBSize   = 1 << BTBIdxLen
 }
