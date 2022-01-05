@@ -17,11 +17,11 @@ class AXI4Bridge extends Module with AXI4Config {
   io.runEn := Mux(reset.asBool(), false.B, runEn)
 
   // handshake
-  protected val awHdShk = io.axi.aw.valid && io.axi.aw.ready
-  protected val wHdShk  = io.axi.w.valid && io.axi.w.ready
-  protected val bHdShk  = io.axi.b.valid && io.axi.b.ready
-  protected val arHdShk = io.axi.ar.valid && io.axi.ar.ready
-  protected val rHdShk  = io.axi.r.valid && io.axi.r.ready
+  protected val awHdShk = io.axi.aw.fire()
+  protected val wHdShk  = io.axi.w.fire()
+  protected val bHdShk  = io.axi.b.fire()
+  protected val arHdShk = io.axi.ar.fire()
+  protected val rHdShk  = io.axi.r.fire()
   protected val arbiter = new Arbiter
 
   // FSM for read/write
