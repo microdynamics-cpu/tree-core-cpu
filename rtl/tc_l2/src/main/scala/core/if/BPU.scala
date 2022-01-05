@@ -1,0 +1,45 @@
+package treecorel2
+
+import chisel3._
+import chisel3.util._
+
+import treecorel2.common.ConstVal
+
+class BPU extends Module {
+  // 2BP 2BC
+  // Two-level adaptive predictor
+  val io = IO(new Bundle {
+    val branchInfo = Flipped(new BRANCHIO)
+    // predictor interface
+    val lookupPc  = Input(UInt(ConstVal.AddrLen.W))
+    val predTaken = Output(Bool())
+    val predTgt   = Output(UInt(ConstVal.AddrLen.W))
+    val predIdx   = Output(UInt(ConstVal.GHRLen.W))
+  })
+
+  protected val ghr = Module(new GHR)
+  protected val pht = Module(new PHT)
+  protected val btb = Module(new BTB)
+
+  ghr.io.branch := io.branchInfo.branch
+  ghr.io.taken  := io.branchInfo.taken
+
+  // G-share
+  protected val idx = io.lookupPc(ConstVal.GHRLen + ConstVal.AddrAlignLen - 1, ConstVal.AddrAlignLen) ^ ghr.io.idx
+  pht.io.prevBranch := io.branchInfo.branch
+  pht.io.prevTaken  := io.branchInfo.taken
+  pht.io.prevIdx    := io.branchInfo.idx
+  pht.io.idx        := idx
+
+  // wire BTB
+  btb.io.branch   := io.branchInfo.branch
+  btb.io.jump     := io.branchInfo.jump
+  btb.io.pc       := io.branchInfo.pc
+  btb.io.tgt      := io.branchInfo.tgt
+  btb.io.lookupPc := io.lookupPc
+
+  // wire output signals
+  io.predTaken := btb.io.lookupBranch && (pht.io.taken || btb.io.lookupJump)
+  io.predTgt   := btb.io.lookupTgt
+  io.predIdx   := idx
+}
