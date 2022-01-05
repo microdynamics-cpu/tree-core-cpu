@@ -40,6 +40,12 @@ class EXU extends Module {
   alu.io.src2 := src2
   protected val aluRes = alu.io.res
 
+  protected val mdu = Module(new MDU)
+  mdu.io.isa  := isa
+  mdu.io.src1 := src1
+  mdu.io.src2 := src2
+  protected val mduRes = mdu.io.res
+
   protected val beu = Module(new BEU)
   beu.io.isa  := isa
   beu.io.imm  := imm
@@ -80,7 +86,7 @@ class EXU extends Module {
   io.ex2mem.imm          := imm
   io.ex2mem.wen          := wen
   io.ex2mem.wdest        := wdest
-  io.ex2mem.aluRes       := aluRes
+  io.ex2mem.aluRes       := aluRes | mduRes
   io.ex2mem.branch       := branch
   io.ex2mem.tgt          := tgt
   io.ex2mem.link         := link
