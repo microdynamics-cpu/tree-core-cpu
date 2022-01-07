@@ -88,6 +88,7 @@ class ISADecoder extends Module {
   io.isa.REMU       := (io.inst === BitPat("b0000001_?????_?????_111_?????_0110011"))
   io.isa.REMUW      := (io.inst === BitPat("b0000001_?????_?????_111_?????_0111011"))
   io.isa.REMW       := (io.inst === BitPat("b0000001_?????_?????_110_?????_0111011"))
+  io.isa.GCD        := (io.inst === BitPat("b0000000_?????_?????_000_?????_0001000"))
 
   protected val arith  = io.isa.ADD || io.isa.ADDW || io.isa.ADDI || io.isa.ADDIW || io.isa.SUB || io.isa.SUBW || io.isa.LUI || io.isa.AUIPC
   protected val logc   = io.isa.XOR || io.isa.XORI || io.isa.OR || io.isa.ORI || io.isa.AND || io.isa.ANDI
@@ -101,10 +102,11 @@ class ISADecoder extends Module {
   protected val env    = io.isa.ECALL || io.isa.EBREAK
   protected val csr    = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
   protected val priv   = io.isa.MRET || io.isa.SRET || io.isa.WFI || io.isa.SFENCE_VMA
+  protected val custom = io.isa.GCD
 
   protected val immExten = Module(new ImmExten)
   immExten.io.inst := io.inst
   io.imm           := immExten.io.imm
   io.csr           := csr
-  io.wen           := arith || logc || shift || comp || link || load || csr
+  io.wen           := arith || logc || shift || comp || link || load || csr || custom
 }

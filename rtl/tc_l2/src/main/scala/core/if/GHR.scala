@@ -12,11 +12,11 @@ class GHR extends Module {
     val idx    = Output(UInt(ConstVal.GHRLen.W))
   })
 
-  protected val ghr = Reg(UInt(ConstVal.GHRLen.W))
+  protected val shiftReg = Reg(UInt(ConstVal.GHRLen.W))
 
   when(io.branch) {
-    ghr := Cat(ghr(ConstVal.GHRLen - 2, 0), io.taken)
+    shiftReg := Cat(shiftReg(ConstVal.GHRLen - 2, 0), io.taken)
   }
 
-  io.idx := ghr
+  io.idx := shiftReg
 }

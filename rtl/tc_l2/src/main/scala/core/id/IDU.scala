@@ -13,10 +13,12 @@ class IDU extends Module {
     val gpr      = Output(Vec(32, UInt(64.W)))
   })
 
-  protected val idReg = RegEnable(io.if2id, WireInit(0.U.asTypeOf(new IF2IDIO())), io.globalEn)
-  protected val valid = idReg.valid
-  protected val inst  = idReg.inst
-  protected val pc    = idReg.pc
+  protected val idReg     = RegEnable(io.if2id, WireInit(0.U.asTypeOf(new IF2IDIO())), io.globalEn)
+  protected val valid     = idReg.valid
+  protected val inst      = idReg.inst
+  protected val pc        = idReg.pc
+  protected val branIdx   = idReg.branIdx
+  protected val predTaken = idReg.predTaken
 
   protected val rs1   = inst(19, 15)
   protected val rs2   = inst(24, 20)
@@ -38,14 +40,16 @@ class IDU extends Module {
     regfile.write(io.wbdata.wen, io.wbdata.wdest, io.wbdata.data)
   }
 
-  io.id2ex.valid := Mux(io.stall, false.B, valid)
-  io.id2ex.inst  := inst
-  io.id2ex.pc    := pc
-  io.id2ex.isa   := isa
-  io.id2ex.src1  := src1
-  io.id2ex.src2  := src2
-  io.id2ex.imm   := imm
-  io.id2ex.wen   := wen
-  io.id2ex.wdest := wdest
-  io.gpr         := regfile.gpr
+  io.id2ex.valid     := Mux(io.stall, false.B, valid)
+  io.id2ex.inst      := inst
+  io.id2ex.pc        := pc
+  io.id2ex.branIdx   := branIdx
+  io.id2ex.predTaken := predTaken
+  io.id2ex.isa       := isa
+  io.id2ex.src1      := src1
+  io.id2ex.src2      := src2
+  io.id2ex.imm       := imm
+  io.id2ex.wen       := wen
+  io.id2ex.wdest     := wdest
+  io.gpr             := regfile.gpr
 }

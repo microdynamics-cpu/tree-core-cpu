@@ -8,34 +8,38 @@ object MDUOpType {
   def mulh   = "b0001".U
   def mulhsu = "b0010".U
   def mulhu  = "b0011".U
-  def div    = "b0100".U
-  def divu   = "b0101".U
-  def rem    = "b0110".U
-  def remu   = "b0111".U
+  def mulw   = "b0100".U
 
-  def mulw  = "b1000".U
-  def divw  = "b1100".U
-  def divuw = "b1101".U
-  def remw  = "b1110".U
-  def remuw = "b1111".U
+  def div   = "b1000".U
+  def divu  = "b1001".U
+  def divuw = "b1010".U
+  def divw  = "b1011".U
+  def rem   = "b1100".U
+  def remu  = "b1101".U
+  def remuw = "b1110".U
+  def remw  = "b1111".U
 
+  def nop = "b1001".U
+
+  def isMul(op:     UInt) = !op(3)
+  def isDiv(op:     UInt) = op(3) && !(!op(2) && !op(1) && op(0))
   def isLhsSign(op: UInt) = false.B
   def isRhsSign(op: UInt) = false.B
-  def isDiv(op:     UInt) = op(2)
-  def isDivSign(op: UInt) = isDiv(op) && !op(0)
+  def isDivSign(op: UInt) = false.B
   def isHiRem(op:   UInt) = false.B
-  def isW(op:       UInt) = op(3)
+  def isW(op:       UInt) = false.B
 }
 
 class MDU extends Module {
   val io = IO(new Bundle {
-    val isa  = Input(new ISAIO)
-    val src1 = Input(UInt(64.W))
-    val src2 = Input(UInt(64.W))
-    val res  = Output(UInt(64.W))
+    val isa   = Input(new ISAIO)
+    val src1  = Input(UInt(64.W))
+    val src2  = Input(UInt(64.W))
+    val res   = Output(UInt(64.W))
+    val valid = Output(Bool())
   })
 
-  protected val mduOp = RegInit(0.U(4.W))
+  protected val mduOp = RegInit(MDUOpType.nop)
   when(io.isa.MUL) {
     mduOp := MDUOpType.mul
   }.elsewhen(io.isa.MULH) {
@@ -66,6 +70,7 @@ class MDU extends Module {
 
   protected val isLhsSign = MDUOpType.isLhsSign(mduOp)
   protected val isRhsSign = MDUOpType.isRhsSign(mduOp)
+  protected val isMul     = MDUOpType.isMul(mduOp)
   protected val isDiv     = MDUOpType.isDiv(mduOp)
   protected val isHiRem   = MDUOpType.isHiRem(mduOp)
 
@@ -76,10 +81,10 @@ class MDU extends Module {
   protected val isAnsNeg  = isSrc1Neg ^ isSrc2Neg
   protected val src1      = Mux(isSrc1Neg, -io.src1, io.src1)
   protected val src2      = Mux(isSrc2Neg, -io.src2, io.src2)
+  multiplier.io.en    := isMul
+  multiplier.io.flush := false.B
   multiplier.io.src1  := src1
   multiplier.io.src2  := src2
-  multiplier.io.en    := false.B
-  multiplier.io.flush := false.B
 
   protected val mulRes = Mux(isAnsNeg, -multiplier.io.res, multiplier.io.res)
 
@@ -98,7 +103,6 @@ class MDU extends Module {
   divider.io.divident := src1
   divider.io.divisor  := src2
 
-  // io.valid  := Mux(!isDiv, multiplier.io.done, Mux(isDiv, divider.io.done, true.B))
-  // io.res := Mux(!isDiv, mulRes, Mux(isDiv, divRes, 0.U))
-  io.res := 0.U
+  io.valid := Mux(isMul, multiplier.io.done, Mux(isDiv, divider.io.done, true.B))
+  io.res   := Mux(isMul, mulRes, Mux(isDiv, divRes, 0.U(64.W)))
 }

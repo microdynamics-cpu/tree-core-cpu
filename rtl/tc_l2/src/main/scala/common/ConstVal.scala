@@ -31,8 +31,8 @@ object ConstVal {
   // branch prediction
   val GHRLen    = 5
   val PHTSize   = 1 << GHRLen
-  val BTBIdxLen = 6
-  val BTBPcLen  = AddrLen - BTBIdxLen - AddrAlignLen
-  val BTBTgtLen = AddrLen - AddrAlignLen
+  val BTBIdxLen = 5
+  val BTBPcLen  = AddrLen - BTBIdxLen
+  val BTBTgtLen = AddrLen
   val BTBSize   = 1 << BTBIdxLen
 }
