@@ -3,14 +3,17 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
+import treecorel2.common.ConstVal
+
 class IFU extends Module {
   val io = IO(new Bundle {
-    val globalEn = Input(Bool())
-    val stall    = Input(Bool())
-    val socEn    = Input(Bool())
-    val fetch    = new IFIO
-    val if2id    = new IF2IDIO
-    val nxtPC    = Flipped(new NXTPCIO)
+    val globalEn   = Input(Bool())
+    val stall      = Input(Bool())
+    val socEn      = Input(Bool())
+    val branchInfo = Flipped(new BRANCHIO)
+    val fetch      = new IFIO
+    val if2id      = new IF2IDIO
+    val nxtPC      = Flipped(new NXTPCIO)
   })
 
   protected val startAddr = Mux(io.socEn, "h0000000030000000".U(64.W), "h0000000080000000".U(64.W))
@@ -18,8 +21,9 @@ class IFU extends Module {
   protected val inst      = io.fetch.data
   protected val pc        = RegInit(startAddr)
 
-  // protected val bpu = Module(new BPU)
-  // bpu.io.in := 0.U
+  protected val bpu = Module(new BPU)
+  bpu.io.branchInfo <> io.branchInfo
+  bpu.io.lookupPc   := pc
 
   when(io.globalEn) {
     when(io.nxtPC.trap) {
@@ -28,15 +32,18 @@ class IFU extends Module {
       pc := io.nxtPC.mepc
     }.elsewhen(io.nxtPC.branch) {
       pc := io.nxtPC.tgt
+    }.elsewhen(bpu.io.predTaken) {
+      pc := bpu.io.predTgt
     }.otherwise {
       pc := pc + 4.U
     }
   }
 
-  io.if2id.valid := Mux(io.stall, false.B, valid)
-  io.if2id.inst  := inst
-  io.if2id.pc    := pc
-
+  io.if2id.valid     := Mux(io.stall, false.B, valid)
+  io.if2id.inst      := inst
+  io.if2id.pc        := pc
+  io.if2id.branIdx   := bpu.io.predIdx
+  io.if2id.predTaken := bpu.io.predTaken
   // comm with crossbar to get inst back
   io.fetch.en   := valid
   io.fetch.addr := pc

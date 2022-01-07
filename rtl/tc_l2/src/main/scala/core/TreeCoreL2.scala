@@ -39,6 +39,9 @@ class TreeCoreL2 extends Module {
   exu.io.stall <> idu.io.stall
   exu.io.stall <> ifu.io.stall
 
+  // branch prediction
+  ifu.io.branchInfo <> exu.io.branchInfo
+
   // bypass
   idu.io.wbdata    <> wbu.io.wbdata
   exu.io.bypassMem <> mau.io.bypassMem

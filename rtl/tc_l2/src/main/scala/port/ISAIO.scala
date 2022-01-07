@@ -80,4 +80,5 @@ class ISAIO extends Bundle {
   val REMU       = Bool()
   val REMUW      = Bool()
   val REMW       = Bool()
+  val GCD        = Bool()
 }

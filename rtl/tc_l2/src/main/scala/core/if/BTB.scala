@@ -6,8 +6,8 @@ import chisel3.util._
 import treecorel2.common.ConstVal
 
 class BTBLine extends Bundle {
-  val pc   = UInt(ConstVal.BTBPcLen.W)
-  val tgt  = UInt(ConstVal.BTBTgtLen.W)
+  val pc   = UInt(ConstVal.AddrLen.W)
+  val tgt  = UInt(ConstVal.AddrLen.W)
   val jump = Bool()
 }
 
@@ -30,24 +30,22 @@ class BTB extends Module {
   protected val lines  = Mem(ConstVal.BTBSize, new BTBLine)
 
   // branch info for BTB lines
-  protected val idx    = io.pc(ConstVal.BTBIdxLen + ConstVal.AddrAlignLen - 1, ConstVal.AddrAlignLen)
-  protected val linePc = io.pc(ConstVal.AddrLen - 1, ConstVal.BTBIdxLen + ConstVal.AddrAlignLen)
-
+  protected val idx = io.pc(ConstVal.BTBIdxLen - 1, 0)
   // write to BTB lines
   when(io.branch) {
     valids(idx)     := true.B
     lines(idx).jump := io.jump
-    lines(idx).pc   := linePc
-    lines(idx).tgt  := io.tgt(ConstVal.AddrLen - 1, ConstVal.AddrAlignLen)
+    lines(idx).pc   := io.pc
+    lines(idx).tgt  := io.tgt
   }
 
   // signals about BTB lookup
-  val lookupIdx   = io.lookupPc(ConstVal.BTBIdxLen + ConstVal.AddrAlignLen - 1, ConstVal.AddrAlignLen)
-  val lookupPcSel = io.lookupPc(ConstVal.AddrLen - 1, ConstVal.BTBIdxLen + ConstVal.AddrAlignLen)
-  val btbHit      = valids(lookupIdx) && lines(lookupIdx).pc === lookupPcSel
+  protected val lookupIdx   = io.lookupPc(ConstVal.BTBIdxLen - 1, 0)
+  protected val lookupPcSel = io.lookupPc
+  protected val btbHit      = valids(lookupIdx) && lines(lookupIdx).pc === lookupPcSel
 
   // BTB lookup
   io.lookupBranch := btbHit
   io.lookupJump   := Mux(btbHit, lines(lookupIdx).jump, false.B)
-  io.lookupTgt    := Cat(Mux(btbHit, lines(lookupIdx).tgt, 0.U), 0.U(ConstVal.AddrAlignLen.W))
+  io.lookupTgt    := Mux(btbHit, lines(lookupIdx).tgt, 0.U(64.W))
 }
