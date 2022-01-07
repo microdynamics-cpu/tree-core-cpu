@@ -40,9 +40,9 @@ class BTB extends Module {
   }
 
   // signals about BTB lookup
-  val lookupIdx   = io.lookupPc(ConstVal.BTBIdxLen - 1, 0)
-  val lookupPcSel = io.lookupPc
-  val btbHit      = valids(lookupIdx) && lines(lookupIdx).pc === lookupPcSel
+  protected val lookupIdx   = io.lookupPc(ConstVal.BTBIdxLen - 1, 0)
+  protected val lookupPcSel = io.lookupPc
+  protected val btbHit      = valids(lookupIdx) && lines(lookupIdx).pc === lookupPcSel
 
   // BTB lookup
   io.lookupBranch := btbHit
