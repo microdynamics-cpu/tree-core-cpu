@@ -102,10 +102,11 @@ class ISADecoder extends Module {
   protected val env    = io.isa.ECALL || io.isa.EBREAK
   protected val csr    = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
   protected val priv   = io.isa.MRET || io.isa.SRET || io.isa.WFI || io.isa.SFENCE_VMA
+  protected val custom = io.isa.GCD
 
   protected val immExten = Module(new ImmExten)
   immExten.io.inst := io.inst
   io.imm           := immExten.io.imm
   io.csr           := csr
-  io.wen           := arith || logc || shift || comp || link || load || csr
+  io.wen           := arith || logc || shift || comp || link || load || csr || custom
 }
