@@ -25,7 +25,7 @@ class BPU extends Module {
   ghr.io.taken  := io.branchInfo.taken
 
   // G-share
-  protected val idx = io.lookupPc(ConstVal.GHRLen + ConstVal.AddrAlignLen - 1, ConstVal.AddrAlignLen) ^ ghr.io.idx
+  protected val idx = io.lookupPc(ConstVal.GHRLen - 1, 0) ^ ghr.io.idx
   pht.io.prevBranch := io.branchInfo.branch
   pht.io.prevTaken  := io.branchInfo.taken
   pht.io.prevIdx    := io.branchInfo.idx
@@ -39,7 +39,14 @@ class BPU extends Module {
   btb.io.lookupPc := io.lookupPc
 
   // wire output signals
-  io.predTaken := btb.io.lookupBranch && (pht.io.taken || btb.io.lookupJump)
-  io.predTgt   := btb.io.lookupTgt
-  io.predIdx   := idx
+  // now uncond jump is always no-taken to solve 'ret' inst return 'taken'
+  // when multiple sections call same function
+  when(btb.io.lookupJump) {
+    io.predTaken := false.B
+  }.otherwise {
+    io.predTaken := btb.io.lookupBranch && pht.io.taken
+  }
+  // io.predTaken := btb.io.lookupBranch && (pht.io.taken || btb.io.lookupJump)
+  io.predTgt := btb.io.lookupTgt
+  io.predIdx := idx
 }
