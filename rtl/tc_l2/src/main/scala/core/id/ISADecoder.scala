@@ -88,6 +88,7 @@ class ISADecoder extends Module {
   io.isa.REMU       := (io.inst === BitPat("b0000001_?????_?????_111_?????_0110011"))
   io.isa.REMUW      := (io.inst === BitPat("b0000001_?????_?????_111_?????_0111011"))
   io.isa.REMW       := (io.inst === BitPat("b0000001_?????_?????_110_?????_0111011"))
+  io.isa.GCD        := (io.inst === BitPat("b0000000_?????_?????_000_?????_0001000"))
 
   protected val arith  = io.isa.ADD || io.isa.ADDW || io.isa.ADDI || io.isa.ADDIW || io.isa.SUB || io.isa.SUBW || io.isa.LUI || io.isa.AUIPC
   protected val logc   = io.isa.XOR || io.isa.XORI || io.isa.OR || io.isa.ORI || io.isa.AND || io.isa.ANDI
