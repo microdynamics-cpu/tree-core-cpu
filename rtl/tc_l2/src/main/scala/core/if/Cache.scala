@@ -19,6 +19,20 @@ class CacheRespIO extends Bundle{
   val cmd = UInt(4.W)
 }
 
+class MemReq extends Bundle {
+  val addr = UInt(64.W)
+  val data = UInt(64.W)
+  val cmd = UInt(4.W)
+  val len = UInt(2.W)   // 0: 1(64bits)    1: 2   2: 4  3: 8
+  val id = UInt(p(IDBits).W)
+}
+
+class MemResp extends Bundle {
+  val data = UInt(64.W)
+  val cmd = UInt(4.W)
+  val id = UInt(p(IDBits).W)
+}
+
 class Cache extends Module {
     
 }
