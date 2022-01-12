@@ -38,7 +38,7 @@ class MEMRESPIO extends Bundle {
   val id   = UInt(CacheConfig.IdLen.W)
 }
 
-class WayIn(val tagWidth: Int, val idxWidth: Int, val offsetWidth: Int) extends Bundle {
+class WAYINIO(val tagWidth: Int, val idxWidth: Int, val offsetWidth: Int) extends Bundle {
   val wt = Valid(new Bundle {
     val tag    = UInt(tagWidth.W)
     val idx    = UInt(idxWidth.W)
@@ -46,7 +46,7 @@ class WayIn(val tagWidth: Int, val idxWidth: Int, val offsetWidth: Int) extends 
     val v      = UInt(1.W)
     val d      = UInt(1.W)
     val mask   = UInt(((CacheConfig.LineSize / CacheConfig.NBank) / 8).W)
-    val data   = UInt(p(XLen).W)
+    val data   = UInt(64.W)
     val op     = UInt(1.W) // must 1
   })
   val rd = Valid(new Bundle {
@@ -55,11 +55,67 @@ class WayIn(val tagWidth: Int, val idxWidth: Int, val offsetWidth: Int) extends 
   })
 }
 
-class WayOut(val tagWidth: Int) extends Bundle {
+class WAYOUTIO(val tagWidth: Int) extends Bundle {
   val tag  = UInt(tagWidth.W)
   val v    = UInt(1.W)
   val d    = UInt(1.W)
   val data = Vec(CacheConfig.NBank, UInt((CacheConfig.LineSize / CacheConfig.NBank).W))
+}
+
+class Way(val tagWidth: Int, val idxWidth: Int, val offsetWidth: Int) extends Module {
+  val io = IO(new Bundle {
+    val fence_invalid = Input(Bool())
+    val in            = Flipped(new WAYINIO(tagWidth, idxWidth, offsetWidth))
+    val out           = Valid(new WAYOUTIO(tagWidth))
+  })
+
+  val tag   = UInt(tagWidth.W) // tag
+  val v     = UInt(1.W) // valid
+  val dirty = UInt(1.W)
+  val depth = math.pow(2, idxWidth).toInt
+
+  val tagTable   = SyncReadMem(depth, tag)
+  val vTable     = RegInit(VecInit(Seq.fill(depth)(0.U(1.W))))
+  val dirtyTable = RegInit(VecInit(Seq.fill(depth)(0.U(1.W))))
+  // nBank * (n * 8bit)
+  val bankn = List.fill(CacheConfig.NBank)(SyncReadMem(depth, Vec((CacheConfig.LineSize / CacheConfig.NBank) / 8, UInt(8.W))))
+
+  val result = WireInit(0.U.asTypeOf(new WAYOUTIO(tagWidth)))
+
+  // read logic
+  // TODO: check data order in simulator
+  //            tag,v,   d,    data
+  result := Cat(
+    List(tagTable.read(io.in.rd.bits.idx, io.in.rd.valid).asUInt()) ++ Seq(RegNext(vTable(io.in.rd.bits.idx), 0.U(1.W)), RegNext(dirtyTable(io.in.rd.bits.idx), 0.U(1.W))) ++
+      bankn.map(_.read(io.in.rd.bits.idx, io.in.rd.valid).asUInt())
+  ).asTypeOf(new WAYOUTIO(tagWidth))
+
+  io.out.bits  := result
+  io.out.valid := RegNext(io.in.rd.valid, 0.U)
+  dontTouch(io.out.valid)
+
+  // write logic
+  // write bank data
+  val bank_sel = WireInit(io.in.wt.bits.offset(log2Ceil(64 / 8) + log2Ceil(CacheConfig.NBank) - 1, log2Ceil(64 / 8)))
+  val wdata    = io.in.wt.bits.data.asTypeOf(Vec(CacheConfig.LineSize / CacheConfig.NBank / 8, UInt(8.W)))
+  when(io.in.wt.fire()) {
+    when(io.in.wt.bits.op === 1.U) {
+      // write tag,v
+      tagTable.write(io.in.wt.bits.idx, io.in.wt.bits.tag)
+      vTable(io.in.wt.bits.idx) := io.in.wt.bits.v
+      // write d
+      dirtyTable(io.in.wt.bits.idx) := io.in.wt.bits.d
+      // write data
+      bankn.zipWithIndex.foreach((a) => {
+        val (bank, i) = a
+        when(bank_sel === i.U) {
+          bank.write(io.in.wt.bits.idx, wdata, io.in.wt.bits.mask.asBools())
+        }
+      })
+    }
+  }.elsewhen(io.fence_invalid) {
+    vTable := VecInit(Seq.fill(depth)(0.U(1.W)))
+  }
 }
 
 class CACHE2CPUIO extends Bundle {
