@@ -7,7 +7,7 @@ import difftest._
 
 import treecorel2.common.ConstVal
 
-class WriteBack extends Module {
+class WBU extends Module {
   val io = IO(new Bundle {
     val globalEn        = Input(Bool())
     val socEn           = Input(Bool())

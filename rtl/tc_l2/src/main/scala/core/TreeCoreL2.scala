@@ -24,8 +24,8 @@ class TreeCoreL2 extends Module {
   protected val ifu = Module(new IFU)
   protected val idu = Module(new IDU)
   protected val exu = Module(new EXU)
-  protected val mau = Module(new Memory)
-  protected val wbu = Module(new WriteBack)
+  protected val mau = Module(new MAU)
+  protected val wbu = Module(new WBU)
 
   ifu.io.socEn := io.socEn
   wbu.io.socEn := io.socEn
