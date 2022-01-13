@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class Memory extends Module {
+class MAU extends Module {
   val io = IO(new Bundle {
     val globalEn  = Input(Bool())
     val ex2mem    = Flipped(new EX2MEMIO)
