@@ -11,14 +11,6 @@ class TreeCoreL2 extends Module {
     val fetch    = new IFIO
     val ld       = new LDIO
     val sd       = new SDIO
-
-    // difftest
-    val instComm        = Flipped(new DiffInstrCommitIO)
-    val archIntRegState = Flipped(new DiffArchIntRegStateIO)
-    val csrState        = Flipped(new DiffCSRStateIO)
-    val trapEvt         = Flipped(new DiffTrapEventIO)
-    val archFpRegState  = Flipped(new DiffArchFpRegStateIO)
-    val archEvt         = Flipped(new DiffArchEventIO)
   })
 
   protected val ifu = Module(new IFU)
@@ -92,11 +84,5 @@ class TreeCoreL2 extends Module {
   io.sd.data := mau.io.sd.data
   io.sd.mask := mau.io.sd.mask
 
-  idu.io.gpr         <> wbu.io.gpr
-  io.instComm        <> wbu.io.instComm
-  io.archIntRegState <> wbu.io.archIntRegState
-  io.csrState        <> wbu.io.csrState
-  io.trapEvt         <> wbu.io.trapEvt
-  io.archFpRegState  <> wbu.io.archFpRegState
-  io.archEvt         <> wbu.io.archEvt
+  idu.io.gpr <> wbu.io.gpr
 }

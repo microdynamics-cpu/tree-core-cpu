@@ -6,20 +6,15 @@ import chisel3.util._
 import difftest._
 
 import treecorel2.common.ConstVal
+import treecorel2.common.InstConfig
 
-class WBU extends Module {
+class WBU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val globalEn        = Input(Bool())
-    val socEn           = Input(Bool())
-    val mem2wb          = Flipped(new MEM2WBIO)
-    val wbdata          = new WBDATAIO
-    val gpr             = Input(Vec(32, UInt(64.W)))
-    val instComm        = Flipped(new DiffInstrCommitIO)
-    val archIntRegState = Flipped(new DiffArchIntRegStateIO)
-    val csrState        = Flipped(new DiffCSRStateIO)
-    val trapEvt         = Flipped(new DiffTrapEventIO)
-    val archFpRegState  = Flipped(new DiffArchFpRegStateIO)
-    val archEvt         = Flipped(new DiffArchEventIO)
+    val globalEn = Input(Bool())
+    val socEn    = Input(Bool())
+    val mem2wb   = Flipped(new MEM2WBIO)
+    val wbdata   = new WBDATAIO
+    val gpr      = Input(Vec(32, UInt(64.W)))
   })
 
   protected val wbReg      = RegEnable(io.mem2wb, WireInit(0.U.asTypeOf(new MEM2WBIO())), io.globalEn)
@@ -72,61 +67,70 @@ class WBU extends Module {
   protected val timeIntrEnReg = RegEnable(timeIntrEn, false.B, io.globalEn)
   protected val diffValid     = io.globalEn && (RegEnable(valid, false.B, io.globalEn) || timeIntrEnReg)
 
-  io.instComm.clock    := clock
-  io.instComm.coreid   := 0.U
-  io.instComm.index    := 0.U
-  io.instComm.valid    := diffValid && ~timeIntrEnReg
-  io.instComm.pc       := RegEnable(pc, 0.U, io.globalEn)
-  io.instComm.instr    := RegEnable(inst, 0.U, io.globalEn)
-  io.instComm.special  := 0.U
-  io.instComm.skip     := diffValid && RegEnable(printVis || mcycleVis || mmioEn || mipVis, false.B, io.globalEn)
-  io.instComm.isRVC    := false.B
-  io.instComm.scFailed := false.B
-  io.instComm.wen      := RegEnable(wen, false.B, io.globalEn)
-  io.instComm.wdata    := RegEnable(wbdata, 0.U, io.globalEn)
-  io.instComm.wdest    := RegEnable(wdest, 0.U, io.globalEn)
+  if (!SoCEna) {
+    val instComm        = Module(new DifftestInstrCommit)
+    val archIntRegState = Module(new DifftestArchIntRegState)
+    val csrState        = Module(new DifftestCSRState)
+    val trapEvt         = Module(new DifftestTrapEvent)
+    val archFpRegState  = Module(new DifftestArchFpRegState)
+    val archEvt         = Module(new DifftestArchEvent)
 
-  io.archIntRegState.clock  := clock
-  io.archIntRegState.coreid := 0.U
-  io.archIntRegState.gpr    := io.gpr
+    instComm.io.clock    := clock
+    instComm.io.coreid   := 0.U
+    instComm.io.index    := 0.U
+    instComm.io.valid    := diffValid && ~timeIntrEnReg
+    instComm.io.pc       := RegEnable(pc, 0.U, io.globalEn)
+    instComm.io.instr    := RegEnable(inst, 0.U, io.globalEn)
+    instComm.io.special  := 0.U
+    instComm.io.skip     := diffValid && RegEnable(printVis || mcycleVis || mmioEn || mipVis, false.B, io.globalEn)
+    instComm.io.isRVC    := false.B
+    instComm.io.scFailed := false.B
+    instComm.io.wen      := RegEnable(wen, false.B, io.globalEn)
+    instComm.io.wdata    := RegEnable(wbdata, 0.U, io.globalEn)
+    instComm.io.wdest    := RegEnable(wdest, 0.U, io.globalEn)
 
-  io.csrState.clock          := clock
-  io.csrState.coreid         := 0.U
-  io.csrState.mstatus        := csr.mstatus
-  io.csrState.mcause         := csr.mcause
-  io.csrState.mepc           := csr.mepc
-  io.csrState.sstatus        := csr.mstatus & "h8000_0003_000d_e122".U
-  io.csrState.scause         := 0.U
-  io.csrState.sepc           := 0.U
-  io.csrState.satp           := 0.U
-  io.csrState.mip            := 0.U
-  io.csrState.mie            := csr.mie
-  io.csrState.mscratch       := csr.mscratch
-  io.csrState.sscratch       := 0.U
-  io.csrState.mideleg        := 0.U
-  io.csrState.medeleg        := csr.medeleg
-  io.csrState.mtval          := 0.U
-  io.csrState.stval          := 0.U
-  io.csrState.mtvec          := csr.mtvec
-  io.csrState.stvec          := 0.U
-  io.csrState.priviledgeMode := 3.U
+    archIntRegState.io.clock  := clock
+    archIntRegState.io.coreid := 0.U
+    archIntRegState.io.gpr    := io.gpr
 
-  io.archEvt.clock         := clock
-  io.archEvt.coreid        := 0.U
-  io.archEvt.intrNO        := Mux(diffValid && timeIntrEnReg, 7.U, 0.U)
-  io.archEvt.cause         := 0.U
-  io.archEvt.exceptionPC   := RegEnable(pc, 0.U, io.globalEn)
-  io.archEvt.exceptionInst := RegEnable(inst, 0.U, io.globalEn)
+    csrState.io.clock          := clock
+    csrState.io.coreid         := 0.U
+    csrState.io.mstatus        := csr.mstatus
+    csrState.io.mcause         := csr.mcause
+    csrState.io.mepc           := csr.mepc
+    csrState.io.sstatus        := csr.mstatus & "h8000_0003_000d_e122".U
+    csrState.io.scause         := 0.U
+    csrState.io.sepc           := 0.U
+    csrState.io.satp           := 0.U
+    csrState.io.mip            := 0.U
+    csrState.io.mie            := csr.mie
+    csrState.io.mscratch       := csr.mscratch
+    csrState.io.sscratch       := 0.U
+    csrState.io.mideleg        := 0.U
+    csrState.io.medeleg        := csr.medeleg
+    csrState.io.mtval          := 0.U
+    csrState.io.stval          := 0.U
+    csrState.io.mtvec          := csr.mtvec
+    csrState.io.stvec          := 0.U
+    csrState.io.priviledgeMode := 3.U
 
-  io.trapEvt.clock    := clock
-  io.trapEvt.coreid   := 0.U
-  io.trapEvt.valid    := diffValid && RegEnable(haltVis, false.B, io.globalEn)
-  io.trapEvt.code     := io.gpr(10)(7, 0)
-  io.trapEvt.pc       := RegEnable(pc, 0.U, io.globalEn)
-  io.trapEvt.cycleCnt := cycleCnt
-  io.trapEvt.instrCnt := instrCnt
+    archEvt.io.clock         := clock
+    archEvt.io.coreid        := 0.U
+    archEvt.io.intrNO        := Mux(diffValid && timeIntrEnReg, 7.U, 0.U)
+    archEvt.io.cause         := 0.U
+    archEvt.io.exceptionPC   := RegEnable(pc, 0.U, io.globalEn)
+    archEvt.io.exceptionInst := RegEnable(inst, 0.U, io.globalEn)
 
-  io.archFpRegState.clock  := clock
-  io.archFpRegState.coreid := 0.U
-  io.archFpRegState.fpr    := RegInit(VecInit(Seq.fill(32)(0.U(64.W))))
+    trapEvt.io.clock    := clock
+    trapEvt.io.coreid   := 0.U
+    trapEvt.io.valid    := diffValid && RegEnable(haltVis, false.B, io.globalEn)
+    trapEvt.io.code     := io.gpr(10)(7, 0)
+    trapEvt.io.pc       := RegEnable(pc, 0.U, io.globalEn)
+    trapEvt.io.cycleCnt := cycleCnt
+    trapEvt.io.instrCnt := instrCnt
+
+    archFpRegState.io.clock  := clock
+    archFpRegState.io.coreid := 0.U
+    archFpRegState.io.fpr    := RegInit(VecInit(Seq.fill(32)(0.U(64.W))))
+  }
 }
