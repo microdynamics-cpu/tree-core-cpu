@@ -52,7 +52,7 @@ configAbstractMachine() {
     fi
     echo -e "${RIGHT}AM_HOME: $AM_HOME${END}"
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    cd ${ROOT_PATH}
 }
 
 ###### riscv-tests ######
@@ -72,7 +72,7 @@ configRiscvTests() {
     git clone https://github.com/NJU-ProjectN/riscv-tests.git
     fi
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    cd ${ROOT_PATH}
 }
 
 ###### am-kernels ######
@@ -92,7 +92,7 @@ configAMKernels() {
     git clone https://github.com/NJU-ProjectN/am-kernels.git
     fi
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    cd ${ROOT_PATH}
 }
 
 # download the specific commit id difftest and NEMU
