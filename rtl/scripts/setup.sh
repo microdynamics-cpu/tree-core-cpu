@@ -7,7 +7,7 @@ RIGHT="\033[0;32m"
 END="\033[0m"
 
 
-ROOT_PATH=$(dirname $(readlink -f "$0"))
+ROOT_PATH=$(dirname $(readlink -f "$0"))/../dependency
 AM_FOLDER_PATH=${ROOT_PATH}"/am"
 ABSTRACT_MACHINE_FOLDER_PATH=${AM_FOLDER_PATH}"/abstract-machine"
 RISCV_TESTS_FOLDER_PATH=${AM_FOLDER_PATH}"/riscv-tests"
@@ -244,6 +244,8 @@ configSpecRepo() {
     fi
 }
 
+echo ${ROOT_PATH}
+mkdir -p ${ROOT_PATH}
 # Check parameters
 while getopts 'andimrkys:h' OPT; do
     case $OPT in
