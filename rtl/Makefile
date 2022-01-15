@@ -76,6 +76,13 @@ define getRecursiveTestRes
 	fi
 endef
 
+###### dev env target ######
+install:
+	./scripts/install.sh -g -c
+
+setup:
+	./scripts/setup.sh
+
 ###### chisel target ######
 millTest:
 	mill -i __.test
@@ -286,7 +293,8 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: millTest chiselBuild chiselHelp millCompile millBsp format checkformat \
+.PHONY: install, setup,
+		millTest chiselBuild chiselHelp millCompile millBsp format checkformat \
 		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
