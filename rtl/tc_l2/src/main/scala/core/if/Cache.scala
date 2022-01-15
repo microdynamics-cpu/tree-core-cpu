@@ -16,9 +16,9 @@ class CacheRespIO extends Bundle with InstConfig {
 }
 
 class CacheCoreIO extends Bundle {
-  val abort = UInt(Bool())
-  val req  = Flipped(Valid(new CacheReqIO))
-  val resp = Valid(new CacheRespIO)
+  val abort = Input(Bool())
+  val req   = Flipped(Valid(new CacheReqIO))
+  val resp  = Valid(new CacheRespIO)
 }
 
 class CacheMemReqIO extends Bundle with InstConfig {
