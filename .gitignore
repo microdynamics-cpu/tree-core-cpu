@@ -14,4 +14,7 @@ dramsim3.txt
 dramsim3epoch.json
 *.vcd
 *.wave
+.mypy_cache
+.pytest_cache
+dependency
 __pycache__
