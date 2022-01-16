@@ -1,9 +1,12 @@
 SHELL=/bin/bash
 
 # be carefully, this path will be used in clean(rm -rf)!!!
-ROOT_PATH        := $(shell pwd)/tc_l2
-BUILD_DIR        := ${ROOT_PATH}/build
-MILL_OUT_DIR     := ${ROOT_PATH}/../out
+# need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
+CHIP_TARGET      := tc_l2
+ROOT_PATH        := $(shell pwd)/dependency
+SOURCE_PATH      := $(ROOT_PATH)/../$(CHIP_TARGET)
+BUILD_DIR        := $(SOURCE_PATH)/build
+MILL_OUT_DIR     := $(ROOT_PATH)/../out
 
 AM_FOLDER_PATH   := $(ROOT_PATH)/am
 AM_KERNEL_PATH   := $(AM_FOLDER_PATH)/am-kernels
@@ -22,7 +25,7 @@ DRAMSIM3_HOME    := $(ROOT_PATH)/DRAMsim3
 YSYXSOC_HOME     := $(ROOT_PATH)/ysyxSoC/ysyx
 
 ###### soc var ######
-SOC_CSRC_HOME     += $(ROOT_PATH)/src/main/csrc
+SOC_CSRC_HOME     += $(SOURCE_PATH)/src/main/csrc
 SOC_CSRC_LIB_HOME += $(ROOT_PATH)/ysyxSoC/ysyx/peripheral/spiFlash
 SOC_CXXFILES      += $(shell find $(SOC_CSRC_HOME) -name "*.cpp")
 SOC_CXXFILES      += $(shell find $(SOC_CSRC_LIB_HOME) -name "*.cpp")
@@ -81,7 +84,7 @@ install:
 	./scripts/install.sh -g -c
 
 setup:
-	./scripts/setup.sh
+	./scripts/setup.sh -a
 
 ###### chisel target ######
 millTest:
@@ -89,10 +92,10 @@ millTest:
 
 chiselBuild:
 	mkdir -p $(BUILD_DIR)
-	mill -i tc_l2.runMain top.TopMain -td $(BUILD_DIR)
+	mill -i $(CHIP_TARGET).runMain top.TopMain -td $(BUILD_DIR)
 
 chiselHelp:
-	mill -i tc_l2.runMain top.TopMain --help
+	mill -i $(CHIP_TARGET).runMain top.TopMain --help
 
 millCompile:
 	mill -i __.compile
@@ -124,13 +127,13 @@ difftestBuild:
 	@sed -i 's/io_memAXI_0_\([a-z]*\)_bits_data,/io_memAXI_0_\1_bits_data[3:0],/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/io_memAXI_0_w_bits_data =/io_memAXI_0_w_bits_data[0] =/g' $(BUILD_DIR)/SimTop.v
 	@sed -i 's/ io_memAXI_0_r_bits_data;/ io_memAXI_0_r_bits_data[0];/g' $(BUILD_DIR)/SimTop.v
-	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1
+	$(MAKE) -C $(DIFFTEST_HOME) WITH_DRAMSIM3=1 EMU_TRACE=1 DESIGN_DIR=$(SOURCE_PATH)
 
 changeTargetToSimTop:
-	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)true/SoCEna\1=\2false/g' $(ROOT_PATH)/src/main/scala/common/InstConfig.scala
+	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)true/SoCEna\1=\2false/g' $(SOURCE_PATH)/src/main/scala/common/InstConfig.scala
 
 changeTargetToSoCTop:
-	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)false/SoCEna\1=\2true/g' $(ROOT_PATH)/src/main/scala/common/InstConfig.scala
+	@sed -i 's/SoCEna\([ ]*\)=\([ ]*\)false/SoCEna\1=\2true/g' $(SOURCE_PATH)/src/main/scala/common/InstConfig.scala
 
 simBuild: changeTargetToSimTop chiselBuild difftestBuild
 
