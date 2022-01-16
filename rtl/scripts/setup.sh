@@ -7,7 +7,7 @@ RIGHT="\033[0;32m"
 END="\033[0m"
 
 
-ROOT_PATH=$(dirname $(readlink -f "$0"))
+ROOT_PATH=$(dirname $(readlink -f "$0"))/../dependency
 AM_FOLDER_PATH=${ROOT_PATH}"/am"
 ABSTRACT_MACHINE_FOLDER_PATH=${AM_FOLDER_PATH}"/abstract-machine"
 RISCV_TESTS_FOLDER_PATH=${AM_FOLDER_PATH}"/riscv-tests"
@@ -18,6 +18,7 @@ NEMU_FOLDER_PATH=${ROOT_PATH}"/NEMU"
 DRAMSIM3_FOLDER_PATH=${ROOT_PATH}"/DRAMsim3"
 YSYXSOC_PATH=${ROOT_PATH}"/ysyxSoC"
 
+#TODO: am-kernel, simple-test need to dowload from the 'ysyx_software_file' repo
 # download the am repo from the github
 ###### abstract-machine ######
 configAbstractMachine() {
@@ -52,27 +53,34 @@ configAbstractMachine() {
     fi
     echo -e "${RIGHT}AM_HOME: $AM_HOME${END}"
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    cd ${ROOT_PATH}
 }
 
 ###### riscv-tests ######
-configRiscvTests() {
+configTestSuites() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
 
     if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}riscv-tests exist!${END}"
-        # if git fsck --full != 0; then
-        #     echo "[download error]: remove the dir and git clone"
-        #     rm -rf riscv-tests
-        #     git clone https://github.com/NJU-ProjectN/riscv-tests.git
-        # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
     git clone https://github.com/NJU-ProjectN/riscv-tests.git
     fi
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    # cd ${ROOT_PATH}
+
+    # mkdir -p ${AM_FOLDER_PATH}
+    # cd ${AM_FOLDER_PATH}
+
+    # if [[ -d ${CPU_TESTS_FOLDER_PATH} ]]; then
+    #     echo -e "${RIGHT}simple-tests exist!${END}"
+    # else
+    #     echo -e "${INFO}[no download]: git clone${END}"
+    # git clone https://github.com/NJU-ProjectN
+    # fi
+
+    # cd ${ROOT_PATH}
 }
 
 ###### am-kernels ######
@@ -82,17 +90,12 @@ configAMKernels() {
 
     if [[ -d ${AM_KERNELS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}am-kernels exist!${END}"
-        # if git fsck --full != 0; then
-        #     echo "[download error]: remove the dir and git clone"
-        #     rm -rf am-kernels
-        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-        # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
     git clone https://github.com/NJU-ProjectN/am-kernels.git
     fi
 
-    cd ${ROOT_PATH} # am -> tc-l2
+    cd ${ROOT_PATH}
 }
 
 # download the specific commit id difftest and NEMU
@@ -103,11 +106,6 @@ configDiffTest() {
 
     if [[ -d ${DIFFTEST_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}difftest exist!${END}"
-        # if git fsck --full != 0; then
-        #     echo "[download error]: remove the dir and git clone"
-        #     rm -rf am-kernels
-        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-        # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
         git clone https://gitee.com/oscpu/difftest.git
@@ -126,11 +124,6 @@ configDiffTest() {
 configNemu() {
     if [[ -d ${NEMU_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}NEMU exist!${END}"
-        # if git fsck --full != 0; then
-        #     echo "[download error]: remove the dir and git clone"
-        #     rm -rf am-kernels
-        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-        # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
         git clone https://gitee.com/oscpu/NEMU.git
@@ -171,11 +164,6 @@ configDramSim3() {
 
     if [[ -d ${DRAMSIM3_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}dramsim3 exist!${END}"
-        # if git fsck --full != 0; then
-        #     echo "[download error]: remove the dir and git clone"
-        #     rm -rf am-kernels
-        #     git clone https://github.com/NJU-ProjectN/am-kernels.git
-        # fi
     else
         echo -e "${INFO}[no download]: git clone${END}"
         git clone https://github.com/OpenXiangShan/DRAMsim3.git
@@ -207,11 +195,11 @@ helpInfo() {
     echo -e "${RIGHT}  -d: download and config difftest${END}"
     echo -e "${RIGHT}  -i: download and config dramsim3${END}"
     echo -e "${RIGHT}  -m: download and config abstract-machine${END}"
-    echo -e "${RIGHT}  -r: download and config riscv-tests${END}"
+    echo -e "${RIGHT}  -r: download and config simple-tests, riscv-tests${END}"
     echo -e "${RIGHT}  -k: download and config am-kernels${END}"
     echo -e "${RIGHT}  -y: download and config ysyx-soc${END}"
     echo -e "${RIGHT}  -s: download and config specific repo${END}"
-    echo -e "sample: ./setup.sh -s [repo](default: nemu) ${INFO}[repo]: [nemu, diffttest, dramsim3, am, riscv-tests, am-kernels, ysyx-soc]${END}"
+    echo -e "sample: ./setup.sh -s [repo](default: nemu) ${INFO}[repo]: [nemu, diffttest, dramsim3, am, testsuites, am-kernels, ysyx-soc]${END}"
     echo -e "${RIGHT}  -h: help information${END}"
     
 }
@@ -219,7 +207,7 @@ helpInfo() {
 configSpecRepo() {
     if [[ -n $1 && $1 == "all" ]]; then
         configAbstractMachine
-        configRiscvTests
+        configTestSuites
         configAMKernels
         configDiffTest
         configNemu
@@ -233,17 +221,18 @@ configSpecRepo() {
         configDramSim3
     elif [[ -n $1 && $1 == "am" ]]; then
         configAbstractMachine
-    elif [[ -n $1 && $1 == "riscv-tests" ]]; then
-        configRiscvTests
+    elif [[ -n $1 && $1 == "testsuites" ]]; then
+        configTestSuites
     elif [[ -n $1 && $1 == "am-kernels" ]]; then
         configAMKernels
     elif [[ -n $1 && $1 == "ysyx-soc" ]]; then
         configysyxSoC
     else
-        echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, dramsim3, am, riscv-tests, am-kernels, ysyx-soc]"
+        echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, dramsim3, am, testsuites, am-kernels, ysyx-soc]"
     fi
 }
 
+mkdir -p ${ROOT_PATH}
 # Check parameters
 while getopts 'andimrkys:h' OPT; do
     case $OPT in
@@ -252,7 +241,7 @@ while getopts 'andimrkys:h' OPT; do
         d) configDiffTest;;
         i) configDramSim3;;
         m) configAbstractMachine;;
-        r) configRiscvTests;;
+        r) configTestSuites;;
         k) configAMKernels;;
         y) configysyxSoC;;
         s) configSpecRepo $OPTARG;;

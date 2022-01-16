@@ -39,11 +39,6 @@ class WBU extends Module with InstConfig {
   protected val ecallEn    = wbReg.ecallEn
   protected val csr        = wbReg.csr
 
-  protected val cycleCnt = RegInit(0.U(64.W))
-  protected val instrCnt = RegInit(0.U(64.W))
-  cycleCnt := cycleCnt + 1.U
-  when(io.globalEn && valid) { instrCnt := instrCnt + 1.U }
-
   protected val wbdata = aluRes | link | auipc | loadData | csrData
 
   io.wbdata.wen   := valid && wen
@@ -74,6 +69,10 @@ class WBU extends Module with InstConfig {
     val trapEvt         = Module(new DifftestTrapEvent)
     val archFpRegState  = Module(new DifftestArchFpRegState)
     val archEvt         = Module(new DifftestArchEvent)
+    val cycleCnt        = Counter(Int.MaxValue) // NOTE: maybe overflow?
+    val instrCnt        = Counter(Int.MaxValue)
+    cycleCnt.inc()
+    when(io.globalEn && valid) { instrCnt.inc() }
 
     instComm.io.clock    := clock
     instComm.io.coreid   := 0.U
@@ -126,8 +125,8 @@ class WBU extends Module with InstConfig {
     trapEvt.io.valid    := diffValid && RegEnable(haltVis, false.B, io.globalEn)
     trapEvt.io.code     := io.gpr(10)(7, 0)
     trapEvt.io.pc       := RegEnable(pc, 0.U, io.globalEn)
-    trapEvt.io.cycleCnt := cycleCnt
-    trapEvt.io.instrCnt := instrCnt
+    trapEvt.io.cycleCnt := cycleCnt.value
+    trapEvt.io.instrCnt := instrCnt.value
 
     archFpRegState.io.clock  := clock
     archFpRegState.io.coreid := 0.U
