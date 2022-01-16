@@ -77,17 +77,18 @@ Now, the develop schedule is recorded by the **Tencent Document**. You can click
 #### Enviroment setup(ubuntu 20.04 LTS)
 install verilator, mill and dep lib: 
 ```bash
-sudo apt-get install g++-riscv64-linux-gnu binutils-riscv64-linux-gnu
-./setup.sh -a
+make install
+make setup
 ```
-
 change the sim memory from 8G to 256MB. need to enter 'make menuconfig' and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually.
 cd in root rtl dir
 ```bash
 make nemuBuild
-make diffBuild
-make difftestBuild
-make demoTest
+make dramsim3Build
+make simpleTestBuild
+make riscvTestBuild
+make cpuTestBuild
+make amTestBuild
 ```
 
 ### Software test
