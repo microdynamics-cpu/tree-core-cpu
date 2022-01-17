@@ -95,6 +95,11 @@ Then, download and configuare all components from the github:
 ```bash
 $ make setup
 ```
+After that, you need to set the `NEMU_HOME` and `NOOP_HOME` environment variables:
+```bash
+$ NEMU_HOME=$(pwd)/dependency/NEMU
+$ NOOP_HOME=$(pwd)/dependency
+```
 
 Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
 
@@ -111,7 +116,17 @@ $ make menuconfig
  </p>
 </p>
 
-Usually, 256MB memory address space is enough for simulation. from 8G to 256MB. and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually.
+Usually, 256MB memory address space is enough for simulation. You need to switch into `[Memory - Configuration]` menu and change `[Memory size]` value into `0x10000000` manually as follow picture shows. It can adjust difftest's simulation memory size from 8G to 256MB.
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/nemu-build-mem.png"/>
+ <p align="center">
+  <em>The memory address size menu</em>
+ </p>
+</p>
+
+Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
+
 cd in root rtl dir
 ```bash
 $ make nemuBuild
