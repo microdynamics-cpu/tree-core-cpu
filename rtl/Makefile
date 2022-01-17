@@ -81,10 +81,14 @@ endef
 
 ###### dev env target ######
 install:
-	./scripts/install.sh -g -c
+	@./scripts/install.sh -g -c
 
 setup:
-	./scripts/setup.sh -a
+	@./scripts/setup.sh -a
+
+###### project template target ######
+template:
+	@./scripts/template.sh -t $(CHIP_TARGET)
 
 ###### chisel target ######
 millTest:
@@ -235,7 +239,7 @@ $(cpuTestLogFile):
 	$(shell echo 0 > $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
-	$(call getRecursiveTestRes, $(CPUTEST_HOME), 34)
+	$(call getRecursiveTestRes, $(CPUTEST_HOME), 33)
 
 unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
 
@@ -296,7 +300,8 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: install, setup,
+.PHONY: install setup \
+		template \
 		millTest chiselBuild chiselHelp millCompile millBsp format checkformat \
 		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
