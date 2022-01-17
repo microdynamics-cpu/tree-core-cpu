@@ -81,10 +81,14 @@ endef
 
 ###### dev env target ######
 install:
-	./scripts/install.sh -g -c
+	@./scripts/install.sh -g -c
 
 setup:
-	./scripts/setup.sh -a
+	@./scripts/setup.sh -a
+
+###### project template target ######
+template:
+	@./scripts/template.sh -t tc_l1
 
 ###### chisel target ######
 millTest:
@@ -296,7 +300,8 @@ cleanDepRepo:
 cleanAll: cleanBuild cleanMillOut cleanDepRepo
 
 
-.PHONY: install, setup,
+.PHONY: install setup \
+		template \
 		millTest chiselBuild chiselHelp millCompile millBsp format checkformat \
 		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
