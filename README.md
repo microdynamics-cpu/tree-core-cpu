@@ -82,8 +82,7 @@ Now, the develop schedule is recorded by the **Tencent Document**. You can click
 
 ## Usage
 
-### Getting Started
-#### Enviroment Setup
+### Enviroment Setup
 > NOTE: All of the components are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`.
 
 First, you need to install verilator, mill and dependency libraries:
@@ -127,21 +126,27 @@ Usually, 256MB memory address space is enough for simulation. You need to switch
 
 Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
 
-cd in root rtl dir
+### Compile runtime libraries
+If you already run above steps correctly, you need to compile runtime libraries as follow:
+
 ```bash
 $ make nemuBuild
 $ make dramsim3Build
-$ make simpleTestBuild
+```
+
+### Recursive test
+When you modify the processor design, you
+```bash 
 $ make riscvTestBuild
 $ make cpuTestBuild
-$ make amTestBuild
 ```
 
 ### Software test
+```bash
+$ make amTestBuild
+```
 
-- #### Instruction test
-
-- #### Program test
+### SoC test
 
 ### Hardware test
 
@@ -150,8 +155,6 @@ $ make amTestBuild
 - #### Function test
 
 ## Summary
-
-## Documention
 
 ## Plan
 
