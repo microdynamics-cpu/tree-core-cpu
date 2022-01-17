@@ -26,7 +26,7 @@ Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning Core 1_**) and
 
 
 ## Feature
-TreeCoreL1
+TreeCoreL1(**under development**)
 * 64-bits single period riscv core
 * written by verilog
 
@@ -36,18 +36,18 @@ TreeCoreL2
 * support RISCV integer(I) instruction set
 * supports machine mode privilege levels
 * supports AXI4 inst and mem acess
-* supports ICache and DCache
-* supports branch prediction
+* supports dynamics branch prediction
 * can boot rt-thread
 * develop under all open-source toolchain
 
 TreeCoreL3(**under development**)
-* 64-bits two-issue, eight-stage pipeline riscv core
+* 64-bits five-stage pipeline riscv core
 * written by chisel3
 * support RV64IMAC instruction set
 * supports machine mode privilege levels
 * supports AXI4 inst and mem acess
-* can boot linux
+* supports ICache, DCache(directed-map)
+* can boot rt-thread, xv6 and linux
 * develop under all open-source toolchain
 
 ## Develop Schedule
@@ -74,13 +74,22 @@ Now, the develop schedule is recorded by the **Tencent Document**. You can click
 ## Usage
 
 ### Getting Started
-#### Enviroment setup(ubuntu 20.04 LTS)
-install verilator, mill and dep lib: 
+#### Enviroment Setup
+> NOTE: All of the components are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`.
+
+First, you need to install verilator, mill and dependency libraries:
 ```bash
-make install
+$ make install
+```
+Then, download and configuare all components from the github:
+```bash
 make setup
 ```
-change the sim memory from 8G to 256MB. need to enter 'make menuconfig' and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually.
+
+IMG!!!!!!!
+
+Becuase the change the sim memory from 8G to 256MB. need to enter 'make menuconfig' and modify [Memory - Configuration]->[Memory size] to '0x10000000' manually.
+
 cd in root rtl dir
 ```bash
 make nemuBuild
