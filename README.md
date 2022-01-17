@@ -1,22 +1,26 @@
 <p align="center">
     <img width="200px" src="./.images/tree_core_logo.svg" align="center" alt="Tree Core CPU" />
     <h1 align="center">TreeCore CPU</h1>
-    <p align="center">A series of RISCV soft core processors written from scratch</p>
+    <h2 align="center">A series of riscv processors written from scratch</h2>
 </p>
 <p align="center">
     <a href="./LICENSE">
-        <img alt="license" src="https://img.shields.io/github/license/microdynamics-cpu/tree_core_cpu.svg" />
+      <img src="https://img.shields.io/github/license/microdynamics-cpu/tree_core_cpu?color=brightgreen&logo=github&style=flat-square">
     </a>
-    <img alt="stars" src="https://img.shields.io/github/stars/microdynamics-cpu/tree_core_cpu.svg" />
-    <img alt="forks" src="https://img.shields.io/github/forks/microdynamics-cpu/tree_core_cpu.svg" />
-    <img alt="version" src="https://img.shields.io/badge/version-1.0.0-FF69B4.svg" />
-    <img alt="build" src="https://travis-ci.org/microdynamics-cpu/tree_core_cpu.svg?branch=main" />
+    <a href="https://github.com/microdynamics-cpu/tree-core-cpu">
+      <img alt="stars" src="https://img.shields.io/github/stars/microdynamics-cpu/tree_core_cpu?color=blue&style=flat-square" />
+    </a>
+    <a href="https://github.com/microdynamics-cpu/tree-core-cpu">
+      <img src="https://img.shields.io/badge/total%20lines-7k-red?style=flat-square">
+    </a>
+    <a href="https://github.com/OSCPU">
+      <img src="https://img.shields.io/badge/test%20framework-verilator%20NEMU%20difftest-red?style=flat-square">
+  </a>
+    <a href="./CONTRIBUTING.md">
+      <img src="https://img.shields.io/badge/contribution-welcome-brightgreen?style=flat-square">
+    </a>
 </p>
 
-<p align="center">
-    <a href="./README.md">English</a>·
-    <a href="./README_zh-CN.md">简体中文</a>
-</p>
 
 ## Overview
 The TreeCore processors are the riscv64 software core developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU). OSCPU was initiated by ICTCAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchain to design, develop open-source chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has achieved two season. Now Season 3 is in progress in 2021.
@@ -24,6 +28,7 @@ The TreeCore processors are the riscv64 software core developed under the [Open 
 Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning Core 1_**) and TreeCoreL2(**_TreeCore Learning Core 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
 
 
+## Motivation
 
 ## Feature
 TreeCoreL1(**under development**)
