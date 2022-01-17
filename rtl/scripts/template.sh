@@ -70,6 +70,7 @@ configTemplate() {
 
 configTarget() {
     # HACK: need to make one check statement
+    # now dont receive 'tc_l2' as parameter
     if [[ -n $1 && $1 == "tc_l3" ]]; then
         configTemplate $1
     elif [[ -n $1 && $1 == "tc_l4" ]]; then

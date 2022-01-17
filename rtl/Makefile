@@ -88,7 +88,7 @@ setup:
 
 ###### project template target ######
 template:
-	@./scripts/template.sh -t tc_l1
+	@./scripts/template.sh -t $(CHIP_TARGET)
 
 ###### chisel target ######
 millTest:
@@ -239,7 +239,7 @@ $(cpuTestLogFile):
 	$(shell echo 0 > $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
-	$(call getRecursiveTestRes, $(CPUTEST_HOME), 34)
+	$(call getRecursiveTestRes, $(CPUTEST_HOME), 33)
 
 unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
 
