@@ -10,6 +10,7 @@ END="\033[0m"
 ROOT_PATH=$(dirname $(readlink -f "$0"))/../dependency
 AM_FOLDER_PATH=${ROOT_PATH}"/am"
 ABSTRACT_MACHINE_FOLDER_PATH=${AM_FOLDER_PATH}"/abstract-machine"
+SIMPLE_TESTS_FOLDER_PATH=${AM_FOLDER_PATH}"/simple-tests"
 RISCV_TESTS_FOLDER_PATH=${AM_FOLDER_PATH}"/riscv-tests"
 AM_KERNELS_FOLDER_PATH=${AM_FOLDER_PATH}"/am-kernels"
 
@@ -17,8 +18,19 @@ DIFFTEST_FOLDER_PATH=${ROOT_PATH}"/difftest"
 NEMU_FOLDER_PATH=${ROOT_PATH}"/NEMU"
 DRAMSIM3_FOLDER_PATH=${ROOT_PATH}"/DRAMsim3"
 YSYXSOC_PATH=${ROOT_PATH}"/ysyxSoC"
+YSYX_SOFTWARE_FILE_PATH=${ROOT_PATH}"/ysyx-software-file"
 
-#TODO: am-kernel, simple-test need to dowload from the 'ysyx_software_file' repo
+#NOTE: am-kernel, simple-test need to dowload from the 'ysyx-software-file' repo
+configYsyxSoftwareFile() {
+    cd ${ROOT_PATH}
+    if [[ -d ${YSYX_SOFTWARE_FILE_PATH} ]]; then
+        echo -e "${RIGHT}ysyx-software-file exist!${END}"
+    else
+        echo -e "${INFO}[no download]: git clone...${END}"
+        git clone https://github.com/maksyuki/ysyx-software-file.git
+    fi
+}
+
 # download the am repo from the github
 ###### abstract-machine ######
 configAbstractMachine() {
@@ -33,7 +45,7 @@ configAbstractMachine() {
         #     git clone https://github.com/NJU-ProjectN/abstract-machine.git
         # fi
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
         git clone https://github.com/NJU-ProjectN/abstract-machine.git
     fi
 
@@ -56,7 +68,7 @@ configAbstractMachine() {
     cd ${ROOT_PATH}
 }
 
-###### riscv-tests ######
+###### simple-tests, riscv-tests ######
 configTestSuites() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
@@ -64,35 +76,38 @@ configTestSuites() {
     if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}riscv-tests exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
     git clone https://github.com/NJU-ProjectN/riscv-tests.git
     fi
 
-    # cd ${ROOT_PATH}
+    cd ${ROOT_PATH}
 
-    # mkdir -p ${AM_FOLDER_PATH}
-    # cd ${AM_FOLDER_PATH}
+    configYsyxSoftwareFile
+    mkdir -p ${AM_FOLDER_PATH}
+    cd ${AM_FOLDER_PATH}
 
-    # if [[ -d ${CPU_TESTS_FOLDER_PATH} ]]; then
-    #     echo -e "${RIGHT}simple-tests exist!${END}"
-    # else
-    #     echo -e "${INFO}[no download]: git clone${END}"
-    # git clone https://github.com/NJU-ProjectN
-    # fi
+    if [[ -d ${SIMPLE_TESTS_FOLDER_PATH} ]]; then
+        echo -e "${RIGHT}simple-tests exist!${END}"
+    else
+        echo -e "${INFO}[no exist] copy...${END}"
+        cp -rf ${YSYX_SOFTWARE_FILE_PATH}/simple-tests ./
+    fi
 
-    # cd ${ROOT_PATH}
+    cd ${ROOT_PATH}
 }
 
 ###### am-kernels ######
 configAMKernels() {
+    configYsyxSoftwareFile
+
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
 
     if [[ -d ${AM_KERNELS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}am-kernels exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
-    git clone https://github.com/NJU-ProjectN/am-kernels.git
+        echo -e "${INFO}[no exist]: copy...${END}"
+        cp -rf ${YSYX_SOFTWARE_FILE_PATH}/am-kernels ./
     fi
 
     cd ${ROOT_PATH}
@@ -107,7 +122,7 @@ configDiffTest() {
     if [[ -d ${DIFFTEST_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}difftest exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
         git clone https://gitee.com/oscpu/difftest.git
     fi
 
@@ -125,7 +140,7 @@ configNemu() {
     if [[ -d ${NEMU_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}NEMU exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
         git clone https://gitee.com/oscpu/NEMU.git
     fi
 
@@ -165,7 +180,7 @@ configDramSim3() {
     if [[ -d ${DRAMSIM3_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}dramsim3 exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
         git clone https://github.com/OpenXiangShan/DRAMsim3.git
     fi
 
@@ -174,14 +189,14 @@ configDramSim3() {
     cd ${ROOT_PATH}
 }
 
-###### ysyxSoC ######
-configysyxSoC() {
+###### YsyxSoC ######
+configYsyxSoC() {
     cd ${ROOT_PATH}
 
     if [[ -d ${YSYXSOC_PATH} ]]; then
         echo -e "${RIGHT}ysyxSoC exist!${END}"
     else
-        echo -e "${INFO}[no download]: git clone${END}"
+        echo -e "${INFO}[no download]: git clone...${END}"
         git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
     fi
 }
@@ -212,7 +227,7 @@ configSpecRepo() {
         configDiffTest
         configNemu
         configDramSim3
-        configysyxSoC
+        configYsyxSoC
     elif [[ -n $1 && $1 == "nemu" ]]; then
         configNemu
     elif [[ -n $1 && $1 == "difftest" ]]; then
@@ -226,7 +241,7 @@ configSpecRepo() {
     elif [[ -n $1 && $1 == "am-kernels" ]]; then
         configAMKernels
     elif [[ -n $1 && $1 == "ysyx-soc" ]]; then
-        configysyxSoC
+        configYsyxSoC
     else
         echo -e "${ERROR}the params [$1] is not found.${END} opt value: [nemu, diffttest, dramsim3, am, testsuites, am-kernels, ysyx-soc]"
     fi
@@ -243,7 +258,7 @@ while getopts 'andimrkys:h' OPT; do
         m) configAbstractMachine;;
         r) configTestSuites;;
         k) configAMKernels;;
-        y) configysyxSoC;;
+        y) configYsyxSoC;;
         s) configSpecRepo $OPTARG;;
         h) helpInfo;;
         ?) 
