@@ -6,15 +6,16 @@ import chisel3.util._
 trait InstConfig {
   val SoCEna            = false
   val XLen              = 64
-  val flashStartAddr    = "h0000000030000000".U(XLen.W)
-  val simStartAddr      = "h0000000080000000".U(XLen.W)
-  val diffStartBaseAddr = "h0000000080000000".U(XLen.W)
-  val socStartBaseAddr  = "h0000000000000000".U(XLen.W)
-  val difftestAddrMask  = "hfffffffffffffff8".U(XLen.W)
-  val socAddrMask       = "hffffffffffffffff".U(XLen.W)
-  val instSoCRSize      = 2.U
-  val instDiffRSize     = 3.U
-  val diffRWSize        = 3.U
+  val RegfileNum        = 32
+  val FlashStartAddr    = "h0000000030000000".U(XLen.W)
+  val SimStartAddr      = "h0000000080000000".U(XLen.W)
+  val DiffStartBaseAddr = "h0000000080000000".U(XLen.W)
+  val SoCStartBaseAddr  = "h0000000000000000".U(XLen.W)
+  val DifftestAddrMask  = "hfffffffffffffff8".U(XLen.W)
+  val SoCAddrMask       = "hffffffffffffffff".U(XLen.W)
+  val InstSoCRSize      = 2.U
+  val InstDiffRSize     = 3.U
+  val DiffRWSize        = 3.U
   val CacheEna          = false
 
   val NWay          = 4

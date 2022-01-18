@@ -38,9 +38,9 @@ class AXI4Bridge extends Module with AXI4Config {
     )
   )
 
-  protected val arSize   = Mux(io.socEn, socARSize, diffRWSize)
-  protected val awSize   = Mux(io.socEn, socAWSize, diffRWSize)
-  protected val addrMask = Mux(io.socEn, socAddrMask, difftestAddrMask)
+  protected val arSize   = Mux(io.socEn, socARSize, DiffRWSize)
+  protected val awSize   = Mux(io.socEn, socAWSize, DiffRWSize)
+  protected val addrMask = Mux(io.socEn, SoCAddrMask, DifftestAddrMask)
 
   when(arbiter.io.state === Arbiter.eumAR) {
     io.axi.ar.valid     := true.B

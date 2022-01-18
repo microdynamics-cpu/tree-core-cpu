@@ -43,8 +43,8 @@ class Crossbar extends Module with InstConfig {
   }
 
   // because the difftest's logic addr is 0x000000
-  protected val instSize  = Mux(io.socEn, instSoCRSize, instDiffRSize)
-  protected val baseAddr  = Mux(io.socEn, socStartBaseAddr, socStartBaseAddr)
+  protected val instSize  = Mux(io.socEn, InstSoCRSize, InstDiffRSize)
+  protected val baseAddr  = Mux(io.socEn, SoCStartBaseAddr, SoCStartBaseAddr)
   protected val instAddr  = io.core.fetch.addr - baseAddr
   protected val loadAddr  = io.core.ld.addr - baseAddr
   protected val storeAddr = io.core.sd.addr - baseAddr

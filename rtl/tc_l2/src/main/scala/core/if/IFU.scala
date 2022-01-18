@@ -16,10 +16,10 @@ class IFU extends Module with InstConfig {
     val if2id      = new IF2IDIO
   })
 
-  protected val startAddr = Mux(io.socEn, flashStartAddr, simStartAddr)
+  protected val startAddr = Mux(io.socEn, FlashStartAddr, SimStartAddr)
+  protected val pc        = RegInit(startAddr)
   protected val valid     = Mux(reset.asBool(), false.B, true.B)
   protected val inst      = io.fetch.data
-  protected val pc        = RegInit(startAddr)
 
   protected val bpu = Module(new BPU)
   bpu.io.branchInfo <> io.branchInfo

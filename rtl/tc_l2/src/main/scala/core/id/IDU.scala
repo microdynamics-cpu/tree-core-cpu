@@ -3,14 +3,16 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class IDU extends Module {
+import treecorel2.common.InstConfig
+
+class IDU extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn = Input(Bool())
     val stall    = Input(Bool())
     val if2id    = Flipped(new IF2IDIO)
     val wbdata   = Flipped(new WBDATAIO)
     val id2ex    = new ID2EXIO
-    val gpr      = Output(Vec(32, UInt(64.W)))
+    val gpr      = Output(Vec(RegfileNum, UInt(XLen.W)))
   })
 
   protected val idReg     = RegEnable(io.if2id, WireInit(0.U.asTypeOf(new IF2IDIO())), io.globalEn)
