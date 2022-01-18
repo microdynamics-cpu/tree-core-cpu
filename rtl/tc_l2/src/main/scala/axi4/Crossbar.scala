@@ -49,7 +49,6 @@ class Crossbar extends Module {
   protected val storeAddr = io.core.sd.addr - addrOffset
   protected val maEn      = io.core.ld.en || io.core.sd.en
 
-  io.dxchg.clk   := clock
   io.dxchg.ren   := ((stateReg === eumInst) || (stateReg === eumMem && maEn))
   io.dxchg.raddr := Mux(stateReg === eumInst, instAddr, loadAddr)
   io.dxchg.rsize := Mux(stateReg === eumMem && io.core.ld.en, io.core.ld.size, instSize)

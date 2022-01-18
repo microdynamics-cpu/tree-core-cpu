@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 
 class DXCHGIO extends Bundle {
-  val clk   = Output(Clock())
   val ren   = Output(Bool())
   val raddr = Output(UInt(64.W))
   val rdata = Input(UInt(64.W))
