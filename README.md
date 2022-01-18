@@ -22,22 +22,29 @@
 
 
 ## Overview
-The TreeCore processors are the riscv64 cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU). OSCPU was initiated by ICTCAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchain to design, develop open-source chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has achieved two season. Now Season 3 is in progress in 2021.
+The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has carried out two season. Now Season 3 is in progress(**_2021.7-2022.1_**).
 
-Now the TreeCore has two version, TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
+Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
 
+> NOTE: now the TreeCoreL2 is under phase.
 
 ## Motivation
-I heard the word **_RISCV_** first time in the second semester of my junior year(that is, the summer of 2016). My roommate participated in the pilot class of "Computer Architecture" organized by the college, and **their task was to design a simple soft-core CPU based on the RISCV instruction set**. At that time, I only knew that it was an open source RISC instruction set launched by the University of Berkeley. I felt that it was similar to the MIPS, so I didn't take it too seriously. But what is unexpected is that after just a few period of development, the RISCV has been supported by many Internet and semiconductor giants around the world, and more and more research institutions, start-ups begin to design their own proprietary processors based on it. Although now the performance and application of RISCV are still limited, **I believe RISCV will usher in a revolution that can change the old pattern in someday**.
+I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
 
-The ancients once said: **it’s always shallow on paper, and you must do it yourself**. For the learn of the computer architecture, there is no better way to realize it from scratch. So I started to collect materials from the Internet, and I found the learning threshold and cost is very high. In addition, in order to pursue the performance, some open-source CPU cores are very complex(such as using mulit-pipelines, multi-core processing, out-of-order execution technology, etc), it is very difficult for beginners to get started. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
+The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold and cost is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
 
-I hope it can become a ABC project like Arduino and make more processor enthusiasts or computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like CPU development and be willing to spend time on it.
+I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like processor design and be willing to spend time on it.
 
 ## Feature
+IMG!!!!!!!!!!!!!!!! to intro three type processor.
+
+**intro** the plan with the such as the target every type core need to meet. and timeline
+
 TreeCoreL1(**under development**)
-* 64-bits single period riscv core
-* written by verilog
+* 64-bits FSM
+* written by chisel3
+
+In fact, TreeCoreL1 is not just a processor, it only supplies the basic implement of Turing machine model: 'loop + '.
 
 TreeCoreL2
 * 64-bits single-issue, five-stage pipeline riscv core
@@ -134,16 +141,22 @@ $ make nemuBuild
 $ make dramsim3Build
 ```
 
-### Recursive test
-When you modify the processor design, you
+### Compile testcases
 ```bash 
 $ make riscvTestBuild
 $ make cpuTestBuild
+$ make amTestBuild
+```
+
+### Recursive test
+When you modify the processor design, you
+```bash
+$ make 
 ```
 
 ### Software test
 ```bash
-$ make amTestBuild
+$ make 
 ```
 
 ### SoC test
