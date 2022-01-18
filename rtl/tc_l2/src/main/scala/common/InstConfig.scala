@@ -6,6 +6,8 @@ import chisel3.util._
 trait InstConfig {
   val SoCEna            = false
   val XLen              = 64
+  val flashStartAddr    = "h0000000030000000".U(XLen.W)
+  val simStartAddr      = "h0000000080000000".U(XLen.W)
   val diffStartBaseAddr = "h0000000080000000".U(XLen.W)
   val socStartBaseAddr  = "h0000000000000000".U(XLen.W)
   val difftestAddrMask  = "hfffffffffffffff8".U(XLen.W)

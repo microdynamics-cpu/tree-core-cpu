@@ -3,20 +3,20 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
-class IFU extends Module {
+class IFU extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
     val stall      = Input(Bool())
     val socEn      = Input(Bool())
     val branchInfo = Flipped(new BRANCHIO)
+    val nxtPC      = Flipped(new NXTPCIO)
     val fetch      = new IFIO
     val if2id      = new IF2IDIO
-    val nxtPC      = Flipped(new NXTPCIO)
   })
 
-  protected val startAddr = Mux(io.socEn, "h0000000030000000".U(64.W), "h0000000080000000".U(64.W))
+  protected val startAddr = Mux(io.socEn, flashStartAddr, simStartAddr)
   protected val valid     = Mux(reset.asBool(), false.B, true.B)
   protected val inst      = io.fetch.data
   protected val pc        = RegInit(startAddr)
