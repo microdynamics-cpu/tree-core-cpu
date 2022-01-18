@@ -1,18 +1,19 @@
-/***************************************************************************************
-* Copyright (c) 2020-2021 Institute of Computing Technology, Chinese Academy of Sciences
-* Copyright (c) 2020-2021 Peng Cheng Laboratory
-*
-* XiangShan is licensed under Mulan PSL v2.
-* You can use this software according to the terms and conditions of the Mulan PSL v2.
-* You may obtain a copy of Mulan PSL v2 at:
-*          http://license.coscl.org.cn/MulanPSL2
-*
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
-* EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
-* MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
-*
-* See the Mulan PSL v2 for more details.
-***************************************************************************************/
+/** *************************************************************************************
+  * Copyright (c) 2020-2021 Institute of Computing Technology, Chinese Academy of Sciences
+  * Copyright (c) 2020-2021 Peng Cheng Laboratory
+  *
+  * XiangShan is licensed under Mulan PSL v2.
+  * You can use this software according to the terms and conditions of the Mulan PSL v2.
+  * You may obtain a copy of Mulan PSL v2 at:
+  *          http://license.coscl.org.cn/MulanPSL2
+  *
+  * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+  * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+  * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+  *
+  * See the Mulan PSL v2 for more details.
+  * *************************************************************************************
+  */
 
 package difftest
 
@@ -20,11 +21,10 @@ import chisel3._
 import chisel3.util._
 import Chisel.BlackBox
 
-trait DifftestParameter {
-}
+trait DifftestParameter {}
 
 trait DifftestWithClock {
-  val clock  = Input(Clock())
+  val clock = Input(Clock())
 }
 
 trait DifftestWithCoreid {
@@ -35,15 +35,12 @@ trait DifftestWithIndex {
   val index = Input(UInt(8.W))
 }
 
-abstract class DifftestBundle extends Bundle
-  with DifftestParameter
-  with DifftestWithClock
-  with DifftestWithCoreid
+abstract class DifftestBundle extends Bundle with DifftestParameter with DifftestWithClock with DifftestWithCoreid
 
 class DiffArchEventIO extends DifftestBundle {
-  val intrNO = Input(UInt(32.W))
-  val cause = Input(UInt(32.W))
-  val exceptionPC = Input(UInt(64.W))
+  val intrNO        = Input(UInt(32.W))
+  val cause         = Input(UInt(32.W))
+  val exceptionPC   = Input(UInt(64.W))
   val exceptionInst = Input(UInt(32.W))
 }
 
@@ -70,23 +67,23 @@ class DiffTrapEventIO extends DifftestBundle {
 
 class DiffCSRStateIO extends DifftestBundle {
   val priviledgeMode = Input(UInt(2.W))
-  val mstatus = Input(UInt(64.W))
-  val sstatus = Input(UInt(64.W))
-  val mepc = Input(UInt(64.W))
-  val sepc = Input(UInt(64.W))
-  val mtval = Input(UInt(64.W))
-  val stval = Input(UInt(64.W))
-  val mtvec = Input(UInt(64.W))
-  val stvec = Input(UInt(64.W))
-  val mcause = Input(UInt(64.W))
-  val scause = Input(UInt(64.W))
-  val satp = Input(UInt(64.W))
-  val mip = Input(UInt(64.W))
-  val mie = Input(UInt(64.W))
-  val mscratch = Input(UInt(64.W))
-  val sscratch = Input(UInt(64.W))
-  val mideleg = Input(UInt(64.W))
-  val medeleg = Input(UInt(64.W))
+  val mstatus        = Input(UInt(64.W))
+  val sstatus        = Input(UInt(64.W))
+  val mepc           = Input(UInt(64.W))
+  val sepc           = Input(UInt(64.W))
+  val mtval          = Input(UInt(64.W))
+  val stval          = Input(UInt(64.W))
+  val mtvec          = Input(UInt(64.W))
+  val stvec          = Input(UInt(64.W))
+  val mcause         = Input(UInt(64.W))
+  val scause         = Input(UInt(64.W))
+  val satp           = Input(UInt(64.W))
+  val mip            = Input(UInt(64.W))
+  val mie            = Input(UInt(64.W))
+  val mscratch       = Input(UInt(64.W))
+  val sscratch       = Input(UInt(64.W))
+  val mideleg        = Input(UInt(64.W))
+  val medeleg        = Input(UInt(64.W))
 }
 
 class DiffArchIntRegStateIO extends DifftestBundle {
@@ -94,7 +91,7 @@ class DiffArchIntRegStateIO extends DifftestBundle {
 }
 
 class DiffArchFpRegStateIO extends DifftestBundle {
-  val fpr  = Input(Vec(32, UInt(64.W)))
+  val fpr = Input(Vec(32, UInt(64.W)))
 }
 
 class DiffSbufferEventIO extends DifftestBundle {
@@ -105,10 +102,10 @@ class DiffSbufferEventIO extends DifftestBundle {
 }
 
 class DiffStoreEventIO extends DifftestBundle with DifftestWithIndex {
-  val valid       = Input(Bool())
-  val storeAddr   = Input(UInt(64.W))
-  val storeData   = Input(UInt(64.W))
-  val storeMask   = Input(UInt(8.W))
+  val valid     = Input(Bool())
+  val storeAddr = Input(UInt(64.W))
+  val storeData = Input(UInt(64.W))
+  val storeMask = Input(UInt(8.W))
 }
 
 class DiffLoadEventIO extends DifftestBundle with DifftestWithIndex {
@@ -193,12 +190,12 @@ class DifftestRefillEvent extends BlackBox {
 // If not needed, just ingore these signals
 class PerfInfoIO extends Bundle {
   val clean = Input(Bool())
-  val dump = Input(Bool())
+  val dump  = Input(Bool())
 }
 
 class LogCtrlIO extends Bundle {
   val log_begin, log_end = Input(UInt(64.W))
-  val log_level = Input(UInt(64.W)) // a cpp uint
+  val log_level          = Input(UInt(64.W)) // a cpp uint
 }
 
 // UART IO, if needed, should be inited in SimTop IO
@@ -206,14 +203,12 @@ class LogCtrlIO extends Bundle {
 class UARTIO extends Bundle {
   val out = new Bundle {
     val valid = Output(Bool())
-    val ch = Output(UInt(8.W))
+    val ch    = Output(UInt(8.W))
   }
   val in = new Bundle {
     val valid = Output(Bool())
-    val ch = Input(UInt(8.W))
+    val ch    = Input(UInt(8.W))
   }
 }
 
-package object difftest {
-  
-}
+package object difftest {}
