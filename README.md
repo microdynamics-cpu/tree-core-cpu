@@ -36,17 +36,18 @@ The best way to learn the processor design is to implement it from scratch. When
 I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like processor design and be willing to spend time on it.
 
 ## Feature
-IMG!!!!!!!!!!!!!!!! to intro three type processor.
+IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 
 **intro** the plan with the such as the target every type core need to meet. and timeline
 
-TreeCoreL1(**under development**)
+**TreeCoreL1**
 * 64-bits FSM
 * written by chisel3
 
 In fact, TreeCoreL1 is not just a processor, it only supplies the basic implement of Turing machine model: 'loop + '.
+IMG!!!!
 
-TreeCoreL2
+**TreeCoreL2**
 * 64-bits single-issue, five-stage pipeline riscv core
 * written by chisel3
 * support RISCV integer(I) instruction set
@@ -55,23 +56,22 @@ TreeCoreL2
 * supports dynamics branch prediction
 * can boot rt-thread
 * develop under all open-source toolchain
+asdafafaadsfsafa
+IMG!!!!!!!!!!!!!!!
 
-TreeCoreL3(**under development**)
+
+**TreeCoreL3(_under development_)**
+
+**TreeCoreL4(_under development_)**
 * 64-bits five-stage pipeline riscv core
-* written by chisel3
-* support RV64IMAC instruction set
-* supports machine mode privilege levels
-* supports AXI4 inst and mem acess
-* supports ICache, DCache(directed-map)
-* can boot rt-thread, xv6 and linux
-* develop under all open-source toolchain
+
+
 
 ## Develop Schedule
 Now, the develop schedule is recorded by the **Tencent Document**. You can click this link [schedule table](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2) to view it.
 
-## Datapath Diagram
-
 ### Memory Map
+To compatible with SoC test, All types of TreeCore have same memory map range:
 
 | Range                     | Description                                         |
 | ------------------------- | --------------------------------------------------- |
@@ -88,7 +88,7 @@ Now, the develop schedule is recorded by the **Tencent Document**. You can click
 #### Configuration
 
 ## Usage
-
+adsfadfasdfasf
 ### Enviroment Setup
 > NOTE: All of the components are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`.
 
@@ -147,12 +147,14 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
+> NOTE: you need to enough memory to compile the 
 
 ### Recursive test
 When you modify the processor design, you
 ```bash
-$ make 
+$ make unit-tests
 ```
+IMG!!!!!!!!!
 
 ### Software test
 ```bash
@@ -161,11 +163,7 @@ $ make
 
 ### SoC test
 
-### Hardware test
-
-- #### Hardware configuration
-
-- #### Function test
+### Customize new core project
 
 ## Summary
 
@@ -175,4 +173,9 @@ $ make
 
 ## License
 All of the TreeCore codes are release under the [GPL-3.0 License](LICENSE).
+
+## Acknowledgement
+
+
+## Reference
 
