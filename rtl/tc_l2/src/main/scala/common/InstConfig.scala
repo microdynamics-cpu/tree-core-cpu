@@ -6,6 +6,7 @@ import chisel3.util._
 trait InstConfig {
   val SoCEna            = false
   val XLen              = 64
+  val InstLen           = 32
   val RegfileNum        = 32
   val FlashStartAddr    = "h0000000030000000".U(XLen.W)
   val SimStartAddr      = "h0000000080000000".U(XLen.W)

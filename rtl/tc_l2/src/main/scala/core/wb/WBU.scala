@@ -5,8 +5,7 @@ import chisel3.util._
 
 import difftest._
 
-import treecorel2.common.ConstVal
-import treecorel2.common.InstConfig
+import treecorel2.common.{ConstVal, InstConfig}
 
 class WBU extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -14,7 +13,7 @@ class WBU extends Module with InstConfig {
     val socEn    = Input(Bool())
     val mem2wb   = Flipped(new MEM2WBIO)
     val wbdata   = new WBDATAIO
-    val gpr      = Input(Vec(32, UInt(64.W)))
+    val gpr      = Input(Vec(RegfileNum, UInt(XLen.W)))
   })
 
   protected val wbReg      = RegEnable(io.mem2wb, WireInit(0.U.asTypeOf(new MEM2WBIO())), io.globalEn)
@@ -55,14 +54,14 @@ class WBU extends Module with InstConfig {
   }
 
   // for difftest commit
-  protected val mmioEn        = cvalid
-  protected val csrVis        = isa.CSRRW || isa.CSRRS || isa.CSRRC || isa.CSRRWI || isa.CSRRSI || isa.CSRRCI
-  protected val mcycleVis     = csrVis && (inst(31, 20) === ConstVal.mcycleAddr)
-  protected val mipVis        = csrVis && (inst(31, 20) === ConstVal.mipAddr)
-  protected val timeIntrEnReg = RegEnable(timeIntrEn, false.B, io.globalEn)
-  protected val diffValid     = io.globalEn && (RegEnable(valid, false.B, io.globalEn) || timeIntrEnReg)
-
   if (!SoCEna) {
+    val mmioEn        = cvalid
+    val csrVis        = isa.CSRRW || isa.CSRRS || isa.CSRRC || isa.CSRRWI || isa.CSRRSI || isa.CSRRCI
+    val mcycleVis     = csrVis && (inst(31, 20) === ConstVal.mcycleAddr)
+    val mipVis        = csrVis && (inst(31, 20) === ConstVal.mipAddr)
+    val timeIntrEnReg = RegEnable(timeIntrEn, false.B, io.globalEn)
+    val diffValid     = io.globalEn && (RegEnable(valid, false.B, io.globalEn) || timeIntrEnReg)
+
     val instComm        = Module(new DifftestInstrCommit)
     val archIntRegState = Module(new DifftestArchIntRegState)
     val csrState        = Module(new DifftestCSRState)
@@ -130,6 +129,6 @@ class WBU extends Module with InstConfig {
 
     archFpRegState.io.clock  := clock
     archFpRegState.io.coreid := 0.U
-    archFpRegState.io.fpr    := RegInit(VecInit(Seq.fill(32)(0.U(64.W))))
+    archFpRegState.io.fpr    := RegInit(VecInit(Seq.fill(RegfileNum)(0.U(XLen.W))))
   }
 }

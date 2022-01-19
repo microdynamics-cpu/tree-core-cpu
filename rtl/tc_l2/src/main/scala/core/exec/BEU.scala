@@ -3,19 +3,19 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
-class BEU extends Module {
+class BEU extends Module with InstConfig {
   val io = IO(new Bundle {
     val isa        = Input(new ISAIO)
     val imm        = Input(new IMMIO)
-    val src1       = Input(UInt(64.W))
-    val src2       = Input(UInt(64.W))
-    val pc         = Input(UInt(64.W))
+    val src1       = Input(UInt(XLen.W))
+    val src2       = Input(UInt(XLen.W))
+    val pc         = Input(UInt(XLen.W))
     val branIdx    = Input(UInt(ConstVal.GHRLen.W))
     val branchInfo = new BRANCHIO
     val branch     = Output(Bool())
-    val tgt        = Output(UInt(64.W))
+    val tgt        = Output(UInt(XLen.W))
   })
 
   protected val beq   = io.isa.BEQ && (io.src1 === io.src2)
