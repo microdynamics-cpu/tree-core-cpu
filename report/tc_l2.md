@@ -4,6 +4,8 @@
 
 我是缪宇驰，学号是20210324，以前结合芯来的书了解过部分处理器相关内容，但没有实际编写代码实现设计过。西北工业大学航天学院精确制导与控制研究所在读研究生，将于2022年6月毕业。2018年本科毕业于西北工业大学航天学院探测制导与控制技术专业。现主要研究方向为微小卫星空间科学探测，星载计算机设计，小天体表面空间机器人运动规划和仿真。目前参与国家自然科学基金一项，发表国内论文一篇。曾获得研究生一等奖学金等。擅长FPGA板级电路设计开发和调试。热爱开源软硬件运动，业余时间从事开源工具类软件开发，[个人github地址](https://github.com/maksyuki)。
 
+以前没有实际设计过处理器核，参加一生一芯三期算是我第一次完整实现一个处理器。
+
 ## 项目概述
 
 - 项目地址: [tree-core-cpu](https://github.com/microdynamics-cpu/tree-core-cpu)
@@ -12,7 +14,7 @@
 
 TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。支持axi4总线取指和访存，支持动态分支预测(BTB, PHT, GHR)，支持机器特权模式下的异常中断处理。能够在difftest和soc仿真环境下启动rt-thread。
 
-## 微架构
+## 微架构设计
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-arch.drawio.svg"/>
  <p align="center">
@@ -20,8 +22,9 @@ TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。�
  </p>
 </p>
 
+TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**Data Exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**，**执行**，**访存**和**axi4协议仲裁**四部分的具体实现。
 
-### IFU
+### 取指单元
 使用Gshare
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ifu.drawio.svg"/>
@@ -38,24 +41,20 @@ TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。�
  </p>
 </p>
 
-### IDU
+### 执行单元
 
-### EXU
+### 访存单元
 
-### MAU
-
-### WBU
-
-### AxiBridge
+### axi4转换桥
 
 
 ## 项目结构和参考
-TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)，并使用make作为项目构建工具，能够直接使用`make [target]`实现依赖软件的下载和配置，不同平台（difftest和soc）verilog文件生成和修改，回归测试等。
+TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-make.png"/>
  <p align="center">
-  使用make自定义函数扩展
+  使用make自定义函数扩展并支持高亮
  </p>
 </p>
 
@@ -74,7 +73,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 
 
 ## 心得感想
-调试的bug，和以往做过的不同，遇到的困难和迷茫，相比过去自己的成长，对一生一芯的期望和改进。开发日志。作为。
+调试的bug，和以往做过的不同，遇到的困难和迷茫，相比过去自己的成长，对一生一芯的期望和改进。[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)。作为。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-schedule.png"/>
@@ -83,7 +82,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-在代码实现的过程中，将自己踩过的坑以及qq群各位同学提的问题记录了下来，总结成一个FAQ文档。目前该文档有近3.7万字，202张图片，共128页。之后会对相关问题进行索引，方便查找。
+在代码实现的过程中，将自己踩过的坑以及qq群各位同学提的问题记录了下来，并配以相关解答，总结成了一个FAQ文档，方便。目前该文档有近3.7万字，202张图片，共128页。之后对文档中的相关内容进行补充和索引，方便查找。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-guide.png"/>
@@ -95,7 +94,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 一点开发过程的思考，工具的设计
 
 ## 计划
-目前开发的**TreeCoreL2**是TreeCore系列处理器核的第二个版本，目前基本达到设计目标，后续将会继续优化代码。而第三个版本(**TreeCoreL3**)和第四个版本(**TreeCoreL4**)将会追求更高的性能，也是规划中的参加一生一芯第四期和第五期的处理器。其中**TreeCoreL3**将在前代核的基础上，支持RV64IMAC指令，cache和mmu，并提高流水线级数，使其能够启动rt-thread，xv6和linux。**TreeCoreL4** 则会在前代的基础上实现浮点运算和多发射技术，进一步提高处理器性能。
+目前开发的**TreeCoreL2**是TreeCore系列处理器核的第二个版本，目前基本达到设计目标，后续将会继续优化代码。而第三个版本(**TreeCoreL3**)和第四个版本(**TreeCoreL4**)将会追求更高的性能，也是规划中的参加一生一芯第四期和第五期的处理器。其中**TreeCoreL3**将在前代核的基础上，支持RV64IMAC指令，cache和mmu，并提高流水线级数，使其能够启动rt-thread，xv6和linux。**TreeCoreL4** 则会在**TreeCoreL3**的基础上实现浮点运算和多发射技术，进一步提高处理器性能。
 
 对于TreeCoreL2来说：
  - 继续改进当前TreeCoreL2的微架构设计，能够使用更多chisel的特性来简化代码实现
