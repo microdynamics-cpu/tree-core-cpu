@@ -25,7 +25,13 @@ TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。�
 TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**Data Exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**，**执行**，**访存**和**axi4协议仲裁**四部分的具体实现。
 
 ### 取指单元
-使用Gshare
+取指单元主要功能是计算出下一个周期的pc并向axi总线发送读请求。pc通过多路选择器按照优先级从高到低依次选取`mtvec`、`mepc`、`jump target`、 `branch predict target`和`pc + 4`的值。BPU采用基于全局历史的两级预测器。相关参数如下：
+1. Global History Reister(GHR): bit width = 5
+2. Pattern History Table(PHT):  size = 32
+3. Branch Target Buffer(BTB):   bit width = 64 size = 32
+
+GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(gshare)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。
+
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ifu.drawio.svg"/>
  <p align="center">
@@ -33,7 +39,7 @@ TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存
  </p>
 </p>
 
-由于目前TreeCore2的取指和访存没有使用cache，处理器核 所以使用
+由于目前TreeCore2的取指和访存没有使用cache，处理器核需要大量时钟周期来等待axi的响应，所以采用动态分支预测技术后对ipc的提高幅度比较小
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ipc.png"/>
  <p align="center">
@@ -49,7 +55,7 @@ TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存
 
 
 ## 项目结构和参考
-TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
+TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的同时开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-make.png"/>
@@ -73,7 +79,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 ## 总结
 
 ### 心得感想
-首先，要衷心地感谢一生一芯三期项目的所有老师，助教同学们一直以来的辛苦付出。去年自己有幸赶到上科大参加了RISCV中国峰会，香山处理器的系列报告让我大饱眼福。当听说新一期一生一芯项目准备面向全国高校学生开放后，作为一名研三临近毕业的学生，深感这次机会的来之不易，便毫不犹豫地报了名。在实际代码调试过程中让我重新学习了很多知识，比如内存地址对齐问题。我记得我第一次听说“地址对齐”这个名词还是13年我大一学c语言的时候，当时老师在讲解union类型时引出了这个概念。但是当时对这个概念没有深入学习下去，这导致我在刚开始调试axi仲裁的时候一直没搞对地址的mask计算，花了很长时间。另外参加一生一芯三期对于我来说也是个不小的挑战，因为它要求独立开发，要在很短的时间内学习使用很多新知识，新工具的使用，而这些是我以前做过的课程实验所没有的。在具体开发过程中，由于本人跨专业的原因，体系结构相关知识比较薄弱，所以很多知识都要从零捡起课本开始学。另外我还要兼顾科研任务，毕设实验和找工作等多项事情。这其中也会遇到很多的困难和迷茫，但是相比过去的自己也收获了实实在在的成长。通过参加一生一芯三期，我完整地实现了一个处理器核，虽然还不太完美。学习了chisel，verilator，difftest等众多开源处理器开发工具及其背后的敏捷开发思想，也加深了对软硬件之间工作原理的认知。当时通过[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)也记录下了开发调试过程中的点点滴滴。那种不停google->查书->编码->调试后bug被解决的喜悦让我终生难忘。
+首先，要衷心地感谢一生一芯三期项目的所有老师，助教同学们一直以来的辛苦付出。去年自己有幸赶到上科大参加了RISCV中国峰会，香山处理器的系列报告让我大饱眼福。当听说新一期一生一芯项目准备面向全国高校学生开放后，作为一名研三临近毕业的学生，深感这次机会的来之不易，便毫不犹豫地报了名。在实际编码调试过程中让我重新学习了很多知识，比如内存地址对齐问题。我记得我第一次听说“地址对齐”这个名词还是13年我大一学c语言的时候，当时老师在讲解union类型时引出了这个概念。但是当时对这个概念没有深入学习下去，这导致我在刚开始调试axi仲裁的时候一直没搞对地址的掩码计算，花了很长时间。另外参加一生一芯三期对于我来说也是个不小的挑战，因为它要求独立开发，要在很短的时间内学习很多新知识，使用很多新工具，而这些是我以前做过的课程实验所没有的。在具体开发过程中，由于本人跨专业的原因，体系结构相关知识比较薄弱，所以很多内容都要从零开始学起。另外我还要兼顾科研任务，毕设实验和找工作等多项事情。这其中也遇到了很多让我感到迷茫的时刻，但是相比过去的自己也收获了实实在在的成长。通过参加一生一芯三期，我完整地实现了一个处理器核，虽然还不太完美。学习了chisel，verilator，difftest等众多开源处理器开发工具及其背后的敏捷开发思想，也加深了对软硬件之间工作原理的认知。当时通过[进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)也记录下了开发调试过程中的点点滴滴。那种不停google->查书->编码->调试后bug被解决的喜悦让我终生难忘。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-schedule.png"/>
@@ -93,7 +99,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 </p>
 
 ### 一点开发过程中的想法: 波形与回归测试联合调试工具的设计
-difftest进行差分测试可以快速定位到出错的指令，却无法像波形那样直观地展现多周期完整的信号变化。考虑设计一个工具，当difftest对比到出错的指令时能够触发事件，而这个事件传递到波形组件后可以直接定位到对应时钟周期并显示临近的波形。后期的话考虑直接对波形进行解析，就像嵌入式领域的逻辑分析仪一样，能够直接诸如将操作数，stall等信息标注到波形上。
+difftest进行差分测试可以快速定位到出错的指令，却无法像波形那样直观地展现多周期完整的信号变化。考虑设计一个工具，当difftest对比到出错的指令时能够触发事件，而这个事件传递到波形组件后可以直接定位到对应时钟周期并显示临近的波形。后期的话考虑直接对波形进行解析，就像嵌入式领域的逻辑分析仪一样，能够直接将诸如操作数，stall等信息标注到波形上。
 
 ## 计划
 目前开发的**TreeCoreL2**是TreeCore系列处理器核的第二个版本，目前基本达到设计目标，后续将会继续优化代码。而第三个版本(**TreeCoreL3**)和第四个版本(**TreeCoreL4**)将会追求更高的性能，也是规划中的参加一生一芯第四期和第五期的处理器。其中**TreeCoreL3**将在前代核的基础上，支持RV64IMAC指令，cache和mmu，并提高流水线级数，使其能够启动rt-thread，xv6和linux。**TreeCoreL4** 则会在**TreeCoreL3**的基础上实现浮点运算和多发射技术，进一步提高处理器性能。
