@@ -58,25 +58,22 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-另外TreeCore的实现和测试依赖于众多项目，其中包括：
-- [chisel3](https://github.com/chipsalliance/chisel3)
-- [verilator](https://github.com/verilator/verilator)
-- [NEMU](https://gitee.com/oscpu/NEMU)
-- [DRAMsim3](https://github.com/OpenXiangShan/DRAMsim3)
-- [difftest](https://gitee.com/oscpu/difftest)
-- [Abstract Machine](https://github.com/NJU-ProjectN/abstract-machine)
-- [ysyxSoC](https://github.com/OSCPU/ysyxSoC)
-- [riscv-tests](https://github.com/NJU-ProjectN/riscv-tests)
-
-
-立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
-
-流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
+1. 另外TreeCore的实现和测试依赖于众多项目，其中包括：
+ - [chisel3](https://github.com/chipsalliance/chisel3)
+ - [verilator](https://github.com/verilator/verilator)
+ - [NEMU](https://gitee.com/oscpu/NEMU)
+ - [DRAMsim3](https://github.com/OpenXiangShan/DRAMsim3)
+ - [difftest](https://gitee.com/oscpu/difftest)
+ - [Abstract Machine](https://github.com/NJU-ProjectN/abstract-machine)
+ - [ysyxSoC](https://github.com/OSCPU/ysyxSoC)
+ - [riscv-tests](https://github.com/NJU-ProjectN/riscv-tests)
+2. 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
+3. 流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
 
 ## 总结
 
 ### 心得感想
-首先，要衷心地感谢负责一生一芯三期项目的所有老师和助教同学们，。 作为一名研三还有半年就要毕业的学生，去年riscv中国峰会，是一件宝贵的机会。在实现axi总线仲裁过程中让我重新学习了内存地址对齐问题，我记得我第一次。调试的bug(address align)，和以往做过的不同()，遇到的困难和迷茫(跨专业，体系结构知识薄弱；导师任务安排，找工作和毕设实验要兼顾；)，相比过去自己的成长(能够写一个处理器核，加深对软硬件直接的工作原理的认知)，对一生一芯的期望和改进。[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)。作为。
+首先，要衷心地感谢一生一芯三期项目的所有老师，助教同学们一直以来的辛苦付出。去年自己有幸赶到上科大参加了RISCV中国峰会，香山处理器的系列报告让我大饱眼福。当听说新一期一生一芯项目准备面向全国高校学生开放后，作为一名研三临近毕业的学生，深感这次机会的来之不易，便毫不犹豫地报了名。在实际代码调试过程中让我重新学习了很多知识，比如内存地址对齐问题。我记得我第一次听说“地址对齐”这个名词还是13年我大一学c语言的时候，当时老师在讲解union类型时引出了这个概念。但是当时对这个概念没有深入学习下去，这导致我在刚开始调试axi仲裁的时候一直没搞对地址的mask计算，花了很长时间。另外参加一生一芯三期对于我来说也是个不小的挑战，因为它要求独立开发，要在很短的时间内学习使用很多新知识，新工具的使用，而这些是我以前做过的课程实验所没有的。在具体开发过程中，由于本人跨专业的原因，体系结构相关知识比较薄弱，所以很多知识都要从零捡起课本开始学。另外我还要兼顾科研任务，毕设实验和找工作等多项事情。这其中也会遇到很多的困难和迷茫，但是相比过去的自己也收获了实实在在的成长。通过参加一生一芯三期，我完整地实现了一个处理器核，虽然还不太完美。学习了chisel，verilator，difftest等众多开源处理器开发工具及其背后的敏捷开发思想，也加深了对软硬件之间工作原理的认知。当时通过[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)也记录下了开发调试过程中的点点滴滴。那种不停google->查书->编码->调试后bug被解决的喜悦让我终生难忘。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-schedule.png"/>
@@ -96,7 +93,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 </p>
 
 ### 一点开发过程中的想法: 波形与回归测试联合调试工具的设计
-
+difftest进行差分测试可以快速定位到出错的指令，却无法像波形那样直观地展现多周期完整的信号变化。考虑设计一个工具，当difftest对比到出错的指令时能够触发事件，而这个事件传递到波形组件后可以直接定位到对应时钟周期并显示临近的波形。后期的话考虑直接对波形进行解析，就像嵌入式领域的逻辑分析仪一样，能够直接诸如将操作数，stall等信息标注到波形上。
 
 ## 计划
 目前开发的**TreeCoreL2**是TreeCore系列处理器核的第二个版本，目前基本达到设计目标，后续将会继续优化代码。而第三个版本(**TreeCoreL3**)和第四个版本(**TreeCoreL4**)将会追求更高的性能，也是规划中的参加一生一芯第四期和第五期的处理器。其中**TreeCoreL3**将在前代核的基础上，支持RV64IMAC指令，cache和mmu，并提高流水线级数，使其能够启动rt-thread，xv6和linux。**TreeCoreL4** 则会在**TreeCoreL3**的基础上实现浮点运算和多发射技术，进一步提高处理器性能。
