@@ -56,7 +56,7 @@ class WBU extends Module with InstConfig {
   // for difftest commit
   if (!SoCEna) {
     val mmioEn        = cvalid
-    val csrVis        = isa.CSRRW || isa.CSRRS || isa.CSRRC || isa.CSRRWI || isa.CSRRSI || isa.CSRRCI
+    val csrVis        = (isa === instCSRRW) || (isa === instCSRRS) || (isa === instCSRRC) || (isa === instCSRRWI) || (isa === instCSRRSI) || (isa === instCSRRCI)
     val mcycleVis     = csrVis && (inst(31, 20) === ConstVal.mcycleAddr)
     val mipVis        = csrVis && (inst(31, 20) === ConstVal.mipAddr)
     val timeIntrEnReg = RegEnable(timeIntrEn, false.B, io.globalEn)

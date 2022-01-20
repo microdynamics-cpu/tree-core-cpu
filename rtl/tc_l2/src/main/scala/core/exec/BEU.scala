@@ -7,7 +7,7 @@ import treecorel2.common.{ConstVal, InstConfig}
 
 class BEU extends Module with InstConfig {
   val io = IO(new Bundle {
-    val isa        = Input(new ISAIO)
+    val isa        = Input(UInt(InstValLen.W))
     val imm        = Input(UInt(XLen.W))
     val src1       = Input(UInt(XLen.W))
     val src2       = Input(UInt(XLen.W))
@@ -18,17 +18,18 @@ class BEU extends Module with InstConfig {
     val tgt        = Output(UInt(XLen.W))
   })
 
-  protected val beq   = io.isa.BEQ && (io.src1 === io.src2)
-  protected val bne   = io.isa.BNE && (io.src1 =/= io.src2)
-  protected val bgeu  = io.isa.BGEU && (io.src1 >= io.src2)
-  protected val bltu  = io.isa.BLTU && (io.src1 < io.src2)
-  protected val bge   = io.isa.BGE && (io.src1.asSInt >= io.src2.asSInt)
-  protected val blt   = io.isa.BLT && (io.src1.asSInt < io.src2.asSInt)
-  protected val b     = beq | bne | bgeu | bltu | bge | blt
-  protected val bInst = io.isa.BEQ || io.isa.BNE || io.isa.BGEU || io.isa.BLTU || io.isa.BGE || io.isa.BLT || io.isa.JAL || io.isa.JALR
+  protected val beq  = (io.isa === instBEQ) && (io.src1 === io.src2)
+  protected val bne  = (io.isa === instBNE) && (io.src1 =/= io.src2)
+  protected val bgeu = (io.isa === instBGEU) && (io.src1 >= io.src2)
+  protected val bltu = (io.isa === instBLTU) && (io.src1 < io.src2)
+  protected val bge  = (io.isa === instBGE) && (io.src1.asSInt >= io.src2.asSInt)
+  protected val blt  = (io.isa === instBLT) && (io.src1.asSInt < io.src2.asSInt)
+  protected val b    = beq | bne | bgeu | bltu | bge | blt
+  protected val bInst = (io.isa === instBEQ) || (io.isa === instBNE) || (io.isa === instBGEU) || (io.isa === instBLTU) ||
+    (io.isa === instBGE) || (io.isa === instBLT) || (io.isa === instJAL) || (io.isa === instJALR)
 
-  protected val jal  = io.isa.JAL
-  protected val jalr = io.isa.JALR
+  protected val jal  = io.isa === instJAL
+  protected val jalr = io.isa === instJALR
 
   protected val b_tgt    = io.pc + io.imm
   protected val jal_tgt  = io.pc + io.imm

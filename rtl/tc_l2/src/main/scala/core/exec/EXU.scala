@@ -3,7 +3,9 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class EXU extends Module {
+import treecorel2.common.InstConfig
+
+class EXU extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
     val mtip       = Input(Bool())
@@ -67,8 +69,8 @@ class EXU extends Module {
   protected val branch = beu.io.branch
   protected val tgt    = beu.io.tgt
 
-  protected val link  = SignExt((isa.JAL | isa.JALR).asUInt, 64) & (pc + 4.U)
-  protected val auipc = SignExt(isa.AUIPC.asUInt, 64) & (pc + imm)
+  protected val link  = SignExt(((isa === instJAL) | (isa === instJALR)).asUInt, 64) & (pc + 4.U)
+  protected val auipc = SignExt((isa === instAUIPC).asUInt, 64) & (pc + imm)
 
   protected val csrReg     = Module(new CSRReg)
   protected val csrData    = csrReg.io.data
@@ -82,14 +84,14 @@ class EXU extends Module {
 
   io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
   io.nxtPC.mtvec := csrReg.io.csrState.mtvec
-  io.nxtPC.mret  := valid && isa.MRET
+  io.nxtPC.mret  := valid && (isa === instMRET)
   io.nxtPC.mepc  := csrReg.io.csrState.mepc
   // (pred, fact)--->(NT, T) or (T, NT)
   protected val predNTfactT = branch && !predTaken
   protected val predTfactNT = !branch && predTaken
   io.nxtPC.branch := valid && (predNTfactT || predTfactNT)
   io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(64.W)))
-  io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || isa.MRET)
+  io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
 
   io.ex2mem.valid        := Mux(timeIntrEn, false.B, valid)
   io.ex2mem.inst         := inst
