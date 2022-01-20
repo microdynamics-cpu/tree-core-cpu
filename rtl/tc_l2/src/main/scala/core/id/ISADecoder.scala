@@ -195,103 +195,90 @@ class ISADecoder extends Module with InstConfig {
   io.isa.REMU   := (io.inst === BitPat("b0000001_?????_?????_111_?????_0110011"))
   io.isa.REMUW  := (io.inst === BitPat("b0000001_?????_?????_111_?????_0111011"))
   io.isa.REMW   := (io.inst === BitPat("b0000001_?????_?????_110_?????_0111011"))
-  io.isa.GCD    := (io.inst === BitPat("b0000000_?????_?????_000_?????_0001000"))
 
-  protected val arith  = io.isa.ADD || io.isa.ADDW || io.isa.ADDI || io.isa.ADDIW || io.isa.SUB || io.isa.SUBW || io.isa.LUI || io.isa.AUIPC
-  protected val logc   = io.isa.XOR || io.isa.XORI || io.isa.OR || io.isa.ORI || io.isa.AND || io.isa.ANDI
-  protected val shift  = io.isa.SLL || io.isa.SLLI || io.isa.SLLW || io.isa.SLLIW || io.isa.SRL || io.isa.SRLI || io.isa.SRLW || io.isa.SRLIW || io.isa.SRA || io.isa.SRAI || io.isa.SRAW || io.isa.SRAIW
-  protected val comp   = io.isa.SLT || io.isa.SLTI || io.isa.SLTU || io.isa.SLTIU
-  protected val link   = io.isa.JAL || io.isa.JALR
-  protected val branch = io.isa.BEQ || io.isa.BNE || io.isa.BLT || io.isa.BGE || io.isa.BLTU || io.isa.BGEU
-  protected val load   = io.isa.LD || io.isa.LW || io.isa.LH || io.isa.LB || io.isa.LWU || io.isa.LHU || io.isa.LBU
-  protected val store  = io.isa.SD || io.isa.SW || io.isa.SH || io.isa.SB
-  protected val sync   = io.isa.FENCE || io.isa.FENCE_I
-  protected val env    = io.isa.ECALL || io.isa.EBREAK
-  protected val csr    = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
-  protected val priv   = io.isa.MRET || io.isa.SRET || io.isa.WFI || io.isa.SFENCE_VMA
-  protected val custom = io.isa.GCD
+  protected val csr = io.isa.CSRRW || io.isa.CSRRS || io.isa.CSRRC || io.isa.CSRRWI || io.isa.CSRRSI || io.isa.CSRRCI
 
   protected val decodeTable = Array(
     // i type inst
-    ISADecoder.ADDI  -> List(iInstType),
-    ISADecoder.ADDIW -> List(iInstType),
-    ISADecoder.SLTI  -> List(iInstType),
-    ISADecoder.SLTIU -> List(iInstType),
-    ISADecoder.ANDI  -> List(iInstType),
-    ISADecoder.ORI   -> List(iInstType),
-    ISADecoder.XORI  -> List(iInstType),
-    ISADecoder.SLLI  -> List(iInstType),
-    ISADecoder.SLLIW -> List(iInstType),
-    ISADecoder.SRLI  -> List(iInstType),
-    ISADecoder.SRLIW -> List(iInstType),
-    ISADecoder.SRAI  -> List(iInstType),
-    ISADecoder.SRAIW -> List(iInstType),
+    ISADecoder.ADDI  -> List(iInstType, wtRegTrue),
+    ISADecoder.ADDIW -> List(iInstType, wtRegTrue),
+    ISADecoder.SLTI  -> List(iInstType, wtRegTrue),
+    ISADecoder.SLTIU -> List(iInstType, wtRegTrue),
+    ISADecoder.ANDI  -> List(iInstType, wtRegTrue),
+    ISADecoder.ORI   -> List(iInstType, wtRegTrue),
+    ISADecoder.XORI  -> List(iInstType, wtRegTrue),
+    ISADecoder.SLLI  -> List(iInstType, wtRegTrue),
+    ISADecoder.SLLIW -> List(iInstType, wtRegTrue),
+    ISADecoder.SRLI  -> List(iInstType, wtRegTrue),
+    ISADecoder.SRLIW -> List(iInstType, wtRegTrue),
+    ISADecoder.SRAI  -> List(iInstType, wtRegTrue),
+    ISADecoder.SRAIW -> List(iInstType, wtRegTrue),
     // u type inst
-    ISADecoder.LUI   -> List(uInstType),
-    ISADecoder.AUIPC -> List(uInstType),
+    ISADecoder.LUI   -> List(uInstType, wtRegTrue),
+    ISADecoder.AUIPC -> List(uInstType, wtRegTrue),
     // r type inst
-    ISADecoder.ADD  -> List(rInstType),
-    ISADecoder.ADDW -> List(rInstType),
-    ISADecoder.SLT  -> List(rInstType),
-    ISADecoder.SLTU -> List(rInstType),
-    ISADecoder.AND  -> List(rInstType),
-    ISADecoder.OR   -> List(rInstType),
-    ISADecoder.XOR  -> List(rInstType),
-    ISADecoder.SLL  -> List(rInstType),
-    ISADecoder.SLLW -> List(rInstType),
-    ISADecoder.SRL  -> List(rInstType),
-    ISADecoder.SRLW -> List(rInstType),
-    ISADecoder.SUB  -> List(rInstType),
-    ISADecoder.SUBW -> List(rInstType),
-    ISADecoder.SRA  -> List(rInstType),
-    ISADecoder.SRAW -> List(rInstType),
+    ISADecoder.ADD  -> List(rInstType, wtRegTrue),
+    ISADecoder.ADDW -> List(rInstType, wtRegTrue),
+    ISADecoder.SLT  -> List(rInstType, wtRegTrue),
+    ISADecoder.SLTU -> List(rInstType, wtRegTrue),
+    ISADecoder.AND  -> List(rInstType, wtRegTrue),
+    ISADecoder.OR   -> List(rInstType, wtRegTrue),
+    ISADecoder.XOR  -> List(rInstType, wtRegTrue),
+    ISADecoder.SLL  -> List(rInstType, wtRegTrue),
+    ISADecoder.SLLW -> List(rInstType, wtRegTrue),
+    ISADecoder.SRL  -> List(rInstType, wtRegTrue),
+    ISADecoder.SRLW -> List(rInstType, wtRegTrue),
+    ISADecoder.SUB  -> List(rInstType, wtRegTrue),
+    ISADecoder.SUBW -> List(rInstType, wtRegTrue),
+    ISADecoder.SRA  -> List(rInstType, wtRegTrue),
+    ISADecoder.SRAW -> List(rInstType, wtRegTrue),
     // nop inst
-    ISADecoder.NOP -> List(nopInstType),
+    ISADecoder.NOP -> List(nopInstType, wtRegFalse),
     // j type inst
-    ISADecoder.JAL  -> List(jInstType),
-    ISADecoder.JALR -> List(iInstType),
+    ISADecoder.JAL  -> List(jInstType, wtRegTrue),
+    ISADecoder.JALR -> List(iInstType, wtRegTrue),
     // b type inst
-    ISADecoder.BEQ  -> List(bInstType),
-    ISADecoder.BNE  -> List(bInstType),
-    ISADecoder.BLT  -> List(bInstType),
-    ISADecoder.BLTU -> List(bInstType),
-    ISADecoder.BGE  -> List(bInstType),
-    ISADecoder.BGEU -> List(bInstType),
+    ISADecoder.BEQ  -> List(bInstType, wtRegFalse),
+    ISADecoder.BNE  -> List(bInstType, wtRegFalse),
+    ISADecoder.BLT  -> List(bInstType, wtRegFalse),
+    ISADecoder.BLTU -> List(bInstType, wtRegFalse),
+    ISADecoder.BGE  -> List(bInstType, wtRegFalse),
+    ISADecoder.BGEU -> List(bInstType, wtRegFalse),
     // special i type inst
-    ISADecoder.LB  -> List(iInstType),
-    ISADecoder.LBU -> List(iInstType),
-    ISADecoder.LH  -> List(iInstType),
-    ISADecoder.LHU -> List(iInstType),
-    ISADecoder.LW  -> List(iInstType),
-    ISADecoder.LWU -> List(iInstType),
-    ISADecoder.LD  -> List(iInstType),
+    ISADecoder.LB  -> List(iInstType, wtRegTrue),
+    ISADecoder.LBU -> List(iInstType, wtRegTrue),
+    ISADecoder.LH  -> List(iInstType, wtRegTrue),
+    ISADecoder.LHU -> List(iInstType, wtRegTrue),
+    ISADecoder.LW  -> List(iInstType, wtRegTrue),
+    ISADecoder.LWU -> List(iInstType, wtRegTrue),
+    ISADecoder.LD  -> List(iInstType, wtRegTrue),
     // s type inst
-    ISADecoder.SB -> List(sInstType),
-    ISADecoder.SH -> List(sInstType),
-    ISADecoder.SW -> List(sInstType),
-    ISADecoder.SD -> List(sInstType),
+    ISADecoder.SB -> List(sInstType, wtRegFalse),
+    ISADecoder.SH -> List(sInstType, wtRegFalse),
+    ISADecoder.SW -> List(sInstType, wtRegFalse),
+    ISADecoder.SD -> List(sInstType, wtRegFalse),
     // csr inst
-    ISADecoder.CSRRW  -> List(iInstType),
-    ISADecoder.CSRRS  -> List(iInstType),
-    ISADecoder.CSRRC  -> List(iInstType),
-    ISADecoder.CSRRWI -> List(iInstType),
-    ISADecoder.CSRRSI -> List(iInstType),
-    ISADecoder.CSRRCI -> List(iInstType),
+    ISADecoder.CSRRW  -> List(iInstType, wtRegTrue),
+    ISADecoder.CSRRS  -> List(iInstType, wtRegTrue),
+    ISADecoder.CSRRC  -> List(iInstType, wtRegTrue),
+    ISADecoder.CSRRWI -> List(iInstType, wtRegTrue),
+    ISADecoder.CSRRSI -> List(iInstType, wtRegTrue),
+    ISADecoder.CSRRCI -> List(iInstType, wtRegTrue),
     // system inst
-    ISADecoder.ECALL   -> List(nopInstType),
-    ISADecoder.MRET    -> List(nopInstType),
-    ISADecoder.FENCE   -> List(nopInstType),
-    ISADecoder.FENCE_I -> List(nopInstType),
+    ISADecoder.ECALL   -> List(nopInstType, wtRegFalse),
+    ISADecoder.MRET    -> List(nopInstType, wtRegFalse),
+    ISADecoder.FENCE   -> List(nopInstType, wtRegFalse),
+    ISADecoder.FENCE_I -> List(nopInstType, wtRegFalse),
     // custom inst
-    ISADecoder.CUST -> List(nopInstType)
+    ISADecoder.CUST -> List(nopInstType, wtRegFalse)
   )
 
   protected val immExten = Module(new ImmExten)
-  protected val defRes   = List(nopInstType)
-
+  protected val defRes   = List(nopInstType, wtRegFalse)
+  protected val decRes   = ListLookup(io.inst, defRes, decodeTable)
   immExten.io.inst     := io.inst
-  immExten.io.instType := ListLookup(io.inst, defRes, decodeTable)(0)
+  immExten.io.instType := decRes(0)
   io.imm               := immExten.io.imm
   io.csr               := csr
-  io.wen               := arith || logc || shift || comp || link || load || csr || custom
+  io.wen               := decRes(1) // NOTE: the csr inst type
 }

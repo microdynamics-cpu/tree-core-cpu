@@ -21,7 +21,7 @@ class AGU extends Module {
   protected val val1Reg = RegInit(0.U(64.W))
   protected val val2Reg = RegInit(0.U(64.W))
   protected val busyReg = RegInit(false.B)
-  protected val gcdVis  = io.isa.GCD
+  protected val gcdVis  = false.B
 
   when(gcdVis && !busyReg) {
     val1Reg := io.src1

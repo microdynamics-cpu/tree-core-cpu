@@ -29,6 +29,8 @@ trait InstConfig {
   val bInstType   = 4.U(InstTypeLen.W)
   val uInstType   = 5.U(InstTypeLen.W)
   val jInstType   = 6.U(InstTypeLen.W)
+  val wtRegTrue   = true.B
+  val wtRegFalse  = false.B
 
   val NWay          = 4
   val NBank         = 4
