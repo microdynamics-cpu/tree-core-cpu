@@ -68,7 +68,7 @@ class EXU extends Module {
   protected val tgt    = beu.io.tgt
 
   protected val link  = SignExt((isa.JAL | isa.JALR).asUInt, 64) & (pc + 4.U)
-  protected val auipc = SignExt(isa.AUIPC.asUInt, 64) & (pc + imm.U)
+  protected val auipc = SignExt(isa.AUIPC.asUInt, 64) & (pc + imm)
 
   protected val csrReg     = Module(new CSRReg)
   protected val csrData    = csrReg.io.data

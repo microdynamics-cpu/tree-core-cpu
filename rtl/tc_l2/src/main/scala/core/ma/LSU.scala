@@ -11,7 +11,7 @@ class LSU extends Module with InstConfig {
     val isa      = Input(new ISAIO)
     val src1     = Input(UInt(XLen.W))
     val src2     = Input(UInt(XLen.W))
-    val imm      = Input(new IMMIO)
+    val imm      = Input(UInt(XLen.W))
     val ld       = new LDIO
     val sd       = new SDIO
     val loadData = Output(UInt(XLen.W))
@@ -21,7 +21,7 @@ class LSU extends Module with InstConfig {
   protected val sdInstVis = io.isa.SD || io.isa.SW || io.isa.SH || io.isa.SB
 
   io.ld.en   := io.valid && ldInstVis
-  io.ld.addr := io.src1 + io.imm.I
+  io.ld.addr := io.src1 + io.imm
   protected val bSize    = 0.U(3.W)
   protected val hSize    = Mux(io.isa.LH || io.isa.LHU, 1.U, 0.U)
   protected val wSize    = Mux(io.isa.LW || io.isa.LWU, 2.U, 0.U)
@@ -45,7 +45,7 @@ class LSU extends Module with InstConfig {
 
   // store signals
   io.sd.en   := io.valid && sdInstVis
-  io.sd.addr := io.src1 + io.imm.S
+  io.sd.addr := io.src1 + io.imm
   protected val sdData    = SignExt(io.isa.SD.asUInt, 64) & io.src2
   protected val swData    = SignExt(io.isa.SW.asUInt, 64) & Cat(io.src2(31, 0), io.src2(31, 0))
   protected val shData    = SignExt(io.isa.SH.asUInt, 64) & Cat(io.src2(15, 0), io.src2(15, 0), io.src2(15, 0), io.src2(15, 0))

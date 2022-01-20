@@ -19,6 +19,17 @@ trait InstConfig {
   val DiffRWSize        = 3.U
   val CacheEna          = false
 
+  // inst type
+  // nop is equal to [addi x0, x0, 0], so the oper is same as 'addi' inst
+  val InstTypeLen = 3
+  val nopInstType = 2.U(InstTypeLen.W)
+  val rInstType   = 1.U(InstTypeLen.W)
+  val iInstType   = 2.U(InstTypeLen.W)
+  val sInstType   = 3.U(InstTypeLen.W)
+  val bInstType   = 4.U(InstTypeLen.W)
+  val uInstType   = 5.U(InstTypeLen.W)
+  val jInstType   = 6.U(InstTypeLen.W)
+
   val NWay          = 4
   val NBank         = 4
   val NSet          = 32

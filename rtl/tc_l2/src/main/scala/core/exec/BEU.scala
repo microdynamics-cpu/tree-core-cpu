@@ -8,7 +8,7 @@ import treecorel2.common.{ConstVal, InstConfig}
 class BEU extends Module with InstConfig {
   val io = IO(new Bundle {
     val isa        = Input(new ISAIO)
-    val imm        = Input(new IMMIO)
+    val imm        = Input(UInt(XLen.W))
     val src1       = Input(UInt(XLen.W))
     val src2       = Input(UInt(XLen.W))
     val pc         = Input(UInt(XLen.W))
@@ -30,9 +30,9 @@ class BEU extends Module with InstConfig {
   protected val jal  = io.isa.JAL
   protected val jalr = io.isa.JALR
 
-  protected val b_tgt    = io.pc + io.imm.B
-  protected val jal_tgt  = io.pc + io.imm.J
-  protected val jalr_tgt = io.src1 + io.imm.I
+  protected val b_tgt    = io.pc + io.imm
+  protected val jal_tgt  = io.pc + io.imm
+  protected val jalr_tgt = io.src1 + io.imm
 
   io.branch := b | jal | jalr
 
