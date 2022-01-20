@@ -4,21 +4,24 @@ import chisel3._
 import chisel3.util._
 import difftest._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
-class CSRReg extends Module {
+object CSRReg {
+  val timeCause  = "h8000_0000_0000_0007".U(64.W)
+  val ecallCause = "h0000_0000_0000_000b".U(64.W)
+}
+
+class CSRReg extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
-    val pc         = Input(UInt(64.W))
-    val inst       = Input(UInt(64.W))
-    val src        = Input(UInt(64.W))
-    val data       = Output(UInt(64.W))
+    val pc         = Input(UInt(XLen.W))
+    val inst       = Input(UInt(XLen.W))
+    val src        = Input(UInt(XLen.W))
+    val data       = Output(UInt(XLen.W))
     val mtip       = Input(Bool())
     val timeIntrEn = Output(Bool())
     val ecallEn    = Output(Bool())
-
-    //difftest
-    val csrState = Flipped(new DiffCSRStateIO)
+    val csrState   = Flipped(new DiffCSRStateIO)
   })
 
   protected val csrrwVis  = (io.inst === BitPat("b????????????_?????_001_?????_1110011"))
@@ -30,19 +33,19 @@ class CSRReg extends Module {
   protected val csrVis    = csrrcVis || csrrciVis || csrrsVis || csrrsiVis || csrrwVis || csrrwiVis
   protected val mretVis   = (io.inst === BitPat("b001100000010_00000_000_00000_1110011"))
   protected val ecallVis  = (io.inst === BitPat("b000000000000_00000_000_00000_1110011"))
-  protected val zimm      = ZeroExt(io.inst(19, 15), 64)
+  protected val zimm      = ZeroExt(io.inst(19, 15), XLen)
   protected val addr      = io.inst(31, 20)
 
-  protected val mcycle   = RegInit(0.U(64.W))
-  protected val mstatus  = RegInit(0.U(64.W))
-  protected val mtvec    = RegInit(0.U(64.W))
-  protected val mcause   = RegInit(0.U(64.W))
-  protected val mepc     = RegInit(0.U(64.W))
-  protected val mie      = RegInit(0.U(64.W))
-  protected val mip      = RegInit(0.U(64.W))
-  protected val mscratch = RegInit(0.U(64.W))
-  protected val medeleg  = RegInit(0.U(64.W))
-  protected val mhartid  = RegInit(0.U(64.W))
+  protected val mcycle   = RegInit(0.U(XLen.W))
+  protected val mstatus  = RegInit(0.U(XLen.W))
+  protected val mtvec    = RegInit(0.U(XLen.W))
+  protected val mcause   = RegInit(0.U(XLen.W))
+  protected val mepc     = RegInit(0.U(XLen.W))
+  protected val mie      = RegInit(0.U(XLen.W))
+  protected val mip      = RegInit(0.U(XLen.W))
+  protected val mscratch = RegInit(0.U(XLen.W))
+  protected val medeleg  = RegInit(0.U(XLen.W))
+  protected val mhartid  = RegInit(0.U(XLen.W))
 
   protected val mhartidVis  = addr === ConstVal.mhartidAddr
   protected val mstatusVis  = addr === ConstVal.mstatusAddr
@@ -117,9 +120,9 @@ class CSRReg extends Module {
     }
 
     when(timeIntrEn) {
-      mcause := "h8000_0000_0000_0007".U(64.W)
+      mcause := CSRReg.timeCause
     }.elsewhen(ecallEn) {
-      mcause := "h0000_0000_0000_000b".U(64.W)
+      mcause := CSRReg.ecallCause
     }.elsewhen(csrVis && mcauseVis) {
       mcause := wData
     }
