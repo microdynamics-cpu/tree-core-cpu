@@ -277,7 +277,7 @@ socPrevBuild: chiselBuild socTopModify
 socBuild: changeTargetToSoCTop chiselBuild socNameCheck
 	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu/projects/soc/vsrc/
 
-socSubmit:
+socTest:
 	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
 
 socRun:
@@ -307,5 +307,5 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
 		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest unit-test \
-		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socRun\
+		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socTest socRun\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll

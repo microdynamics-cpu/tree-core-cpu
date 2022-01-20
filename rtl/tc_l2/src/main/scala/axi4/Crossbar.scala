@@ -3,7 +3,9 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class Crossbar extends Module {
+import treecorel2.common.InstConfig
+
+class Crossbar extends Module with InstConfig {
   val io = IO(new Bundle {
     val socEn = Input(Bool())
     val runEn = Input(Bool())
@@ -26,35 +28,34 @@ class Crossbar extends Module {
   switch(stateReg) {
     is(eumInst) {
       when(io.runEn) {
-        stateReg := eumMem
         globalEn := true.B
+        stateReg := eumMem
         inst     := rdInst
       }
     }
     is(eumMem) {
       when(io.runEn) {
-        stateReg := eumInst
         globalEn := false.B
+        stateReg := eumInst
         inst     := 0x13.U
       }
     }
   }
 
-  protected val instSize = Mux(io.socEn, 2.U, 3.U)
   // because the difftest's logic addr is 0x000000
-  protected val addrOffset = Mux(io.socEn, "h0000000000000000".U(64.W), "h0000000080000000".U(64.W))
-
-  protected val instAddr  = io.core.fetch.addr - addrOffset
-  protected val loadAddr  = io.core.ld.addr - addrOffset
-  protected val storeAddr = io.core.sd.addr - addrOffset
+  protected val instSize  = Mux(io.socEn, InstSoCRSize, InstDiffRSize)
+  protected val baseAddr  = Mux(io.socEn, SoCStartBaseAddr, SoCStartBaseAddr)
+  protected val instAddr  = io.core.fetch.addr - baseAddr
+  protected val loadAddr  = io.core.ld.addr - baseAddr
+  protected val storeAddr = io.core.sd.addr - baseAddr
   protected val maEn      = io.core.ld.en || io.core.sd.en
 
-  io.dxchg.clk   := clock
+  // prepare the data exchange io signals
   io.dxchg.ren   := ((stateReg === eumInst) || (stateReg === eumMem && maEn))
   io.dxchg.raddr := Mux(stateReg === eumInst, instAddr, loadAddr)
   io.dxchg.rsize := Mux(stateReg === eumMem && io.core.ld.en, io.core.ld.size, instSize)
+  io.dxchg.wen   := stateReg === eumMem && io.core.sd.en
   io.dxchg.waddr := storeAddr
   io.dxchg.wdata := io.core.sd.data
   io.dxchg.wmask := io.core.sd.mask
-  io.dxchg.wen   := stateReg === eumMem && io.core.sd.en
 }

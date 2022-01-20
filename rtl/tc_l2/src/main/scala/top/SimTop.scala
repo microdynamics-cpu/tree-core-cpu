@@ -22,8 +22,8 @@ class SimTop extends Module {
   io.uart.out.ch    := 0.U
 
   proc.io.runEn      <> axiBridge.io.runEn
-  proc.io.socEn      := false.B
   proc.io.dxchg      <> axiBridge.io.dxchg
+  proc.io.socEn      := false.B
   axiBridge.io.socEn := false.B
 
   io.memAXI_0 <> axiBridge.io.axi
