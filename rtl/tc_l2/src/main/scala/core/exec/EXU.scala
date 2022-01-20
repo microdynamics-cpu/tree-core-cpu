@@ -29,6 +29,7 @@ class EXU extends Module {
   protected val rs2       = exReg.inst(24, 20)
   protected val wdest     = exReg.wdest
 
+  // handle bypass signal
   protected val bypassMemSrc1En = io.bypassMem.wen && (rs1 === io.bypassMem.wdest) && (rs1 =/= 0.U)
   protected val bypassMemSrc2En = io.bypassMem.wen && (rs2 === io.bypassMem.wdest) && (rs2 =/= 0.U)
   protected val bypassWbSrc1En  = io.bypassWb.wen && (rs1 === io.bypassWb.wdest) && (rs1 =/= 0.U)
@@ -69,15 +70,15 @@ class EXU extends Module {
   protected val link  = SignExt((isa.JAL | isa.JALR).asUInt, 64) & (pc + 4.U)
   protected val auipc = SignExt(isa.AUIPC.asUInt, 64) & (pc + imm.U)
 
-  protected val csrReg = Module(new CSRReg)
+  protected val csrReg     = Module(new CSRReg)
+  protected val csrData    = csrReg.io.data
+  protected val timeIntrEn = csrReg.io.timeIntrEn
+  protected val ecallEn    = csrReg.io.ecallEn
   csrReg.io.globalEn := io.globalEn
   csrReg.io.pc       := pc
   csrReg.io.inst     := Mux(valid, inst, 0x13.U)
   csrReg.io.src      := src1
   csrReg.io.mtip     := io.mtip
-  protected val csrData    = csrReg.io.data
-  protected val timeIntrEn = csrReg.io.timeIntrEn
-  protected val ecallEn    = csrReg.io.ecallEn
 
   io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
   io.nxtPC.mtvec := csrReg.io.csrState.mtvec

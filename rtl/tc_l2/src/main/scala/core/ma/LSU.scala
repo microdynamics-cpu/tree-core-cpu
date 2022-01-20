@@ -3,16 +3,18 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class LSU extends Module {
+import treecorel2.common.InstConfig
+
+class LSU extends Module with InstConfig {
   val io = IO(new Bundle {
     val valid    = Input(Bool())
     val isa      = Input(new ISAIO)
-    val src1     = Input(UInt(64.W))
-    val src2     = Input(UInt(64.W))
+    val src1     = Input(UInt(XLen.W))
+    val src2     = Input(UInt(XLen.W))
     val imm      = Input(new IMMIO)
     val ld       = new LDIO
     val sd       = new SDIO
-    val loadData = Output(UInt(64.W))
+    val loadData = Output(UInt(XLen.W))
   })
 
   protected val ldInstVis = io.isa.LD || io.isa.LW || io.isa.LH || io.isa.LB || io.isa.LWU || io.isa.LHU || io.isa.LBU
@@ -41,6 +43,7 @@ class LSU extends Module {
   protected val lbuData = SignExt(io.isa.LBU.asUInt, 64) & (ZeroExt(bTypeData, 64))
   io.loadData := ldData | lwData | lhData | lbData | lwuData | lhuData | lbuData
 
+  // store signals
   io.sd.en   := io.valid && sdInstVis
   io.sd.addr := io.src1 + io.imm.S
   protected val sdData    = SignExt(io.isa.SD.asUInt, 64) & io.src2
