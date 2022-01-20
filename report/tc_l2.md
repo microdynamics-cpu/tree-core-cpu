@@ -30,7 +30,7 @@ TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存
 2. Pattern History Table(PHT):  size = 32
 3. Branch Target Buffer(BTB):   bit width = 64 size = 32
 
-GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(gshare)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。
+GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(**_gshare_**)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ifu.drawio.svg"/>
@@ -39,7 +39,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
  </p>
 </p>
 
-由于目前TreeCore2的取指和访存没有使用cache，处理器核需要大量时钟周期来等待axi的响应，所以采用动态分支预测技术后对ipc的提高幅度比较小
+由于目前TreeCore2的取指和访存没有使用cache，处理器核需要大量时钟周期来等待axi的响应，所以采用动态分支预测技术后对ipc的提升较小
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ipc.png"/>
  <p align="center">
@@ -48,6 +48,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 </p>
 
 ### 执行单元
+执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于加速执行矩阵乘除法，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU到集成到提交的版本中。
 
 ### 访存单元
 
@@ -55,7 +56,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 
 
 ## 项目结构和参考
-TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的同时开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
+TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的独立开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-make.png"/>
