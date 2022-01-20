@@ -2,7 +2,7 @@
 
 ## 个人介绍
 
-我是缪宇驰，学号是20210324，以前结合芯来的书了解过部分处理器相关内容，但没有实际编写代码实现设计过。西北工业大学航天学院精确制导与控制研究所在读研究生，将于2022年6月毕业。2018年本科毕业于西北工业大学航天学院探测制导与控制技术专业。现主要研究方向为微小卫星空间科学探测，星载计算机设计，小天体表面空间机器人运动规划和仿真。目前参与国家自然科学基金一项，发表国内论文一篇。曾获得研究生一等奖学金等。擅长FPGA板级电路设计开发和调试。热爱开源软硬件运动，业余时间从事开源工具类软件开发，[个人github地址](https://github.com/maksyuki)。
+我是缪宇驰，学号是20210324。西北工业大学航天学院精确制导与控制研究所在读研究生，将于2022年6月毕业。2018年本科毕业于西北工业大学航天学院探测制导与控制技术专业。现主要研究方向为微小卫星空间科学探测，星载计算机设计，小天体表面空间机器人运动规划和仿真。目前参与国家自然科学基金一项，发表国内论文一篇。曾获得研究生一等奖学金等。擅长FPGA板级电路设计开发和调试。热爱开源软硬件运动，业余时间从事开源工具类软件开发，[个人github地址](https://github.com/maksyuki)。
 
 以前没有实际设计过处理器核，参加一生一芯三期算是我第一次完整实现一个处理器。
 
@@ -54,7 +54,7 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-make.png"/>
  <p align="center">
-  使用make自定义函数扩展并支持高亮
+  使用make自定义函数实现回归测试target
  </p>
 </p>
 
@@ -71,9 +71,12 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
 
 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
 
+流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
 
-## 心得感想
-调试的bug，和以往做过的不同，遇到的困难和迷茫，相比过去自己的成长，对一生一芯的期望和改进。[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)。作为。
+## 总结
+
+### 心得感想
+首先，要衷心地感谢负责一生一芯三期项目的所有老师和助教同学们，。 作为一名研三还有半年就要毕业的学生，去年riscv中国峰会，是一件宝贵的机会。在实现axi总线仲裁过程中让我重新学习了内存地址对齐问题，我记得我第一次。调试的bug(address align)，和以往做过的不同()，遇到的困难和迷茫(跨专业，体系结构知识薄弱；导师任务安排，找工作和毕设实验要兼顾；)，相比过去自己的成长(能够写一个处理器核，加深对软硬件直接的工作原理的认知)，对一生一芯的期望和改进。[开发进度表](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)。作为。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-schedule.png"/>
@@ -82,7 +85,8 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-在代码实现的过程中，将自己踩过的坑以及qq群各位同学提的问题记录了下来，并配以相关解答，总结成了一个FAQ文档，方便。目前该文档有近3.7万字，202张图片，共128页。之后对文档中的相关内容进行补充和索引，方便查找。
+### 文档
+另外，在自己观看学习视频，编写、调试代码的过程中，为了方便自己复习、消化相关知识，我将自己平时曾踩过的坑以及qq群各位同学的问题记录了下来，并配以相关解答，总结成了一个FAQ文档。目前该文档有近3.7万字，202张图片，共126页。之后有时间将继续对文档中的相关内容进行补充，修改和更新。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-guide.png"/>
@@ -91,7 +95,8 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-一点开发过程的思考，工具的设计
+### 一点开发过程中的想法: 波形与回归测试联合调试工具的设计
+
 
 ## 计划
 目前开发的**TreeCoreL2**是TreeCore系列处理器核的第二个版本，目前基本达到设计目标，后续将会继续优化代码。而第三个版本(**TreeCoreL3**)和第四个版本(**TreeCoreL4**)将会追求更高的性能，也是规划中的参加一生一芯第四期和第五期的处理器。其中**TreeCoreL3**将在前代核的基础上，支持RV64IMAC指令，cache和mmu，并提高流水线级数，使其能够启动rt-thread，xv6和linux。**TreeCoreL4** 则会在**TreeCoreL3**的基础上实现浮点运算和多发射技术，进一步提高处理器性能。
