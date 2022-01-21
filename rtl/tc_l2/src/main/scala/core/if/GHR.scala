@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.{ConstVal, InstConfig}
-
 class GHR extends Module with InstConfig {
   val io = IO(new Bundle {
     val branch = Input(Bool())

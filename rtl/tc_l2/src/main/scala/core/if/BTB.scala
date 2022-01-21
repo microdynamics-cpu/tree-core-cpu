@@ -3,7 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.{ConstVal, InstConfig}
 
 class BTBLine extends Bundle {
   val pc   = UInt(ConstVal.AddrLen.W)

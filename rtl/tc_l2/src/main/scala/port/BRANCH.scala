@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.{ConstVal, InstConfig}
-
 class BRANCHIO extends Bundle {
   val branch = Output(Bool()) // prev inst is a b/j
   val jump   = Output(Bool()) // is 'jal' or 'jalr'

@@ -4,8 +4,6 @@ import chisel3._
 import chisel3.util._
 import difftest._
 
-import treecorel2.common.InstConfig
-
 class CSRReg extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())

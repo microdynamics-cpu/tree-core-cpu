@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import treecorel2.DXCHGIO
-import treecorel2.common.AXI4Config
+import treecorel2.AXI4Config
 
 object Arbiter {
 // FSM var for read/write

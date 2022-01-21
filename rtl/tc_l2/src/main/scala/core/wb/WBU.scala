@@ -5,8 +5,6 @@ import chisel3.util._
 
 import difftest._
 
-import treecorel2.common.InstConfig
-
 class WBU extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn = Input(Bool())

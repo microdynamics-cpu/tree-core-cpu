@@ -3,7 +3,7 @@
 // import chisel3._
 // import chisel3.util._
 
-// import treecorel2.common.ConstVal
+// import treecorel2.ConstVal
 
 // class AGU extends Module {
 //   val io = IO(new Bundle {

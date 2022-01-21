@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import treecorel2._
-import treecorel2.common.AXI4Config
+import treecorel2.AXI4Config
 
 class AXI4Bridge extends Module with AXI4Config {
   val io = IO(new Bundle {
