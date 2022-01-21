@@ -18,8 +18,8 @@ class CLINT extends Module with InstConfig {
 
   protected val addr        = Mux(io.cld.en, io.cld.addr(31, 0), 0.U) | Mux(io.csd.en, io.csd.addr(31, 0), 0.U)
   protected val wdata       = io.csd.data
-  protected val mtimeVis    = addr === ConstVal.ClintBaseAddr + ConstVal.MTimeOffset
-  protected val mtimecmpVis = addr === ConstVal.ClintBaseAddr + ConstVal.MTimeCmpOffset
+  protected val mtimeVis    = addr === ClintBaseAddr + MTimeOffset
+  protected val mtimecmpVis = addr === ClintBaseAddr + MTimeCmpOffset
 
   // check if a mmio access
   protected val cren   = io.cld.en && (mtimecmpVis || mtimeVis) && io.valid

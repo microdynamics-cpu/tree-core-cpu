@@ -47,16 +47,16 @@ class CSRReg extends Module with InstConfig {
   protected val medeleg  = RegInit(0.U(XLen.W))
   protected val mhartid  = RegInit(0.U(XLen.W))
 
-  protected val mhartidVis  = addr === ConstVal.mhartidAddr
-  protected val mstatusVis  = addr === ConstVal.mstatusAddr
-  protected val mieVis      = addr === ConstVal.mieAddr
-  protected val mtvecVis    = addr === ConstVal.mtvecAddr
-  protected val mscratchVis = addr === ConstVal.mscratchAddr
-  protected val mepcVis     = addr === ConstVal.mepcAddr
-  protected val mcauseVis   = addr === ConstVal.mcauseAddr
-  protected val mipVis      = addr === ConstVal.mipAddr
-  protected val mcycleVis   = addr === ConstVal.mcycleAddr
-  protected val medelegVis  = addr === ConstVal.medelegAddr
+  protected val mhartidVis  = addr === mhartidAddr
+  protected val mstatusVis  = addr === mstatusAddr
+  protected val mieVis      = addr === mieAddr
+  protected val mtvecVis    = addr === mtvecAddr
+  protected val mscratchVis = addr === mscratchAddr
+  protected val mepcVis     = addr === mepcAddr
+  protected val mcauseVis   = addr === mcauseAddr
+  protected val mipVis      = addr === mipAddr
+  protected val mcycleVis   = addr === mcycleAddr
+  protected val medelegVis  = addr === medelegAddr
 
   protected val mcycleVal   = Mux(csrVis && mcycleVis, mcycle, 0.U)
   protected val mstatusVal  = Mux(csrVis && mstatusVis, mstatus, 0.U)

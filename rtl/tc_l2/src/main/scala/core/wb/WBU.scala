@@ -57,8 +57,8 @@ class WBU extends Module with InstConfig {
   if (!SoCEna) {
     val mmioEn        = cvalid
     val csrVis        = (isa === instCSRRW) || (isa === instCSRRS) || (isa === instCSRRC) || (isa === instCSRRWI) || (isa === instCSRRSI) || (isa === instCSRRCI)
-    val mcycleVis     = csrVis && (inst(31, 20) === ConstVal.mcycleAddr)
-    val mipVis        = csrVis && (inst(31, 20) === ConstVal.mipAddr)
+    val mcycleVis     = csrVis && (inst(31, 20) === mcycleAddr)
+    val mipVis        = csrVis && (inst(31, 20) === mipAddr)
     val timeIntrEnReg = RegEnable(timeIntrEn, false.B, io.globalEn)
     val diffValid     = io.globalEn && (RegEnable(valid, false.B, io.globalEn) || timeIntrEnReg)
 
