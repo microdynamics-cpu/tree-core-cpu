@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.InstConfig
-
 class CacheReqIO extends Bundle with InstConfig {
   val addr = UInt(XLen.W)
   val data = UInt(XLen.W) // for write

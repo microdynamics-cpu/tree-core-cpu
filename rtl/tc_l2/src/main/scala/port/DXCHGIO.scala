@@ -3,13 +3,13 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class DXCHGIO extends Bundle {
+class DXCHGIO extends Bundle with IOConfig {
   val ren   = Output(Bool())
-  val raddr = Output(UInt(64.W))
-  val rdata = Input(UInt(64.W))
-  val rsize = Output(UInt(3.W))
+  val raddr = Output(UInt(XLen.W))
+  val rdata = Input(UInt(XLen.W))
+  val rsize = Output(UInt(LDSize.W))
   val wen   = Output(Bool())
-  val waddr = Output(UInt(64.W))
-  val wdata = Output(UInt(64.W))
-  val wmask = Output(UInt(8.W))
+  val waddr = Output(UInt(XLen.W))
+  val wdata = Output(UInt(XLen.W))
+  val wmask = Output(UInt(MaskLen.W))
 }

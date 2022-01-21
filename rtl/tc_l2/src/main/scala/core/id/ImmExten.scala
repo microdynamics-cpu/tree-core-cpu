@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.InstConfig
-
 class ImmExten extends Module with InstConfig {
   val io = IO(new Bundle {
     val inst     = Input(UInt(InstLen.W))

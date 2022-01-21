@@ -3,15 +3,15 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class csr extends Bundle {
-  val mcycle   = UInt(64.W)
-  val mstatus  = UInt(64.W)
-  val mtvec    = UInt(64.W)
-  val mcause   = UInt(64.W)
-  val mepc     = UInt(64.W)
-  val mie      = UInt(64.W)
-  val mip      = UInt(64.W)
-  val mscratch = UInt(64.W)
-  val medeleg  = UInt(64.W)
-  val mhartid  = UInt(64.W)
+class csr extends Bundle with IOConfig {
+  val mcycle   = UInt(XLen.W)
+  val mstatus  = UInt(XLen.W)
+  val mtvec    = UInt(XLen.W)
+  val mcause   = UInt(XLen.W)
+  val mepc     = UInt(XLen.W)
+  val mie      = UInt(XLen.W)
+  val mip      = UInt(XLen.W)
+  val mscratch = UInt(XLen.W)
+  val medeleg  = UInt(XLen.W)
+  val mhartid  = UInt(XLen.W)
 }

@@ -4,8 +4,6 @@ import chisel3._
 import chisel3.util._
 import difftest._
 
-import treecorel2.common.InstConfig
-
 class CSRReg extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
@@ -43,11 +41,10 @@ class CSRReg extends Module with InstConfig {
     )
   )
 
-  protected val mretVis  = io.inst === instMRET
-  protected val ecallVis = io.inst === instECALL
-  protected val zimm     = ZeroExt(io.inst(19, 15), XLen)
-  protected val addr     = io.inst(31, 20)
-
+  protected val zimm        = ZeroExt(io.inst(19, 15), XLen)
+  protected val addr        = io.inst(31, 20)
+  protected val mretVis     = io.inst === instMRET
+  protected val ecallVis    = io.inst === instECALL
   protected val mhartidVis  = addr === mhartidAddr
   protected val mstatusVis  = addr === mstatusAddr
   protected val mieVis      = addr === mieAddr

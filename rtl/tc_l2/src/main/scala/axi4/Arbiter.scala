@@ -1,24 +1,21 @@
-package sim
+package treecorel2
 
 import chisel3._
 import chisel3.util._
-
-import treecorel2.DXCHGIO
-import treecorel2.common.AXI4Config
 
 object Arbiter {
 // FSM var for read/write
   val eumIDLE :: eumStandby :: eumIDLE2 :: eumAW :: eumW :: eumB :: eumAR :: eumR :: Nil = Enum(8)
 }
 
-class Arbiter extends Module with AXI4Config {
+class Arbiter extends Module with InstConfig {
   val io = IO(new Bundle {
     val awHdShk  = Input(Bool())
     val wHdShk   = Input(Bool())
     val bHdShk   = Input(Bool())
     val arHdShk  = Input(Bool())
     val rHdShk   = Input(Bool())
-    val axirdata = Input(UInt(64.W))
+    val axirdata = Input(UInt(XLen.W))
     val dxchg    = Flipped(new DXCHGIO)
     val state    = Output(UInt(3.W))
     val runEn    = Output(Bool())
@@ -30,13 +27,13 @@ class Arbiter extends Module with AXI4Config {
 
   protected val valid    = RegInit(false.B)
   protected val ren      = RegInit(false.B)
-  protected val raddr    = RegInit(0.U(64.W))
-  protected val rdata    = RegInit(0.U(64.W))
+  protected val raddr    = RegInit(0.U(XLen.W))
+  protected val rdata    = RegInit(0.U(XLen.W))
   protected val rsize    = RegInit(0.U(3.W))
   protected val wen      = RegInit(false.B)
-  protected val waddr    = RegInit(0.U(64.W))
-  protected val wdata    = RegInit(0.U(64.W))
-  protected val wmask    = RegInit(0.U(8.W))
+  protected val waddr    = RegInit(0.U(XLen.W))
+  protected val wdata    = RegInit(0.U(XLen.W))
+  protected val wmask    = RegInit(0.U(MaskLen.W))
   protected val stateReg = RegInit(Arbiter.eumIDLE)
   io.state       := stateReg
   io.dxchg.rdata := rdata

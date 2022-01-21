@@ -1,7 +1,8 @@
 package top
 
 import sim._
-import treecorel2.common.InstConfig
+
+import treecorel2.InstConfig
 
 object TopMain extends App with InstConfig {
   if (!SoCEna) {
