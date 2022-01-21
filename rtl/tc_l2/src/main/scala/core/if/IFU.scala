@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.{ConstVal, InstConfig}
+import treecorel2.common.InstConfig
 
 class IFU extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -19,7 +19,6 @@ class IFU extends Module with InstConfig {
   protected val startAddr = Mux(io.socEn, FlashStartAddr, SimStartAddr)
   protected val pc        = RegInit(startAddr)
   protected val valid     = Mux(reset.asBool(), false.B, true.B)
-  protected val inst      = io.fetch.data
 
   protected val bpu = Module(new BPU)
   bpu.io.branchInfo <> io.branchInfo
@@ -40,7 +39,7 @@ class IFU extends Module with InstConfig {
   }
 
   io.if2id.valid     := Mux(io.stall, false.B, valid)
-  io.if2id.inst      := inst
+  io.if2id.inst      := io.fetch.data
   io.if2id.pc        := pc
   io.if2id.branIdx   := bpu.io.predIdx
   io.if2id.predTaken := bpu.io.predTaken

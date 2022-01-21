@@ -14,19 +14,14 @@ class MAU extends Module {
     val mtip      = Output(Bool())
   })
 
-  protected val memReg    = RegEnable(io.ex2mem, WireInit(0.U.asTypeOf(new EX2MEMIO())), io.globalEn)
-  protected val valid     = memReg.valid
-  protected val inst      = memReg.inst
-  protected val pc        = memReg.pc
-  protected val branIdx   = memReg.branIdx
-  protected val predTaken = memReg.predTaken
-  protected val isa       = memReg.isa
-  protected val imm       = memReg.imm
-  protected val rs1       = memReg.inst(19, 15)
-  protected val rs2       = memReg.inst(24, 20)
-  protected val src1      = memReg.src1
-  protected val src2      = memReg.src2
-  protected val csr       = memReg.csr
+  protected val memReg = RegEnable(io.ex2mem, WireInit(0.U.asTypeOf(new EX2MEMIO())), io.globalEn)
+  protected val valid  = memReg.valid
+  protected val inst   = memReg.inst
+  protected val isa    = memReg.isa
+  protected val imm    = memReg.imm
+  protected val src1   = memReg.src1
+  protected val src2   = memReg.src2
+  protected val csr    = memReg.csr
 
   protected val lsu = Module(new LSU)
   lsu.io.valid := valid
@@ -53,9 +48,9 @@ class MAU extends Module {
 
   io.mem2wb.valid      := valid
   io.mem2wb.inst       := inst
-  io.mem2wb.pc         := pc
-  io.mem2wb.branIdx    := branIdx
-  io.mem2wb.predTaken  := predTaken
+  io.mem2wb.pc         := memReg.pc
+  io.mem2wb.branIdx    := memReg.branIdx
+  io.mem2wb.predTaken  := memReg.predTaken
   io.mem2wb.isa        := isa
   io.mem2wb.src1       := src1
   io.mem2wb.src2       := src2
@@ -72,6 +67,6 @@ class MAU extends Module {
   io.mem2wb.cvalid     := clint.io.cvalid
   io.mem2wb.timeIntrEn := memReg.timeIntrEn
   io.mem2wb.ecallEn    := memReg.ecallEn
-  io.mem2wb.csr        := csr
+  io.mem2wb.csr        := memReg.csr
   io.mtip              := clint.io.mtip
 }
