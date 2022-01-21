@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.InstConfig
-
 object ISADecoder {
   // according to the The RISC-V Instruction Set Manual Volume I: Unprivileged ISA
   // Document Version: 20191213

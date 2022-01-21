@@ -3,8 +3,6 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.InstConfig
-
 class EXU extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
@@ -78,7 +76,7 @@ class EXU extends Module with InstConfig {
   protected val ecallEn    = csrReg.io.ecallEn
   csrReg.io.globalEn := io.globalEn
   csrReg.io.pc       := pc
-  csrReg.io.inst     := Mux(valid, inst, 0x13.U)
+  csrReg.io.inst     := Mux(valid, inst, NOPInst)
   csrReg.io.src      := src1
   csrReg.io.mtip     := io.mtip
 

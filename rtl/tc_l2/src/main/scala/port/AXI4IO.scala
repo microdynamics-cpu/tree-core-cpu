@@ -3,49 +3,49 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class SOCAXI4ARWIO extends Bundle {
+class SOCAXI4ARWIO extends Bundle with AXI4Config {
   val addr  = Output(UInt(32.W))
-  val id    = Output(UInt(4.W))
-  val len   = Output(UInt(8.W))
-  val size  = Output(UInt(3.W))
-  val burst = Output(UInt(2.W))
+  val id    = Output(UInt(AxiIdLen.W))
+  val len   = Output(UInt(AxiLen.W))
+  val size  = Output(UInt(AxiSizeLen.W))
+  val burst = Output(UInt(AxiBurstLen.W))
 }
 
 class AXI4ARWIO extends SOCAXI4ARWIO {
-  override val addr = Output(UInt(64.W))
-  val prot          = Output(UInt(3.W))
-  val user          = Output(UInt(1.W))
+  override val addr = Output(UInt(XLen.W))
+  val prot          = Output(UInt(AxiProtLen.W))
+  val user          = Output(UInt(AxiUserLen.W))
   val lock          = Output(Bool())
-  val cache         = Output(UInt(4.W))
-  val qos           = Output(UInt(4.W))
+  val cache         = Output(UInt(AxiCacheLen.W))
+  val qos           = Output(UInt(AxiQosLen.W))
 }
 
-class SOCAXI4WIO extends Bundle {
-  val data = Output(UInt(64.W))
-  val strb = Output(UInt(8.W))
+class SOCAXI4WIO extends Bundle with AXI4Config {
+  val data = Output(UInt(XLen.W))
+  val strb = Output(UInt(AxiStrb.W))
   val last = Output(Bool())
 }
 
 class AXI4WIO extends SOCAXI4WIO {}
 
-class SOCAXI4BIO extends Bundle {
-  val resp = Output(UInt(2.W))
-  val id   = Output(UInt(4.W))
+class SOCAXI4BIO extends Bundle with AXI4Config {
+  val resp = Output(UInt(AxiRespLen.W))
+  val id   = Output(UInt(AxiIdLen.W))
 }
 
 class AXI4BIO extends SOCAXI4BIO {
-  val user = Output(UInt(1.W))
+  val user = Output(UInt(AxiUserLen.W))
 }
 
-class SOCAXI4RIO extends Bundle {
-  val resp = Output(UInt(2.W))
-  val data = Output(UInt(64.W))
+class SOCAXI4RIO extends Bundle with AXI4Config {
+  val resp = Output(UInt(AxiRespLen.W))
+  val data = Output(UInt(XLen.W))
   val last = Output(Bool())
-  val id   = Output(UInt(4.W))
+  val id   = Output(UInt(AxiIdLen.W))
 }
 
 class AXI4RIO extends SOCAXI4RIO {
-  val user = Output(UInt(1.W))
+  val user = Output(UInt(AxiUserLen.W))
 }
 
 class SOCAXI4IO extends Bundle {

@@ -3,8 +3,8 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class IFIO extends Bundle {
+class IFIO extends Bundle with IOConfig {
   val en   = Output(Bool())
-  val addr = Output(UInt(64.W))
-  val data = Input(UInt(32.W))
+  val addr = Output(UInt(XLen.W))
+  val data = Input(UInt(InstLen.W))
 }
