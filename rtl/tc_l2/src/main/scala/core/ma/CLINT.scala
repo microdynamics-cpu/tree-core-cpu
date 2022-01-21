@@ -3,9 +3,9 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
-class CLINT extends Module {
+class CLINT extends Module with InstConfig {
   val io = IO(new Bundle {
     val valid  = Input(Bool())
     val mtip   = Output(Bool())
@@ -18,17 +18,18 @@ class CLINT extends Module {
 
   protected val addr        = Mux(io.cld.en, io.cld.addr(31, 0), 0.U) | Mux(io.csd.en, io.csd.addr(31, 0), 0.U)
   protected val wdata       = io.csd.data
-  protected val mtimeVis    = addr === ConstVal.ClintBaseAddr + ConstVal.MTimeOffset
-  protected val mtimecmpVis = addr === ConstVal.ClintBaseAddr + ConstVal.MTimeCmpOffset
+  protected val mtimeVis    = addr === ClintBaseAddr + MTimeOffset
+  protected val mtimecmpVis = addr === ClintBaseAddr + MTimeCmpOffset
 
+  // check if a mmio access
   protected val cren   = io.cld.en && (mtimecmpVis || mtimeVis) && io.valid
   protected val cwen   = io.csd.en && (mtimecmpVis || mtimeVis) && io.valid
   protected val cvalid = cren || cwen
 
   // generate low speed clock
   protected val (tickCnt, cntWrap) = Counter(true.B, 5)
-  protected val mtime              = RegInit(0.U(64.W))
-  protected val mtimecmp           = RegInit(0.U(64.W))
+  protected val mtime              = RegInit(0.U(XLen.W))
+  protected val mtimecmp           = RegInit(0.U(XLen.W))
 
   when(cwen && mtimeVis) {
     mtime := wdata
