@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import difftest._
 
-import treecorel2.common.{ConstVal, InstConfig}
+import treecorel2.common.InstConfig
 
 object CSRReg {
   val timeCause  = "h8000_0000_0000_0007".U(64.W)

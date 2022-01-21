@@ -18,32 +18,44 @@ class BEU extends Module with InstConfig {
     val tgt        = Output(UInt(XLen.W))
   })
 
-  protected val beq  = (io.isa === instBEQ) && (io.src1 === io.src2)
-  protected val bne  = (io.isa === instBNE) && (io.src1 =/= io.src2)
-  protected val bgeu = (io.isa === instBGEU) && (io.src1 >= io.src2)
-  protected val bltu = (io.isa === instBLTU) && (io.src1 < io.src2)
-  protected val bge  = (io.isa === instBGE) && (io.src1.asSInt >= io.src2.asSInt)
-  protected val blt  = (io.isa === instBLT) && (io.src1.asSInt < io.src2.asSInt)
-  protected val b    = beq | bne | bgeu | bltu | bge | blt
-  protected val bInst = (io.isa === instBEQ) || (io.isa === instBNE) || (io.isa === instBGEU) || (io.isa === instBLTU) ||
-    (io.isa === instBGE) || (io.isa === instBLT) || (io.isa === instJAL) || (io.isa === instJALR)
+  protected val b = MuxLookup(
+    io.isa,
+    false.B,
+    Seq(
+      instBEQ  -> (io.src1 === io.src2),
+      instBNE  -> (io.src1 =/= io.src2),
+      instBGEU -> (io.src1 >= io.src2),
+      instBLTU -> (io.src1 < io.src2),
+      instBGE  -> (io.src1.asSInt >= io.src2.asSInt),
+      instBLT  -> (io.src1.asSInt < io.src2.asSInt)
+    )
+  )
+
+  protected val bInst = MuxLookup(
+    io.isa,
+    false.B,
+    Seq(
+      instBEQ  -> true.B,
+      instBNE  -> true.B,
+      instBGEU -> true.B,
+      instBLTU -> true.B,
+      instBGE  -> true.B,
+      instBLT  -> true.B
+    )
+  )
 
   protected val jal  = io.isa === instJAL
   protected val jalr = io.isa === instJALR
-
-  protected val b_tgt    = io.pc + io.imm
-  protected val jal_tgt  = io.pc + io.imm
-  protected val jalr_tgt = io.src1 + io.imm
-
   io.branch := b | jal | jalr
 
-  when(jal) {
-    io.tgt := jal_tgt
-  }.elsewhen(jalr) {
-    io.tgt := jalr_tgt
-  }.otherwise {
-    io.tgt := b_tgt
-  }
+  io.tgt := MuxLookup(
+    io.isa,
+    (io.pc + io.imm), // NOTE: branch target
+    Seq(
+      instJAL -> (io.pc + io.imm),
+      instJALR -> (io.src1 + io.imm),
+    )
+  )
 
   io.branchInfo.branch := bInst
   io.branchInfo.jump   := jal || jalr
