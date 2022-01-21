@@ -21,21 +21,15 @@ class WBU extends Module with InstConfig {
   protected val inst       = wbReg.inst
   protected val pc         = wbReg.pc
   protected val isa        = wbReg.isa
-  protected val src1       = wbReg.src1
-  protected val src2       = wbReg.src2
-  protected val imm        = wbReg.imm
   protected val wen        = wbReg.wen
   protected val wdest      = wbReg.wdest
   protected val aluRes     = wbReg.aluRes
-  protected val branch     = wbReg.branch
-  protected val tgt        = wbReg.tgt
   protected val link       = wbReg.link
   protected val auipc      = wbReg.auipc
   protected val loadData   = wbReg.loadData
   protected val csrData    = wbReg.csrData
   protected val cvalid     = wbReg.cvalid
   protected val timeIntrEn = wbReg.timeIntrEn
-  protected val ecallEn    = wbReg.ecallEn
   protected val csr        = wbReg.csr
 
   protected val wbdata = aluRes | link | auipc | loadData | csrData
@@ -73,24 +67,22 @@ class WBU extends Module with InstConfig {
     cycleCnt.inc()
     when(io.globalEn && valid) { instrCnt.inc() }
 
-    instComm.io.clock    := clock
-    instComm.io.coreid   := 0.U
-    instComm.io.index    := 0.U
-    instComm.io.valid    := diffValid && ~timeIntrEnReg
-    instComm.io.pc       := RegEnable(pc, 0.U, io.globalEn)
-    instComm.io.instr    := RegEnable(inst, 0.U, io.globalEn)
-    instComm.io.special  := 0.U
-    instComm.io.skip     := diffValid && RegEnable(printVis || mcycleVis || mmioEn || mipVis, false.B, io.globalEn)
-    instComm.io.isRVC    := false.B
-    instComm.io.scFailed := false.B
-    instComm.io.wen      := RegEnable(wen, false.B, io.globalEn)
-    instComm.io.wdata    := RegEnable(wbdata, 0.U, io.globalEn)
-    instComm.io.wdest    := RegEnable(wdest, 0.U, io.globalEn)
-
-    archIntRegState.io.clock  := clock
-    archIntRegState.io.coreid := 0.U
-    archIntRegState.io.gpr    := io.gpr
-
+    instComm.io.clock          := clock
+    instComm.io.coreid         := 0.U
+    instComm.io.index          := 0.U
+    instComm.io.valid          := diffValid && ~timeIntrEnReg
+    instComm.io.pc             := RegEnable(pc, 0.U, io.globalEn)
+    instComm.io.instr          := RegEnable(inst, 0.U, io.globalEn)
+    instComm.io.special        := 0.U
+    instComm.io.skip           := diffValid && RegEnable(printVis || mcycleVis || mmioEn || mipVis, false.B, io.globalEn)
+    instComm.io.isRVC          := false.B
+    instComm.io.scFailed       := false.B
+    instComm.io.wen            := RegEnable(wen, false.B, io.globalEn)
+    instComm.io.wdata          := RegEnable(wbdata, 0.U, io.globalEn)
+    instComm.io.wdest          := RegEnable(wdest, 0.U, io.globalEn)
+    archIntRegState.io.clock   := clock
+    archIntRegState.io.coreid  := 0.U
+    archIntRegState.io.gpr     := io.gpr
     csrState.io.clock          := clock
     csrState.io.coreid         := 0.U
     csrState.io.mstatus        := csr.mstatus
@@ -111,24 +103,21 @@ class WBU extends Module with InstConfig {
     csrState.io.mtvec          := csr.mtvec
     csrState.io.stvec          := 0.U
     csrState.io.priviledgeMode := 3.U
-
-    archEvt.io.clock         := clock
-    archEvt.io.coreid        := 0.U
-    archEvt.io.intrNO        := Mux(diffValid && timeIntrEnReg, 7.U, 0.U)
-    archEvt.io.cause         := 0.U
-    archEvt.io.exceptionPC   := RegEnable(pc, 0.U, io.globalEn)
-    archEvt.io.exceptionInst := RegEnable(inst, 0.U, io.globalEn)
-
-    trapEvt.io.clock    := clock
-    trapEvt.io.coreid   := 0.U
-    trapEvt.io.valid    := diffValid && RegEnable(haltVis, false.B, io.globalEn)
-    trapEvt.io.code     := io.gpr(10)(7, 0)
-    trapEvt.io.pc       := RegEnable(pc, 0.U, io.globalEn)
-    trapEvt.io.cycleCnt := cycleCnt.value
-    trapEvt.io.instrCnt := instrCnt.value
-
-    archFpRegState.io.clock  := clock
-    archFpRegState.io.coreid := 0.U
-    archFpRegState.io.fpr    := RegInit(VecInit(Seq.fill(RegfileNum)(0.U(XLen.W))))
+    archEvt.io.clock           := clock
+    archEvt.io.coreid          := 0.U
+    archEvt.io.intrNO          := Mux(diffValid && timeIntrEnReg, 7.U, 0.U)
+    archEvt.io.cause           := 0.U
+    archEvt.io.exceptionPC     := RegEnable(pc, 0.U, io.globalEn)
+    archEvt.io.exceptionInst   := RegEnable(inst, 0.U, io.globalEn)
+    trapEvt.io.clock           := clock
+    trapEvt.io.coreid          := 0.U
+    trapEvt.io.valid           := diffValid && RegEnable(haltVis, false.B, io.globalEn)
+    trapEvt.io.code            := io.gpr(10)(7, 0)
+    trapEvt.io.pc              := RegEnable(pc, 0.U, io.globalEn)
+    trapEvt.io.cycleCnt        := cycleCnt.value
+    trapEvt.io.instrCnt        := instrCnt.value
+    archFpRegState.io.clock    := clock
+    archFpRegState.io.coreid   := 0.U
+    archFpRegState.io.fpr      := RegInit(VecInit(Seq.fill(RegfileNum)(0.U(XLen.W))))
   }
 }

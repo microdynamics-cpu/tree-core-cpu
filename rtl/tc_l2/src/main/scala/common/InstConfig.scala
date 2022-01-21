@@ -118,7 +118,7 @@ trait InstConfig {
   val MTimeOffset    = 0xbff8.U(XLen.W)
   val MTimeCmpOffset = 0x4000.U(XLen.W)
   // csr addr
-  val CSRAddrLen = 12
+  val CSRAddrLen   = 12
   val mhartidAddr  = 0xf14.U(CSRAddrLen.W)
   val mstatusAddr  = 0x300.U(CSRAddrLen.W)
   val mieAddr      = 0x304.U(CSRAddrLen.W)
