@@ -3,9 +3,9 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class BTBLine extends Bundle {
-  val pc   = UInt(ConstVal.AddrLen.W)
-  val tgt  = UInt(ConstVal.AddrLen.W)
+class BTBLine extends Bundle with IOConfig {
+  val pc   = UInt(XLen.W)
+  val tgt  = UInt(XLen.W)
   val jump = Bool()
 }
 
@@ -14,13 +14,13 @@ class BTB extends Module with InstConfig {
     // branch info (from idu)
     val branch = Input(Bool())
     val jump   = Input(Bool())
-    val pc     = Input(UInt(ConstVal.AddrLen.W))
-    val tgt    = Input(UInt(ConstVal.AddrLen.W))
+    val pc     = Input(UInt(XLen.W))
+    val tgt    = Input(UInt(XLen.W))
     // BTB lookup interface
     val lookupBranch = Output(Bool())
     val lookupJump   = Output(Bool())
-    val lookupPc     = Input(UInt(ConstVal.AddrLen.W))
-    val lookupTgt    = Output(UInt(ConstVal.AddrLen.W))
+    val lookupPc     = Input(UInt(XLen.W))
+    val lookupTgt    = Output(UInt(XLen.W))
   })
 
   // definitions of BTB lines and valid bits

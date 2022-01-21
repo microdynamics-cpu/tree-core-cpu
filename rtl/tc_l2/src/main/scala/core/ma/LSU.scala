@@ -23,13 +23,13 @@ class LSU extends Module with InstConfig {
 
   protected val ldSize = MuxLookup(
     io.isa,
-    0.U(3.W),
+    0.U(LDSize.W),
     Seq(
-      instLH  -> 1.U(3.W),
-      instLHU -> 1.U(3.W),
-      instLW  -> 2.U(3.W),
-      instLWU -> 2.U(3.W),
-      instLD  -> 3.U(3.W)
+      instLH  -> 1.U(LDSize.W),
+      instLHU -> 1.U(LDSize.W),
+      instLW  -> 2.U(LDSize.W),
+      instLWU -> 2.U(LDSize.W),
+      instLD  -> 3.U(LDSize.W)
     )
   )
   io.ld.size := ldSize
@@ -67,26 +67,22 @@ class LSU extends Module with InstConfig {
     )
   )
 
-  protected val sdMask = MuxLookup(
+  val sdMask = MuxLookup(
     io.isa,
-    0.U(8.W), // NOTE: important!!!
+    0.U(MaskLen.W), // NOTE: important!!!
     Seq(
-      instSD -> "b1111_1111".U(8.W),
-      instSW -> ("b0000_1111".U(8.W) << io.sd.addr(2, 0)),
-      instSH -> ("b0000_0011".U(8.W) << io.sd.addr(2, 0)),
-      instSB -> ("b0000_0001".U(8.W) << io.sd.addr(2, 0))
+      instSD -> "b1111_1111".U(MaskLen.W),
+      instSW -> ("b0000_1111".U(MaskLen.W) << io.sd.addr(2, 0)),
+      instSH -> ("b0000_0011".U(MaskLen.W) << io.sd.addr(2, 0)),
+      instSB -> ("b0000_0001".U(MaskLen.W) << io.sd.addr(2, 0))
     )
   )
 
-  protected val sdMask0   = Mux(sdMask(0).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask1   = Mux(sdMask(1).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask2   = Mux(sdMask(2).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask3   = Mux(sdMask(3).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask4   = Mux(sdMask(4).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask5   = Mux(sdMask(5).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask6   = Mux(sdMask(6).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val sdMask7   = Mux(sdMask(7).asBool(), "hff".U(8.W), 0.U(8.W))
-  protected val extenMask = Cat(sdMask7, sdMask6, sdMask5, sdMask4, sdMask3, sdMask2, sdMask1, sdMask0)
+  val tmpMask = Wire(Vec(8, UInt((XLen / 8).W)))
+  for (i <- 0 until 8) {
+    tmpMask(i) := Mux(sdMask(i).asBool(), "hff".U((XLen / 8).W), 0.U((XLen / 8).W))
+  }
+  protected val extenMask = tmpMask.asUInt()
 
   io.sd.data := storeData & extenMask
   io.sd.mask := sdMask

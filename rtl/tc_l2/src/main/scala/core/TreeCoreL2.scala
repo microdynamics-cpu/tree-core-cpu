@@ -62,7 +62,7 @@ class TreeCoreL2 extends Module with InstConfig {
 
   // special judge
   protected val lsStall   = RegEnable(cyc1, false.B, io.globalEn) || RegEnable(cyc2, false.B, io.globalEn)
-  protected val ldDataReg = RegInit(0.U(64.W))
+  protected val ldDataReg = RegInit(0.U(XLen.W))
 
   when(io.globalEn) {
     when(cyc1) {

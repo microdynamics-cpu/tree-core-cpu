@@ -9,9 +9,9 @@ class BPU extends Module with InstConfig {
   val io = IO(new Bundle {
     val branchInfo = Flipped(new BRANCHIO)
     // predictor interface
-    val lookupPc  = Input(UInt(ConstVal.AddrLen.W))
+    val lookupPc  = Input(UInt(XLen.W))
     val predTaken = Output(Bool())
-    val predTgt   = Output(UInt(ConstVal.AddrLen.W))
+    val predTgt   = Output(UInt(XLen.W))
     val predIdx   = Output(UInt(GHRLen.W))
   })
 
