@@ -9,3 +9,10 @@ class LDIO extends Bundle {
   val data = Input(UInt(64.W))
   val size = Output(UInt(3.W))
 }
+
+class SDIO extends Bundle {
+  val en   = Output(Bool())
+  val addr = Output(UInt(64.W))
+  val data = Output(UInt(64.W))
+  val mask = Output(UInt(8.W))
+}
