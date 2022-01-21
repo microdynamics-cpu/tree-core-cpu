@@ -3,16 +3,16 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class LDIO extends Bundle {
+class LDIO extends Bundle with IOConfig {
   val en   = Output(Bool())
-  val addr = Output(UInt(64.W))
-  val data = Input(UInt(64.W))
-  val size = Output(UInt(3.W))
+  val addr = Output(UInt(XLen.W))
+  val data = Input(UInt(XLen.W))
+  val size = Output(UInt(LDSize.W))
 }
 
-class SDIO extends Bundle {
+class SDIO extends Bundle with IOConfig {
   val en   = Output(Bool())
-  val addr = Output(UInt(64.W))
-  val data = Output(UInt(64.W))
-  val mask = Output(UInt(8.W))
+  val addr = Output(UInt(XLen.W))
+  val data = Output(UInt(XLen.W))
+  val mask = Output(UInt(MaskLen.W))
 }

@@ -1,10 +1,9 @@
-package sim
+package treecorel2
 
 import chisel3._
 import chisel3.util._
 
 import difftest._
-import treecorel2._
 
 class Processor extends Module {
   val io = IO(new Bundle {

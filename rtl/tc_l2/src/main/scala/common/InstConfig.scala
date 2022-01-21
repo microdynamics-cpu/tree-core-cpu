@@ -3,11 +3,28 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-trait InstConfig {
-  val SoCEna            = false
-  val XLen              = 64
-  val InstLen           = 32
-  val RegfileNum        = 32
+trait IOConfig {
+  val XLen       = 64
+  val InstLen    = 32
+  val RegfileLen = 5
+  val RegfileNum = 1 << RegfileLen
+  val ISALen     = 6
+  // mem
+  val MaskLen = 8
+  val LDSize  = 3
+  // branch prediction
+  val GHRLen    = 5
+  val PHTSize   = 1 << GHRLen
+  val BTBIdxLen = 5
+  val BTBPcLen  = XLen - BTBIdxLen
+  val BTBTgtLen = XLen
+  val BTBSize   = 1 << BTBIdxLen
+}
+
+trait InstConfig extends IOConfig {
+  val SoCEna   = true
+  val CacheEna = false
+
   val FlashStartAddr    = "h0000000030000000".U(XLen.W)
   val SimStartAddr      = "h0000000080000000".U(XLen.W)
   val DiffStartBaseAddr = "h0000000080000000".U(XLen.W)
@@ -17,8 +34,8 @@ trait InstConfig {
   val InstSoCRSize      = 2.U
   val InstDiffRSize     = 3.U
   val DiffRWSize        = 3.U
-  val CacheEna          = false
-  val NOPInst           = 0x13.U
+
+  val NOPInst = 0x13.U
   // inst type
   // nop is equal to [addi x0, x0, 0], so the oper is same as 'addi' inst
   val InstTypeLen = 3
@@ -94,14 +111,6 @@ trait InstConfig {
   val instFENCE   = 58.U(InstValLen.W)
   val instFENCE_I = 59.U(InstValLen.W)
   val instCUST    = 60.U(InstValLen.W)
-
-  // branch prediction
-  val GHRLen    = 5
-  val PHTSize   = 1 << GHRLen
-  val BTBIdxLen = 5
-  val BTBPcLen  = XLen - BTBIdxLen
-  val BTBTgtLen = XLen
-  val BTBSize   = 1 << BTBIdxLen
 
   // cache
   val NWay          = 4

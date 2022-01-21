@@ -1,17 +1,14 @@
-package sim
+package treecorel2
 
 import chisel3._
 import chisel3.util._
-
-import treecorel2.DXCHGIO
-import treecorel2.AXI4Config
 
 object Arbiter {
 // FSM var for read/write
   val eumIDLE :: eumStandby :: eumIDLE2 :: eumAW :: eumW :: eumB :: eumAR :: eumR :: Nil = Enum(8)
 }
 
-class Arbiter extends Module with AXI4Config {
+class Arbiter extends Module with InstConfig {
   val io = IO(new Bundle {
     val awHdShk  = Input(Bool())
     val wHdShk   = Input(Bool())

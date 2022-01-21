@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import difftest._
 
-class TreeCoreL2 extends Module {
+class TreeCoreL2 extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn = Input(Bool())
     val socEn    = Input(Bool())

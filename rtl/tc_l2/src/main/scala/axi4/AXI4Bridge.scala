@@ -1,12 +1,9 @@
-package sim
+package treecorel2
 
 import chisel3._
 import chisel3.util._
 
-import treecorel2._
-import treecorel2.AXI4Config
-
-class AXI4Bridge extends Module with AXI4Config {
+class AXI4Bridge extends Module with InstConfig {
   val io = IO(new Bundle {
     val socEn = Input(Bool())
     val runEn = Output(Bool())
