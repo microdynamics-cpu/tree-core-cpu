@@ -95,6 +95,14 @@ trait InstConfig {
   val instFENCE_I = 59.U(InstValLen.W)
   val instCUST    = 60.U(InstValLen.W)
 
+  // branch prediction
+  val GHRLen    = 5
+  val PHTSize   = 1 << GHRLen
+  val BTBIdxLen = 5
+  val BTBPcLen  = XLen - BTBIdxLen
+  val BTBTgtLen = XLen
+  val BTBSize   = 1 << BTBIdxLen
+
   // cache
   val NWay          = 4
   val NBank         = 4

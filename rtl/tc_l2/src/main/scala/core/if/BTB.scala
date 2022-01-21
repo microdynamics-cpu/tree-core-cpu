@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
 class BTBLine extends Bundle {
   val pc   = UInt(ConstVal.AddrLen.W)
@@ -11,7 +11,7 @@ class BTBLine extends Bundle {
   val jump = Bool()
 }
 
-class BTB extends Module {
+class BTB extends Module with InstConfig {
   val io = IO(new Bundle {
     // branch info (from idu)
     val branch = Input(Bool())
@@ -26,11 +26,11 @@ class BTB extends Module {
   })
 
   // definitions of BTB lines and valid bits
-  protected val valids = RegInit(VecInit(Seq.fill(ConstVal.BTBSize) { false.B }))
-  protected val lines  = Mem(ConstVal.BTBSize, new BTBLine)
+  protected val valids = RegInit(VecInit(Seq.fill(BTBSize) { false.B }))
+  protected val lines  = Mem(BTBSize, new BTBLine)
 
   // branch info for BTB lines
-  protected val idx = io.pc(ConstVal.BTBIdxLen - 1, 0)
+  protected val idx = io.pc(BTBIdxLen - 1, 0)
   // write to BTB lines
   when(io.branch) {
     valids(idx)     := true.B
@@ -40,7 +40,7 @@ class BTB extends Module {
   }
 
   // signals about BTB lookup
-  protected val lookupIdx   = io.lookupPc(ConstVal.BTBIdxLen - 1, 0)
+  protected val lookupIdx   = io.lookupPc(BTBIdxLen - 1, 0)
   protected val lookupPcSel = io.lookupPc
   protected val btbHit      = valids(lookupIdx) && lines(lookupIdx).pc === lookupPcSel
 

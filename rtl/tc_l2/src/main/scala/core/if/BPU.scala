@@ -3,9 +3,9 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.ConstVal
+import treecorel2.common.{ConstVal, InstConfig}
 
-class BPU extends Module {
+class BPU extends Module with InstConfig {
   // 2BP 2BC
   // Two-level adaptive predictor
   val io = IO(new Bundle {
@@ -14,7 +14,7 @@ class BPU extends Module {
     val lookupPc  = Input(UInt(ConstVal.AddrLen.W))
     val predTaken = Output(Bool())
     val predTgt   = Output(UInt(ConstVal.AddrLen.W))
-    val predIdx   = Output(UInt(ConstVal.GHRLen.W))
+    val predIdx   = Output(UInt(GHRLen.W))
   })
 
   protected val ghr = Module(new GHR)
@@ -25,7 +25,7 @@ class BPU extends Module {
   ghr.io.taken  := io.branchInfo.taken
 
   // G-share
-  protected val idx = io.lookupPc(ConstVal.GHRLen - 1, 0) ^ ghr.io.idx
+  protected val idx = io.lookupPc(GHRLen - 1, 0) ^ ghr.io.idx
   pht.io.prevBranch := io.branchInfo.branch
   pht.io.prevTaken  := io.branchInfo.taken
   pht.io.prevIdx    := io.branchInfo.idx

@@ -3,7 +3,7 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-import treecorel2.common.{ConstVal, InstConfig}
+import treecorel2.common.InstConfig
 
 class BEU extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -12,7 +12,7 @@ class BEU extends Module with InstConfig {
     val src1       = Input(UInt(XLen.W))
     val src2       = Input(UInt(XLen.W))
     val pc         = Input(UInt(XLen.W))
-    val branIdx    = Input(UInt(ConstVal.GHRLen.W))
+    val branIdx    = Input(UInt(GHRLen.W))
     val branchInfo = new BRANCHIO
     val branch     = Output(Bool())
     val tgt        = Output(UInt(XLen.W))

@@ -27,12 +27,4 @@ object ConstVal {
   val MSipOffset     = 0x0.U(CLINTAddrLen.W)
   val MTimeOffset    = 0xbff8.U(CLINTAddrLen.W)
   val MTimeCmpOffset = 0x4000.U(CLINTAddrLen.W)
-
-  // branch prediction
-  val GHRLen    = 5
-  val PHTSize   = 1 << GHRLen
-  val BTBIdxLen = 5
-  val BTBPcLen  = AddrLen - BTBIdxLen
-  val BTBTgtLen = AddrLen
-  val BTBSize   = 1 << BTBIdxLen
 }
