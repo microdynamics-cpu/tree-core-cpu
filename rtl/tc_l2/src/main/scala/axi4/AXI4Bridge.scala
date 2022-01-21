@@ -22,10 +22,9 @@ class AXI4Bridge extends Module with InstConfig {
   arbiter.io.rHdShk   := io.axi.r.fire()
 
   protected val wMask     = arbiter.io.dxchg.wmask
-  protected val byteSize  = wMask(7) + wMask(6) + wMask(5) + wMask(4) + wMask(3) + wMask(2) + wMask(1) + wMask(0)
   protected val socARSize = arbiter.io.dxchg.rsize
   protected val socAWSize = MuxLookup(
-    byteSize,
+    PopCount(wMask),
     0.U,
     Array(
       8.U -> 3.U,
