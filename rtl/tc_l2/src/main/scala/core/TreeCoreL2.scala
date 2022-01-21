@@ -43,31 +43,29 @@ class TreeCoreL2 extends Module with InstConfig {
   exu.io.nxtPC <> ifu.io.nxtPC
   exu.io.mtip  <> mau.io.mtip
 
-  // stall
-  protected val isStall            = exu.io.stall
-  protected val (tickCnt, cntWrap) = Counter(io.globalEn && isStall, 3)
-  protected val cyc1               = isStall && (tickCnt === 0.U)
-  protected val cyc2               = isStall && (tickCnt === 1.U)
-  protected val cyc3               = isStall && (tickCnt === 2.U)
+  // stall control
+  protected val stallCtrl = Module(new StallControl)
+  stallCtrl.io.globalEn := io.globalEn
+  stallCtrl.io.stall    := exu.io.stall
 
-  ifu.io.stall    := cyc1
-  idu.io.stall    := cyc1
+  ifu.io.stall    := stallCtrl.io.st1
+  idu.io.stall    := stallCtrl.io.st1
   ifu.io.globalEn := io.globalEn
   idu.io.globalEn := io.globalEn
-  exu.io.globalEn := Mux(cyc1 || cyc2, false.B, io.globalEn)
-  mau.io.globalEn := Mux(cyc1 || cyc2, false.B, io.globalEn)
-  wbu.io.globalEn := Mux(cyc1 || cyc2, false.B, io.globalEn)
-  idu.io.wbdata   := Mux(cyc1 || cyc2, 0.U.asTypeOf(new WBDATAIO), wbu.io.wbdata)
-  ifu.io.nxtPC    := Mux(cyc1, exu.io.nxtPC, 0.U.asTypeOf(new NXTPCIO))
+  exu.io.globalEn := Mux(stallCtrl.io.st1 || stallCtrl.io.st2, false.B, io.globalEn)
+  mau.io.globalEn := Mux(stallCtrl.io.st1 || stallCtrl.io.st2, false.B, io.globalEn)
+  wbu.io.globalEn := Mux(stallCtrl.io.st1 || stallCtrl.io.st2, false.B, io.globalEn)
+  idu.io.wbdata   := Mux(stallCtrl.io.st1 || stallCtrl.io.st2, 0.U.asTypeOf(new WBDATAIO), wbu.io.wbdata)
+  ifu.io.nxtPC    := Mux(stallCtrl.io.st1, exu.io.nxtPC, 0.U.asTypeOf(new NXTPCIO))
 
   // special judge
-  protected val lsStall   = RegEnable(cyc1, false.B, io.globalEn) || RegEnable(cyc2, false.B, io.globalEn)
+  protected val lsStall   = RegEnable(stallCtrl.io.st1, false.B, io.globalEn) || RegEnable(stallCtrl.io.st2, false.B, io.globalEn)
   protected val ldDataReg = RegInit(0.U(XLen.W))
 
   when(io.globalEn) {
-    when(cyc1) {
+    when(stallCtrl.io.st1) {
       ldDataReg := io.ld.data
-    }.elsewhen(cyc3) {
+    }.elsewhen(stallCtrl.io.st3) {
       ldDataReg := 0.U
     }
   }
