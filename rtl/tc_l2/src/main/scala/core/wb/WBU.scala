@@ -5,7 +5,7 @@ import chisel3.util._
 
 import difftest._
 
-import treecorel2.common.{ConstVal, InstConfig}
+import treecorel2.common.InstConfig
 
 class WBU extends Module with InstConfig {
   val io = IO(new Bundle {
@@ -26,20 +26,20 @@ class WBU extends Module with InstConfig {
   protected val aluRes     = wbReg.aluRes
   protected val link       = wbReg.link
   protected val auipc      = wbReg.auipc
-  protected val loadData   = wbReg.loadData
+  protected val ldData     = wbReg.ldData
   protected val csrData    = wbReg.csrData
   protected val cvalid     = wbReg.cvalid
   protected val timeIntrEn = wbReg.timeIntrEn
   protected val csr        = wbReg.csr
 
-  protected val wbdata = aluRes | link | auipc | loadData | csrData
+  protected val wbdata = aluRes | link | auipc | ldData | csrData
 
   io.wbdata.wen   := valid && wen
   io.wbdata.wdest := wdest
   io.wbdata.data  := wbdata
 
-  protected val printVis = inst(6, 0) === "h7b".U(7.W)
-  protected val haltVis  = inst(6, 0) === "h6b".U(7.W)
+  protected val printVis = inst === customInst
+  protected val haltVis  = inst === haltInst
 
   when(~io.socEn) {
     when(io.globalEn && valid && printVis) {

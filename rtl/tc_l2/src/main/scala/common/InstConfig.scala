@@ -18,7 +18,7 @@ trait InstConfig {
   val InstDiffRSize     = 3.U
   val DiffRWSize        = 3.U
   val CacheEna          = false
-
+  val NOPInst           = 0x13.U
   // inst type
   // nop is equal to [addi x0, x0, 0], so the oper is same as 'addi' inst
   val InstTypeLen = 3
@@ -131,4 +131,8 @@ trait InstConfig {
   val medelegAddr  = 0x302.U(CSRAddrLen.W)
   val timeCause    = "h8000_0000_0000_0007".U(XLen.W)
   val ecallCause   = "h0000_0000_0000_000b".U(XLen.W)
+
+  // special inst
+  val customInst = "h0000007b".U(InstLen.W)
+  val haltInst   = "h0000006b".U(InstLen.W)
 }

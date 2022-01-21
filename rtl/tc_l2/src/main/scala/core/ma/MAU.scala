@@ -29,7 +29,7 @@ class MAU extends Module {
   lsu.io.src1  := src1
   lsu.io.src2  := src2
   lsu.io.imm   := imm
-  protected val loadData = lsu.io.loadData
+  protected val ldData = lsu.io.ldData
 
   protected val clint = Module(new CLINT)
   clint.io.valid := valid
@@ -44,7 +44,7 @@ class MAU extends Module {
   // bypass path
   io.bypassMem.wen   := Mux(isLoad, true.B, memReg.wen) && valid
   io.bypassMem.wdest := Mux(isLoad, memReg.wdest, memReg.wdest)
-  io.bypassMem.data  := Mux(isLoad, loadData, memWbdata)
+  io.bypassMem.data  := Mux(isLoad, ldData, memWbdata)
 
   io.mem2wb.valid      := valid
   io.mem2wb.inst       := inst
@@ -63,7 +63,7 @@ class MAU extends Module {
   io.mem2wb.link       := memReg.link
   io.mem2wb.auipc      := memReg.auipc
   io.mem2wb.csrData    := memReg.csrData
-  io.mem2wb.loadData   := loadData
+  io.mem2wb.ldData     := ldData
   io.mem2wb.cvalid     := clint.io.cvalid
   io.mem2wb.timeIntrEn := memReg.timeIntrEn
   io.mem2wb.ecallEn    := memReg.ecallEn
