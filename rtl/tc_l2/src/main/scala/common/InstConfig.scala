@@ -129,4 +129,6 @@ trait InstConfig {
   val mipAddr      = 0x344.U(CSRAddrLen.W)
   val mcycleAddr   = 0xb00.U(CSRAddrLen.W)
   val medelegAddr  = 0x302.U(CSRAddrLen.W)
+  val timeCause    = "h8000_0000_0000_0007".U(XLen.W)
+  val ecallCause   = "h0000_0000_0000_000b".U(XLen.W)
 }

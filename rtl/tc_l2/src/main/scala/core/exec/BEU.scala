@@ -52,8 +52,8 @@ class BEU extends Module with InstConfig {
     io.isa,
     (io.pc + io.imm), // NOTE: branch target
     Seq(
-      instJAL -> (io.pc + io.imm),
-      instJALR -> (io.src1 + io.imm),
+      instJAL  -> (io.pc + io.imm),
+      instJALR -> (io.src1 + io.imm)
     )
   )
 

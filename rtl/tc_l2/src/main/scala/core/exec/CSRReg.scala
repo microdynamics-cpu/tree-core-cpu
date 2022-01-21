@@ -6,11 +6,6 @@ import difftest._
 
 import treecorel2.common.InstConfig
 
-object CSRReg {
-  val timeCause  = "h8000_0000_0000_0007".U(64.W)
-  val ecallCause = "h0000_0000_0000_000b".U(64.W)
-}
-
 class CSRReg extends Module with InstConfig {
   val io = IO(new Bundle {
     val globalEn   = Input(Bool())
@@ -24,18 +19,6 @@ class CSRReg extends Module with InstConfig {
     val csrState   = Flipped(new DiffCSRStateIO)
   })
 
-  protected val csrrwVis  = (io.inst === BitPat("b????????????_?????_001_?????_1110011"))
-  protected val csrrwiVis = (io.inst === BitPat("b????????????_?????_101_?????_1110011"))
-  protected val csrrsVis  = (io.inst === BitPat("b????????????_?????_010_?????_1110011"))
-  protected val csrrsiVis = (io.inst === BitPat("b????????????_?????_110_?????_1110011"))
-  protected val csrrcVis  = (io.inst === BitPat("b????????????_?????_011_?????_1110011"))
-  protected val csrrciVis = (io.inst === BitPat("b????????????_?????_111_?????_1110011"))
-  protected val csrVis    = csrrcVis || csrrciVis || csrrsVis || csrrsiVis || csrrwVis || csrrwiVis
-  protected val mretVis   = (io.inst === BitPat("b001100000010_00000_000_00000_1110011"))
-  protected val ecallVis  = (io.inst === BitPat("b000000000000_00000_000_00000_1110011"))
-  protected val zimm      = ZeroExt(io.inst(19, 15), XLen)
-  protected val addr      = io.inst(31, 20)
-
   protected val mcycle   = RegInit(0.U(XLen.W))
   protected val mstatus  = RegInit(0.U(XLen.W))
   protected val mtvec    = RegInit(0.U(XLen.W))
@@ -46,6 +29,24 @@ class CSRReg extends Module with InstConfig {
   protected val mscratch = RegInit(0.U(XLen.W))
   protected val medeleg  = RegInit(0.U(XLen.W))
   protected val mhartid  = RegInit(0.U(XLen.W))
+
+  protected val csrVis = MuxLookup(
+    io.inst,
+    false.B,
+    Seq(
+      instCSRRW  -> true.B,
+      instCSRRWI -> true.B,
+      instCSRRS  -> true.B,
+      instCSRRSI -> true.B,
+      instCSRRC  -> true.B,
+      instCSRRCI -> true.B
+    )
+  )
+
+  protected val mretVis  = io.inst === instMRET
+  protected val ecallVis = io.inst === instECALL
+  protected val zimm     = ZeroExt(io.inst(19, 15), XLen)
+  protected val addr     = io.inst(31, 20)
 
   protected val mhartidVis  = addr === mhartidAddr
   protected val mstatusVis  = addr === mstatusAddr
@@ -58,18 +59,22 @@ class CSRReg extends Module with InstConfig {
   protected val mcycleVis   = addr === mcycleAddr
   protected val medelegVis  = addr === medelegAddr
 
-  protected val mcycleVal   = Mux(csrVis && mcycleVis, mcycle, 0.U)
-  protected val mstatusVal  = Mux(csrVis && mstatusVis, mstatus, 0.U)
-  protected val mtvecVal    = Mux(csrVis && mtvecVis, mtvec, 0.U)
-  protected val mcauseVal   = Mux(csrVis && mcauseVis, mcause, 0.U)
-  protected val mepcVal     = Mux(csrVis && mepcVis, mepc, 0.U)
-  protected val mieVal      = Mux(csrVis && mieVis, mie, 0.U)
-  protected val mipVal      = Mux(csrVis && mipVis, mip, 0.U)
-  protected val mscratchVal = Mux(csrVis && mscratchVis, mscratch, 0.U)
-  protected val medelegVal  = Mux(csrVis && medelegVis, medeleg, 0.U)
-  protected val mhartidVal  = Mux(csrVis && mhartidVis, mhartid, 0.U)
-  protected val rdVal = mcycleVal | mstatusVal | mtvecVal | mcauseVal | mepcVal | mieVal | mipVal |
-    mscratchVal | medelegVal | mhartidVal
+  protected val rdVal = MuxLookup(
+    addr,
+    0.U(XLen.W),
+    Seq(
+      mhartidAddr  -> Mux(csrVis, mhartid, 0.U),
+      mstatusAddr  -> Mux(csrVis, mstatus, 0.U),
+      mieAddr      -> Mux(csrVis, mie, 0.U),
+      mtvecAddr    -> Mux(csrVis, mtvec, 0.U),
+      mscratchAddr -> Mux(csrVis, mscratch, 0.U),
+      mepcAddr     -> Mux(csrVis, mepc, 0.U),
+      mcauseAddr   -> Mux(csrVis, mcause, 0.U),
+      mipAddr      -> Mux(csrVis, mip, 0.U),
+      mcycleAddr   -> Mux(csrVis, mcycle, 0.U),
+      medelegAddr  -> Mux(csrVis, medeleg, 0.U)
+    )
+  )
 
   protected val MIE        = mstatus(3)
   protected val MPIE       = mstatus(7)
@@ -83,15 +88,20 @@ class CSRReg extends Module with InstConfig {
   io.timeIntrEn := timeIntrEn
   io.ecallEn    := ecallEn
 
-  protected val rcData  = SignExt(csrrcVis.asUInt, 64) & (rdVal & ~io.src)
-  protected val rciData = SignExt(csrrciVis.asUInt, 64) & (rdVal & ~zimm)
-  protected val rsData  = SignExt(csrrsVis.asUInt, 64) & (rdVal | io.src)
-  protected val rsiData = SignExt(csrrsiVis.asUInt, 64) & (rdVal | zimm)
-  protected val rwData  = SignExt(csrrwVis.asUInt, 64) & (io.src)
-  protected val rwiData = SignExt(csrrwiVis.asUInt, 64) & (zimm)
-  protected val wData   = rcData | rciData | rsData | rsiData | rwData | rwiData
+  protected val wData = MuxLookup(
+    io.inst,
+    0.U(XLen.W),
+    Seq(
+      instCSRRC  -> (rdVal & ~io.src),
+      instCSRRCI -> (rdVal & ~zimm),
+      instCSRRS  -> (rdVal | io.src),
+      instCSRRSI -> (rdVal | zimm),
+      instCSRRW  -> (io.src),
+      instCSRRWI -> (zimm)
+    )
+  )
 
-  protected val SD         = wData(16, 15) === 3.U || wData(14, 13) === 3.U
+  protected val sdBits     = wData(16, 15) === 3.U || wData(14, 13) === 3.U
   protected val nop3       = 0.U(3.W)
   protected val trapStatus = Cat(mstatus(63, 13), 3.U(2.W), nop3, MIE, nop3, 0.U(1.W), nop3)
   protected val mretStatus = Cat(mstatus(63, 13), 0.U(2.W), nop3, 1.U(1.W), nop3, MPIE, nop3)
@@ -108,7 +118,7 @@ class CSRReg extends Module with InstConfig {
     }.elsewhen(mretVis) {
       mstatus := mretStatus
     }.elsewhen(csrVis && mstatusVis) {
-      mstatus := Cat(SD.asUInt, wData(62, 0))
+      mstatus := Cat(sdBits.asUInt, wData(62, 0))
     }
 
     when(csrVis && mtvecVis) { mtvec := wData }
@@ -120,9 +130,9 @@ class CSRReg extends Module with InstConfig {
     }
 
     when(timeIntrEn) {
-      mcause := CSRReg.timeCause
+      mcause := timeCause
     }.elsewhen(ecallEn) {
-      mcause := CSRReg.ecallCause
+      mcause := ecallCause
     }.elsewhen(csrVis && mcauseVis) {
       mcause := wData
     }
