@@ -48,7 +48,20 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 </p>
 
 ### 执行单元
-执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。
+执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。其中`EXU.scala`中的83~92行代码为跳转控制逻辑处理：
+
+```scala
+  io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
+  io.nxtPC.mtvec := csrReg.io.csrState.mtvec
+  io.nxtPC.mret  := valid && (isa === instMRET)
+  io.nxtPC.mepc  := csrReg.io.csrState.mepc
+  // (pred, fact)--->(NT, T) or (T, NT)
+  protected val predNTfactT = branch && !predTaken
+  protected val predTfactNT = !branch && predTaken
+  io.nxtPC.branch := valid && (predNTfactT || predTfactNT)
+  io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(XLen.W)))
+  io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
+```
 
 ### 访存单元
 访存单元集成了LSU和CLINT，其中LSU负责生成访存所需的读写控制信号(size, wmask等)。CLINT则读入生成的控制信号，若访存的地址处于`0x0200_0000 - 0x0200_ffff`之间，则处理访存的信号，否则将控制信号透传出去。
