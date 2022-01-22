@@ -14,6 +14,7 @@ class CLINT extends Module with InstConfig {
     val sd     = new SDIO
   })
 
+  // now only use the 32bit range addr
   protected val addr        = Mux(io.cld.en, io.cld.addr(31, 0), 0.U) | Mux(io.csd.en, io.csd.addr(31, 0), 0.U)
   protected val wdata       = io.csd.data
   protected val mtimeVis    = addr === ClintBaseAddr + MTimeOffset
