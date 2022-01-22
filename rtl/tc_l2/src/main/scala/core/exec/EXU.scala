@@ -88,7 +88,7 @@ class EXU extends Module with InstConfig {
   protected val predNTfactT = branch && !predTaken
   protected val predTfactNT = !branch && predTaken
   io.nxtPC.branch := valid && (predNTfactT || predTfactNT)
-  io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(64.W)))
+  io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(XLen.W)))
   io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
 
   io.ex2mem.valid        := Mux(timeIntrEn, false.B, valid)
