@@ -22,9 +22,9 @@ TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。�
  </p>
 </p>
 
-TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**data exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**，**执行**，**访存**和**crossbar&axi4转换桥**四部分的具体实现。
+TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**data exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**、**执行**、**访存**、**crossbar&axi4转换桥**和**流水线控制**五部分的具体实现。
 
-### 取指单元
+### 取指
 取指单元主要功能是计算出下一个周期的pc并向axi总线发送读请求。pc通过多路选择器按照优先级从高到低依次选取`mtvec`、`mepc`、`jump target`、 `branch predict target`和`pc + 4`的值。BPU采用基于全局历史的两级预测器。相关参数如下：
 1. Global History Reister(GHR): bit width = 5
 2. Pattern History Table(PHT):  size = 32
@@ -47,7 +47,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
  </p>
 </p>
 
-### 执行单元
+### 执行
 执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。其中`EXU.scala`中的83~92行代码为跳转控制逻辑的核心代码：
 
 ```scala
@@ -63,7 +63,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
   io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
 ```
 
-### 访存单元
+### 访存
 访存单元集成了LSU和CLINT，其中LSU负责生成访存所需的读写控制信号(size, wmask等)。CLINT则读入生成的控制信号，若访存的地址处于`0x0200_0000 - 0x0200_ffff`之间，则处理访存的信号，否则将控制信号透传出去。
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-mau.drawio.svg"/>
@@ -83,8 +83,12 @@ crossbar负责将取值和访存的请求进行合并，统一成一个自定义
 
 
 <!-- 分别介绍在不同模式下的访存的信号安排。 -->
+### 流水线控制
+TreeCoreL2通过旁路实现RAW数据冒险，另外TreeCoreL2的流水线每一级都有一个valid信号，当置`false.B`时，流水线会被stall。使流水线暂停的信号有：
+1. axi4的读写请求，只有当取指或者访存完成后才会重启流水线
+2. 无条件跳转指令和条件跳转指令预测错误时，会暂停idu和ifu的流水线
+3. 环境调用异常`ecall`、定时器中断触发或者中断处理程序返回执行`mret`时，会暂停idu和ifu的流水线
 
-2. 示意图介绍下一条指令的控制冒险，bypass，等stall信号的实现？时序图那种，
 
 ## 项目结构和参考
 TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的独立开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
