@@ -30,7 +30,7 @@ TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存
 2. Pattern History Table(PHT):  size = 32
 3. Branch Target Buffer(BTB):   bit width = 64 size = 32
 
-GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(**_gshare_**)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。
+GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(**_gshare_**)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。！！！介绍下不对无跳转指令实现预测的原因：1. 函数调用返回会出现刷新btb导致预测的bug 2. 为了方便无条件跳转指令也是在exu中判断，ok！！！
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ifu.drawio.svg"/>
@@ -52,9 +52,17 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 
 ### 访存单元
 访存单元集成了LSU和CLINT，其中LSU负责生成访存所需的读写控制信号(size, wmask等)。CLINT则读入生成的控制信号，若访存的地址处于`0x0200_0000 - 0x0200_ffff`之间，则处理访存的信号，否则将控制信号透传出去。
+一个图？
 
 ### Crossbar&Axi4转换桥
-crossbar负责将取值和访存的请求进行合并，统一成一个自定义的axi-like总线**data exchange(dxchg)**，dxchg其实和axi-lite很接近。不过考虑之后扩展的需要，故自定义了一个。axi4转换桥将crossbar的dxchg总线接口转换成标准axi4总线，其中实现了一个arbiter用于对取值和访存的请求进行仲裁。
+crossbar负责将取值和访存的请求进行合并，统一成一个自定义的axi-like总线**data exchange(dxchg)**，dxchg其实和axi-lite很接近。不过考虑之后扩展的需要，故自定义了一个。axi4转换桥将crossbar的dxchg总线接口转换成标准axi4总线，axi4采用单主机模式，主要通过arbiter中状态机的不同状态来区分一次axi请求是取值还是访存：
+
+
+状态机有两个状态`eumInst`和`eumMem`，初始化后处于`eumInst`，当IFU发送取值请求并等到axi的响应后，表示一次取值请求完成，同时状态会转移到`eumMem`。状态切换到`eumMem`是因为对于一条指令来说，其只可能是访存指令，在MAU中发起读写axi请求；或是非访存指令，不发起请求。由于TreeCoreL2的微架构实现中不存在处理连续两个访存请求的情况，所以状态机一次访存后一定会切换到取值状态。
+
+关键介绍指令和访存状态机的切换，有个状态机图+时序图。分别介绍在不同模式下的访存的信号安排。
+2. 示意图介绍下一条指令的控制冒险等stall信号的实现？
+时序图那种，
 
 ## 项目结构和参考
 TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的独立开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
