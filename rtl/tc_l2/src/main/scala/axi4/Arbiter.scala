@@ -29,7 +29,7 @@ class Arbiter extends Module with InstConfig {
   protected val ren      = RegInit(false.B)
   protected val raddr    = RegInit(0.U(XLen.W))
   protected val rdata    = RegInit(0.U(XLen.W))
-  protected val rsize    = RegInit(0.U(3.W))
+  protected val rsize    = RegInit(0.U(LDSize.W))
   protected val wen      = RegInit(false.B)
   protected val waddr    = RegInit(0.U(XLen.W))
   protected val wdata    = RegInit(0.U(XLen.W))
