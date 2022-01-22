@@ -48,7 +48,7 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 </p>
 
 ### 执行单元
-执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。其中`EXU.scala`中的83~92行代码为跳转控制逻辑处理：
+执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。其中`EXU.scala`中的83~92行代码为跳转控制逻辑的核心代码：
 
 ```scala
   io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
@@ -96,7 +96,14 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-1. 另外TreeCore的实现和测试依赖于众多项目，其中包括：
+1. 在编码过程中使用到的chisel类型和object：
+ - `ListLookup`： 用于IDU中进行指令解码
+ - `MuxLookup`：用于实现多路复用器
+ - `Counter`：用于在CLINT中生成低速时钟驱动mtime自增
+ - `PopCount`：在AXIBridge中计算发送给axi总线的size
+ - `Decoupled`：用于实现axi总线的输入输出接口
+
+2. 另外TreeCore的实现和测试依赖于众多项目，其中包括：
  - [chisel3](https://github.com/chipsalliance/chisel3)
  - [verilator](https://github.com/verilator/verilator)
  - [NEMU](https://gitee.com/oscpu/NEMU)
@@ -105,8 +112,8 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  - [Abstract Machine](https://github.com/NJU-ProjectN/abstract-machine)
  - [ysyxSoC](https://github.com/OSCPU/ysyxSoC)
  - [riscv-tests](https://github.com/NJU-ProjectN/riscv-tests)
-2. 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
-3. 流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
+3. 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
+4. 流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
 
 ## 总结
 
