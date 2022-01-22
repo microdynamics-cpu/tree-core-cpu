@@ -57,8 +57,14 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
 ### Crossbar&Axi4转换桥
 crossbar负责将取值和访存的请求进行合并，统一成一个自定义的axi-like总线**data exchange(dxchg)**，dxchg其实和axi-lite很接近。不过考虑之后扩展的需要，故自定义了一个。axi4转换桥将crossbar的dxchg总线接口转换成标准axi4总线，axi4采用单主机模式，主要通过arbiter中状态机的不同状态来区分一次axi请求是取值还是访存：
 
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-axi.drawio.svg"/>
+ <p align="center">
+  axi总线访存实现
+ </p>
+</p>
 
-状态机有两个状态`eumInst`和`eumMem`，初始化后处于`eumInst`，当IFU发送取值请求并等到axi的响应后，表示一次取值请求完成，同时状态会转移到`eumMem`。状态切换到`eumMem`是因为对于一条指令来说，其只可能是访存指令，在MAU中发起读写axi请求；或是非访存指令，不发起请求。由于TreeCoreL2的微架构实现中不存在处理连续两个访存请求的情况，所以状态机一次访存后一定会切换到取值状态。
+状态机有两个状态`eumInst`和`eumMem`，初始化后处于`eumInst`，当IFU发送取值请求并等到axi的响应后，表示一次取值请求完成，同时状态会转移到`eumMem`。状态切换到`eumMem`是因为对于一条指令来说，其只可能是访存指令，在MAU中发起读写axi请求；或是非访存指令，不发起请求。由于TreeCoreL2的微架构实现中不存在处理连续两个访存请求的情况，所以状态机在一次访存后一定会切换到取值状态。
 
 关键介绍指令和访存状态机的切换，有个状态机图+时序图。分别介绍在不同模式下的访存的信号安排。
 2. 示意图介绍下一条指令的控制冒险等stall信号的实现？
