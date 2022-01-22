@@ -22,15 +22,15 @@ TreeCoreL2是一个支持RV64I的单发射5级流水线的开源处理器核。�
  </p>
 </p>
 
-TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**data exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**，**执行**，**访存**和**crossbar&axi4转换桥**四部分的具体实现。
+TreeCoreL2的微架构设计采用经典的5级流水线结构，取指和访存的请求通过crossbar进行汇总并转换成自定义的axi-like总线**data exchange(dxchg)**，最后通过转换桥将dxchg协议转换成axi4协议并进行仲裁。下面将着重介绍**取指**、**执行**、**访存**、**crossbar&axi4转换桥**和**流水线控制**五部分的具体实现。
 
-### 取指单元
+### 取指
 取指单元主要功能是计算出下一个周期的pc并向axi总线发送读请求。pc通过多路选择器按照优先级从高到低依次选取`mtvec`、`mepc`、`jump target`、 `branch predict target`和`pc + 4`的值。BPU采用基于全局历史的两级预测器。相关参数如下：
 1. Global History Reister(GHR): bit width = 5
 2. Pattern History Table(PHT):  size = 32
-3. Branch Target Buffer(BTB):   bit width = 64 size = 32
+3. Branch Target Buffer(BTB):   line size = 64(pc) + 64(target) + 1(jump) size = 32
 
-GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(**_gshare_**)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。
+GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的值，之后输出更新后值到PHT中并与当前pc求异或(**_gshare_**)。其结果作为PHT检索对应entry的地址，PHT每次从EXU得到分支执行后信息用于更新自己。BTB的每个Line记录一个1位的jump，64位的pc和64位的tgt值。1位的jump表示当前记录的指令是否是一个无条件跳转指令。虽然BTB中留有jump的标志，但是目前并不对无条件跳转指令进行预测。因为有些jump指令的target可能是不固定的，比如函数调用中的`ret`指令，会使得BTB以上一次保存的target进行预测，进而跳转到错误的地址。
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-ifu.drawio.svg"/>
@@ -47,14 +47,48 @@ GHR每次从EXU得到分支是否taken的信息用于更新GHR移位寄存器的
  </p>
 </p>
 
-### 执行单元
-执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。
+### 执行
+执行单元主要用于执行算术逻辑计算、计算分支指令的跳转地址。另外还设计了一个乘除法单元(MDU)和加速计算单元(ACU)用于对矩阵乘除法进行加速，但是由于个人进度的影响，没能按期调通cache，故没有将MDU，ACU集成到提交的版本中。最后执行单元中还实现了CSR寄存器，用于对环境调用异常和中断进行处理。其中`EXU.scala`中的83~92行代码为跳转控制逻辑的核心代码：
 
-### 访存单元
+```scala
+  io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
+  io.nxtPC.mtvec := csrReg.io.csrState.mtvec
+  io.nxtPC.mret  := valid && (isa === instMRET)
+  io.nxtPC.mepc  := csrReg.io.csrState.mepc
+  // (pred, fact)--->(NT, T) or (T, NT)
+  protected val predNTfactT = branch && !predTaken
+  protected val predTfactNT = !branch && predTaken
+  io.nxtPC.branch := valid && (predNTfactT || predTfactNT)
+  io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(XLen.W)))
+  io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
+```
+
+### 访存
 访存单元集成了LSU和CLINT，其中LSU负责生成访存所需的读写控制信号(size, wmask等)。CLINT则读入生成的控制信号，若访存的地址处于`0x0200_0000 - 0x0200_ffff`之间，则处理访存的信号，否则将控制信号透传出去。
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-mau.drawio.svg"/>
+</p>
 
 ### Crossbar&Axi4转换桥
-crossbar负责将取值和访存的请求进行合并，统一成一个自定义的axi-like总线**data exchange(dxchg)**，dxchg其实和axi-lite很接近。不过考虑之后扩展的需要，故自定义了一个。axi4转换桥将crossbar的dxchg总线接口转换成标准axi4总线，其中实现了一个arbiter用于对取值和访存的请求进行仲裁。
+crossbar负责将取值和访存的请求进行合并，统一成一个自定义的axi-like总线**data exchange(dxchg)**，dxchg其实和axi-lite很接近。不过考虑之后扩展的需要，故自定义了一个。axi4转换桥将crossbar的dxchg总线接口转换成标准axi4总线，axi4采用单主机模式，主要通过crossbar中状态机的不同状态来区分一次axi请求是取值还是访存：
+
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-axi.drawio.svg"/>
+ <p align="center">
+  axi总线访存实现
+ </p>
+</p>
+
+状态机有两个状态`eumInst`和`eumMem`，初始化后处于`eumInst`，当IFU发送取值请求并等到axi的响应后，表示一次取值请求完成，同时状态会转移到`eumMem`。状态切换到`eumMem`是因为对于一条指令来说，其只可能是访存指令，在MAU中发起读写axi请求；或是非访存指令，不发起请求。由于TreeCoreL2的微架构实现中不存在处理连续两个访存请求的情况，所以状态机在一次访存后一定会切换到取值状态。
+
+
+<!-- 分别介绍在不同模式下的访存的信号安排。 -->
+### 流水线控制
+TreeCoreL2通过旁路实现RAW数据冒险，另外TreeCoreL2的流水线每一级都有一个valid信号，当置`false.B`时，流水线会被stall。使流水线暂停的信号有：
+1. axi4的读写请求，只有当取指或者访存完成后才会重启流水线
+2. 无条件跳转指令和条件跳转指令预测错误时，会暂停idu和ifu的流水线
+3. 环境调用异常`ecall`、定时器中断触发或者中断处理程序返回执行`mret`时，会暂停idu和ifu的流水线
+
 
 ## 项目结构和参考
 TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/riscv-sodor)和[oscpu-framework](https://github.com/OSCPU/oscpu-framework)组织代码的方式并使用make作为项目构建工具，同时Makefile里面添加了模板参数，可以支持多个不同处理器的独立开发，能够直接使用`make [target]`下载、配置相关依赖软件、生成、修改面向不同平台(difftest和soc)的verilog文件，执行回归测试等。
@@ -66,7 +100,14 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  </p>
 </p>
 
-1. 另外TreeCore的实现和测试依赖于众多项目，其中包括：
+1. 在编码过程中使用到的chisel类型和object：
+ - `ListLookup`： 用于IDU中进行指令解码
+ - `MuxLookup`：用于实现多路复用器
+ - `Counter`：用于在CLINT中生成低速时钟驱动mtime自增
+ - `PopCount`：在AXIBridge中计算发送给axi总线的size
+ - `Decoupled`：用于实现axi总线的输入输出接口
+
+2. 另外TreeCore的实现和测试依赖于众多项目，其中包括：
  - [chisel3](https://github.com/chipsalliance/chisel3)
  - [verilator](https://github.com/verilator/verilator)
  - [NEMU](https://gitee.com/oscpu/NEMU)
@@ -75,8 +116,8 @@ TreeCore的代码仓库结构借鉴了[riscv-sodor](https://github.com/ucb-bar/r
  - [Abstract Machine](https://github.com/NJU-ProjectN/abstract-machine)
  - [ysyxSoC](https://github.com/OSCPU/ysyxSoC)
  - [riscv-tests](https://github.com/NJU-ProjectN/riscv-tests)
-2. 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
-3. 流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
+3. 立即数扩展模块部分参考了[果壳处理器](https://github.com/OSCPU/NutShell)的实现方式
+4. 流水线结构和各功能单元安排部分参考了[蜂鸟E203](https://github.com/riscv-mcu/e203_hbirdv2)
 
 ## 总结
 

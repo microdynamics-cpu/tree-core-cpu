@@ -36,7 +36,7 @@ class AXI4Bridge extends Module with InstConfig {
 
   protected val arSize   = Mux(io.socEn, socARSize, DiffRWSize)
   protected val awSize   = Mux(io.socEn, socAWSize, DiffRWSize)
-  protected val addrMask = Mux(io.socEn, SoCAddrMask, DifftestAddrMask)
+  protected val addrMask = Mux(io.socEn, SoCAddrMask, DifftestAddrMask) // difftest mask(align) important!!!
 
   when(arbiter.io.state === Arbiter.eumAR) {
     io.axi.ar.valid     := true.B
