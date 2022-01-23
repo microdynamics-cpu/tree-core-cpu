@@ -2,7 +2,7 @@ SHELL=/bin/bash
 
 # be carefully, this path will be used in clean(rm -rf)!!!
 # need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
-CHIP_TARGET      := tc_l2
+CHIP_TARGET      := tc_l3
 ROOT_PATH        := $(shell pwd)/dependency
 SOURCE_PATH      := $(ROOT_PATH)/../$(CHIP_TARGET)
 BUILD_DIR        := $(SOURCE_PATH)/build
@@ -92,7 +92,7 @@ template:
 
 ###### chisel target ######
 millTest:
-	mill -i __.test
+	mill -i $(CHIP_TARGET).test
 
 chiselBuild:
 	mkdir -p $(BUILD_DIR)
@@ -102,16 +102,16 @@ chiselHelp:
 	mill -i $(CHIP_TARGET).runMain top.TopMain --help
 
 millCompile:
-	mill -i __.compile
+	mill -i $(CHIP_TARGET).compile
 
 millBsp:
 	mill -i mill.bsp.BSP/install
 
 format:
-	mill -i __.reformat
+	mill -i $(CHIP_TARGET).reformat
 
 checkformat:
-	mill -i __.checkFormat
+	mill -i $(CHIP_TARGET).checkFormat
 
 ###### NEMU target ######
 nemuBuild:
