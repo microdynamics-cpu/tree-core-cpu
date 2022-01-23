@@ -92,7 +92,7 @@ template:
 
 ###### chisel target ######
 millTest:
-	mill -i __.test
+	mill -i $(CHIP_TARGET).test
 
 chiselBuild:
 	mkdir -p $(BUILD_DIR)
@@ -102,16 +102,16 @@ chiselHelp:
 	mill -i $(CHIP_TARGET).runMain top.TopMain --help
 
 millCompile:
-	mill -i __.compile
+	mill -i $(CHIP_TARGET).compile
 
 millBsp:
 	mill -i mill.bsp.BSP/install
 
 format:
-	mill -i __.reformat
+	mill -i $(CHIP_TARGET).reformat
 
 checkformat:
-	mill -i __.checkFormat
+	mill -i $(CHIP_TARGET).checkFormat
 
 ###### NEMU target ######
 nemuBuild:
