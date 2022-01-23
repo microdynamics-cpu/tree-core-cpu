@@ -2,7 +2,7 @@ SHELL=/bin/bash
 
 # be carefully, this path will be used in clean(rm -rf)!!!
 # need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
-CHIP_TARGET      := tc_l2
+CHIP_TARGET      := tc_l3
 ROOT_PATH        := $(shell pwd)/dependency
 SOURCE_PATH      := $(ROOT_PATH)/../$(CHIP_TARGET)
 BUILD_DIR        := $(SOURCE_PATH)/build
