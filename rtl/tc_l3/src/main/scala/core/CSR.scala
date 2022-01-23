@@ -5,11 +5,11 @@ import chisel.uitl._
 
 object CSR {
   val CSRTypeLen = 3
-  val N = 0.U(CSRTypeLen.W)
-  val W = 1.U(CSRTypeLen.W)
-  val S = 2.U(CSRTypeLen.W)
-  val C = 3.U(CSRTypeLen.W)
-  val P = 4.U(CSRTypeLen.W)
+  val N          = 0.U(CSRTypeLen.W)
+  val W          = 1.U(CSRTypeLen.W)
+  val S          = 2.U(CSRTypeLen.W)
+  val C          = 3.U(CSRTypeLen.W)
+  val P          = 4.U(CSRTypeLen.W)
 
   // Supports machine & user modes
   val PRV_U = 0x0.U(2.W)
@@ -33,9 +33,9 @@ object CSR {
 
   // Machine-level CSR addrs
   // Machine Information Registers
-  val mcpuid   = 0xf00.U(12.W)
-  val mimpid   = 0xf01.U(12.W)
-  val mhartid  = 0xf10.U(12.W)
+  val mcpuid  = 0xf00.U(12.W)
+  val mimpid  = 0xf01.U(12.W)
+  val mhartid = 0xf10.U(12.W)
   // Machine Trap Setup
   val mstatus  = 0x300.U(12.W)
   val mtvec    = 0x301.U(12.W)
@@ -43,8 +43,8 @@ object CSR {
   val mie      = 0x304.U(12.W)
   val mtimecmp = 0x321.U(12.W)
   // Machine Timers and Counters
-  val mtime    = 0x701.U(12.W)
-  val mtimeh   = 0x741.U(12.W)
+  val mtime  = 0x701.U(12.W)
+  val mtimeh = 0x741.U(12.W)
   // Machine Trap Handling
   val mscratch = 0x340.U(12.W)
   val mepc     = 0x341.U(12.W)
@@ -56,9 +56,34 @@ object CSR {
   val mfromhost = 0x781.U(12.W)
 
   val regs = List(
-    cycle, time, instret, cycleh, timeh, instreth,
-    cyclew, timew, instretw, cyclehw, timehw, instrethw,
-    mcpuid, mimpid, mhartid, mtvec, mtdeleg, mie,
-    mtimecmp, mtime, mtimeh, mscratch, mepc, mcause, mbadaddr, mip,
-    mtohost, mfromhost, mstatus)
+    cycle,
+    time,
+    instret,
+    cycleh,
+    timeh,
+    instreth,
+    cyclew,
+    timew,
+    instretw,
+    cyclehw,
+    timehw,
+    instrethw,
+    mcpuid,
+    mimpid,
+    mhartid,
+    mtvec,
+    mtdeleg,
+    mie,
+    mtimecmp,
+    mtime,
+    mtimeh,
+    mscratch,
+    mepc,
+    mcause,
+    mbadaddr,
+    mip,
+    mtohost,
+    mfromhost,
+    mstatus
+  )
 }

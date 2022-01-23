@@ -60,7 +60,7 @@ object Control {
   val WB_CSR    = 3.U(WbTypeLen.W)
 
   //                                                           kill                      wb_en    illegal?
-  //                pc_sel A_sel B_sel   imm_sel alu_op br_type |  st_type ld_type wb_sel  | csr_cmd |
+  //                pc_sel a_sel b_sel   imm_sel alu_op br_type |  st_type ld_type wb_sel  | csr_cmd |
   //                  |      |     |      |        |        |   |     |       |       |    |  |      |
   val defRes = List(PC_4, A_XXX, B_XXX, IMM_X, ALU_XXX, BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, Y)
 
@@ -115,4 +115,45 @@ object Control {
     ERET   -> List(PC_EPC, A_XXX, B_XXX, IMM_X, ALU_XXX, BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, N, CSR.P, N),
     WFI    -> List(PC_4, A_XXX, B_XXX, IMM_X, ALU_XXX, BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, N)
   )
+}
+
+class ControlIO(implicit p: Parameters) extends Bundle {
+  val inst      = Input(UInt(xlen.W))
+  val pc_sel    = Output(UInt(2.W))
+  val inst_kill = Output(Bool())
+  val a_sel     = Output(UInt(1.W))
+  val b_sel     = Output(UInt(1.W))
+  val imm_sel   = Output(UInt(3.W))
+  val alu_op    = Output(UInt(4.W))
+  val br_type   = Output(UInt(3.W))
+  val st_type   = Output(UInt(2.W))
+  val ld_type   = Output(UInt(3.W))
+  val wb_sel    = Output(UInt(2.W))
+  val wb_en     = Output(Bool())
+  val csr_cmd   = Output(UInt(3.W))
+  val illegal   = Output(Bool())
+}
+
+class Control(implicit p: Parameters) extends Module {
+  val io     = IO(new ControlIO)
+  val decRes = ListLookup(io.inst, Control.defRes, Control.map)
+
+  // Control signals for Fetch
+  io.pc_sel    := decRes(0)
+  io.inst_kill := decRes(6)
+
+  // Control signals for Execute
+  io.a_sel   := decRes(1)
+  io.b_sel   := decRes(2)
+  io.imm_sel := decRes(3)
+  io.alu_op  := decRes(4)
+  io.br_type := decRes(5)
+  io.st_type := decRes(7)
+
+  // Control signals for Write Back
+  io.ld_type := decRes(8)
+  io.wb_sel  := decRes(9)
+  io.wb_en   := decRes(10)
+  io.csr_cmd := decRes(11)
+  io.illegal := decRes(12)
 }
