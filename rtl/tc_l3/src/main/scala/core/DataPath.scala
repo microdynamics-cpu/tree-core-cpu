@@ -170,13 +170,14 @@ class Datapath(implicit val p: Parameters) extends Module {
 
   // Regfile Write
   val regWrite = MuxLookup(
-      wb_sel,
-      ew_alu.zext,
-      Seq(
-          WB_MEM -> load, 
-          WB_PC4 -> (ew_pc + 4.U).zext, 
-          WB_CSR -> csr.io.out.zext
-          )).asUInt
+    wb_sel,
+    ew_alu.zext,
+    Seq(
+      WB_MEM -> load,
+      WB_PC4 -> (ew_pc + 4.U).zext,
+      WB_CSR -> csr.io.out.zext
+    )
+  ).asUInt
 
   regFile.io.wen   := wb_en && !stall && !csr.io.expt
   regFile.io.waddr := wb_rd_addr
