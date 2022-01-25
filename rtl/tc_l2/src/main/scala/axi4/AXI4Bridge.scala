@@ -15,11 +15,11 @@ class AXI4Bridge extends Module with InstConfig {
   arbiter.io.runEn    <> io.runEn
   arbiter.io.dxchg    <> io.dxchg
   arbiter.io.axirdata := io.axi.r.bits.data
-  arbiter.io.awHdShk  := io.axi.aw.fire()
-  arbiter.io.wHdShk   := io.axi.w.fire()
-  arbiter.io.bHdShk   := io.axi.b.fire()
-  arbiter.io.arHdShk  := io.axi.ar.fire()
-  arbiter.io.rHdShk   := io.axi.r.fire()
+  arbiter.io.awHdShk  := io.axi.aw.fire
+  arbiter.io.wHdShk   := io.axi.w.fire
+  arbiter.io.bHdShk   := io.axi.b.fire
+  arbiter.io.arHdShk  := io.axi.ar.fire
+  arbiter.io.rHdShk   := io.axi.r.fire
 
   protected val wMask     = arbiter.io.dxchg.wmask
   protected val socARSize = arbiter.io.dxchg.rsize
