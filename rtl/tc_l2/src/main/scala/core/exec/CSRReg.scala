@@ -45,16 +45,16 @@ class CSRReg extends Module with InstConfig {
   protected val addr        = io.inst(31, 20)
   protected val mretVis     = io.inst === instMRET
   protected val ecallVis    = io.inst === instECALL
-  protected val mhartidVis  = addr === mhartidAddr
-  protected val mstatusVis  = addr === mstatusAddr
-  protected val mieVis      = addr === mieAddr
-  protected val mtvecVis    = addr === mtvecAddr
-  protected val mscratchVis = addr === mscratchAddr
-  protected val mepcVis     = addr === mepcAddr
-  protected val mcauseVis   = addr === mcauseAddr
-  protected val mipVis      = addr === mipAddr
-  protected val mcycleVis   = addr === mcycleAddr
-  protected val medelegVis  = addr === medelegAddr
+  protected val mhartidVis  = addr    === mhartidAddr
+  protected val mstatusVis  = addr    === mstatusAddr
+  protected val mieVis      = addr    === mieAddr
+  protected val mtvecVis    = addr    === mtvecAddr
+  protected val mscratchVis = addr    === mscratchAddr
+  protected val mepcVis     = addr    === mepcAddr
+  protected val mcauseVis   = addr    === mcauseAddr
+  protected val mipVis      = addr    === mipAddr
+  protected val mcycleVis   = addr    === mcycleAddr
+  protected val medelegVis  = addr    === medelegAddr
 
   protected val rdVal = MuxLookup(
     addr,

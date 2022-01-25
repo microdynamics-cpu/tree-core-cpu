@@ -32,8 +32,8 @@ class EXU extends Module with InstConfig {
   // handle bypass signal
   protected val bypassMemSrc1En = io.bypassMem.wen && (rs1 === io.bypassMem.wdest) && (rs1 =/= 0.U)
   protected val bypassMemSrc2En = io.bypassMem.wen && (rs2 === io.bypassMem.wdest) && (rs2 =/= 0.U)
-  protected val bypassWbSrc1En  = io.bypassWb.wen && (rs1 === io.bypassWb.wdest) && (rs1 =/= 0.U)
-  protected val bypassWbSrc2En  = io.bypassWb.wen && (rs2 === io.bypassWb.wdest) && (rs2 =/= 0.U)
+  protected val bypassWbSrc1En  = io.bypassWb.wen  && (rs1 === io.bypassWb.wdest)  && (rs1 =/= 0.U)
+  protected val bypassWbSrc2En  = io.bypassWb.wen  && (rs2 === io.bypassWb.wdest)  && (rs2 =/= 0.U)
   protected val src1            = Mux(bypassMemSrc1En, io.bypassMem.data, Mux(bypassWbSrc1En, io.bypassWb.data, exReg.src1))
   protected val src2            = Mux(bypassMemSrc2En, io.bypassMem.data, Mux(bypassWbSrc2En, io.bypassWb.data, exReg.src2))
 
@@ -82,12 +82,12 @@ class EXU extends Module with InstConfig {
 
   io.nxtPC.trap  := valid && (timeIntrEn || ecallEn)
   io.nxtPC.mtvec := csrReg.io.csrState.mtvec
-  io.nxtPC.mret  := valid && (isa === instMRET)
+  io.nxtPC.mret  := valid && (isa       === instMRET)
   io.nxtPC.mepc  := csrReg.io.csrState.mepc
   // (pred, fact)--->(NT, T) or (T, NT)
-  protected val predNTfactT = branch && !predTaken
+  protected val predNTfactT = branch  && !predTaken
   protected val predTfactNT = !branch && predTaken
-  io.nxtPC.branch := valid && (predNTfactT || predTfactNT)
+  io.nxtPC.branch := valid && (predNTfactT     || predTfactNT)
   io.nxtPC.tgt    := Mux(valid && predNTfactT, tgt, Mux(valid && predTfactNT, pc + 4.U, 0.U(XLen.W)))
   io.stall        := valid && (io.nxtPC.branch || timeIntrEn || ecallEn || (isa === instMRET))
 

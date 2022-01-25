@@ -52,7 +52,7 @@ class Crossbar extends Module with InstConfig {
   io.dxchg.ren   := ((stateReg === eumInst) || (stateReg === eumMem && maEn))
   io.dxchg.raddr := Mux(stateReg === eumInst, instAddr, ldAddr)
   io.dxchg.rsize := Mux(stateReg === eumMem && io.core.ld.en, io.core.ld.size, instSize)
-  io.dxchg.wen   := stateReg === eumMem && io.core.sd.en
+  io.dxchg.wen   := stateReg   === eumMem   && io.core.sd.en
   io.dxchg.waddr := sdAddr
   io.dxchg.wdata := io.core.sd.data
   io.dxchg.wmask := io.core.sd.mask
