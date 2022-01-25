@@ -23,7 +23,7 @@ class CLINT extends Module with InstConfig {
   // check if a mmio access
   protected val cren   = io.cld.en && (mtimecmpVis || mtimeVis) && io.valid
   protected val cwen   = io.csd.en && (mtimecmpVis || mtimeVis) && io.valid
-  protected val cvalid = cren || cwen
+  protected val cvalid = cren      || cwen
 
   // generate low speed clock
   protected val (tickCnt, cntWrap) = Counter(true.B, 5)
