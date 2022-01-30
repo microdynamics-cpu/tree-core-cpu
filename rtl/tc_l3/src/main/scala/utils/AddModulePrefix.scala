@@ -43,7 +43,8 @@ class AddModulePrefix extends Transform with DependencyAPIMigration {
     else if (extModules.contains(old)) old
     else prefix + old
 
-    val renameMap = RenameMap()
+    // val renameMap = RenameMap()
+    val renameMap = firrtl.renamemap.MutableRenameMap() // for firrtl 1.5 under the chisel 3.5.x
 
     def onStmt(s: Statement): Statement = s match {
       case DefInstance(info, name, module, tpe) =>

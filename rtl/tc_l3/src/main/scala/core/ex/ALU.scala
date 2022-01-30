@@ -20,7 +20,7 @@ object ALU {
   val ALU_XXX    = 15.U(ALUOperLen.W)
 }
 
-class ALUIo(implicit p: Parameters) extends Bundle {
+class ALUIO(implicit p: Parameters) extends Bundle {
   val A      = Input(UInt(xlen.W))
   val B      = Input(UInt(xlen.W))
   val alu_op = Input(UInt(4.W))
@@ -29,6 +29,7 @@ class ALUIo(implicit p: Parameters) extends Bundle {
 }
 
 class ALU(implicit p: Parameters) extends Module {
+  val io     = IO(new ALUIO)
   val sum    = io.A + Mux(io.alu_op(0), -io.B, io.B)
   val cmp    = Mux(io.A(xlen - 1) === io.B(xlen - 1), sum(xlen - 1), Mux(io.alu_op(1), io.B(xlen - 1), io.A(xlen - 1)))
   val shamt  = io.B(4, 0).asUInt
