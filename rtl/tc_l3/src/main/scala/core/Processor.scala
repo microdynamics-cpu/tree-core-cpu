@@ -6,7 +6,7 @@ import chisel.uitl._
 class MemArbiterIO(implicit val p: Parameters) extends Bundle {
   val icache = Flipped(new AxiIO)
   val dcache = Flipped(new AxiIO)
-  val axi  = new AxiIO
+  val axi    = new AxiIO
 }
 
 class MemArbiter(implicit p: Parameters) extends Module {
@@ -16,21 +16,21 @@ class MemArbiter(implicit p: Parameters) extends Module {
   val state                                                                             = RegInit(s_IDLE)
 
   // write address
-  io.axi.aw.bits   := io.dcache.aw.bits
-  io.axi.aw.valid  := io.dcache.aw.valid && state === s_IDLE
-  io.dcache.aw.ready := io.axi.aw.ready  && state === s_IDLE
+  io.axi.aw.bits     := io.dcache.aw.bits
+  io.axi.aw.valid    := io.dcache.aw.valid && state === s_IDLE
+  io.dcache.aw.ready := io.axi.aw.ready    && state === s_IDLE
   io.icache.aw       := DontCare
 
   // write data
-  io.axi.w.bits   := io.dcache.w.bits
-  io.axi.w.valid  := io.dcache.w.valid && state === s_DCACHE_WRITE
-  io.dcache.w.ready := io.axi.w.ready  && state === s_DCACHE_WRITE
+  io.axi.w.bits     := io.dcache.w.bits
+  io.axi.w.valid    := io.dcache.w.valid && state === s_DCACHE_WRITE
+  io.dcache.w.ready := io.axi.w.ready    && state === s_DCACHE_WRITE
   io.icache.w       := DontCare
 
   // write ack
   io.dcache.b.bits  := io.axi.b.bits
-  io.dcache.b.valid := io.axi.b.valid  && state === s_DCACHE_ACK
-  io.axi.b.ready  := io.dcache.b.ready && state === s_DCACHE_ACK
+  io.dcache.b.valid := io.axi.b.valid    && state === s_DCACHE_ACK
+  io.axi.b.ready    := io.dcache.b.ready && state === s_DCACHE_ACK
   io.icache.b       := DontCare
 
   // Read Address
@@ -42,15 +42,15 @@ class MemArbiter(implicit p: Parameters) extends Module {
   )
   io.axi.ar.valid    := (io.icache.ar.valid || io.dcache.ar.valid) &&
     !io.axi.aw.valid && state              === s_IDLE
-  io.dcache.ar.ready   := io.axi.ar.ready   && !io.axi.aw.valid  && state === s_IDLE
-  io.icache.ar.ready   := io.dcache.ar.ready  && !io.dcache.ar.valid
+  io.dcache.ar.ready := io.axi.ar.ready     && !io.axi.aw.valid    && state === s_IDLE
+  io.icache.ar.ready := io.dcache.ar.ready  && !io.dcache.ar.valid
 
   // Read Data
   io.icache.r.bits  := io.axi.r.bits
   io.dcache.r.bits  := io.axi.r.bits
   io.icache.r.valid := io.axi.r.valid && state === s_ICACHE_READ
   io.dcache.r.valid := io.axi.r.valid && state === s_DCACHE_READ
-  io.axi.r.ready    := io.icache.r.ready && state === s_ICACHE_READ ||
+  io.axi.r.ready      := io.icache.r.ready && state === s_ICACHE_READ ||
     io.dcache.r.ready && state            === s_DCACHE_READ
 
   switch(state) {
@@ -87,8 +87,8 @@ class MemArbiter(implicit p: Parameters) extends Module {
 }
 
 class ProcessorIO(implicit val p: Parameters) extends Bundle {
-  val host  = new HostIO
-  val axi = new AxiIO
+  val host = new HostIO
+  val axi  = new AxiIO
 }
 
 class Processor(implicit p: Parameters) extends Module {
@@ -103,5 +103,5 @@ class Processor(implicit p: Parameters) extends Module {
   core.io.dcache <> dcache.io.cpu
   arb.io.icache  <> icache.io.axi
   arb.io.dcache  <> dcache.io.axi
-  io.axi       <> arb.io.axi
+  io.axi         <> arb.io.axi
 }

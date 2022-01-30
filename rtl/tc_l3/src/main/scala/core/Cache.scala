@@ -20,7 +20,7 @@ class CacheIO(implicit val p: Parameters) extends Bundle {
 }
 
 class CacheModuleIO(implicit val p: Parameters) extends Bundle {
-  val cpu   = new CacheIO
+  val cpu = new CacheIO
   val axi = new AxiIO
 }
 
