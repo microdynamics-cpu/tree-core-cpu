@@ -2,10 +2,8 @@ package top
 
 import sim._
 
-import treecorel2.InstConfig
-
-object TopMain extends App with InstConfig {
-  if (!SoCEna) {
+object TopMain extends App {
+  if (true) {
     (new chisel3.stage.ChiselStage).execute(
       args,
       Seq(
