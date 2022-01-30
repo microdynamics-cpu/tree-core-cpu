@@ -227,13 +227,13 @@ class CSR(implicit val p: Parameters) extends Module {
   io.out := Lookup(csr_addr, 0.U, csrFile).asUInt
 
   val privValid = csr_addr(9, 8) <= PRV
-  val privInst  = io.cmd               === CSR.P
-  val isEcall   = privInst              && !csr_addr(0) && !csr_addr(8)
-  val isEbreak  = privInst              && csr_addr(0)  && !csr_addr(8)
-  val isEret    = privInst              && !csr_addr(0) && csr_addr(8)
+  val privInst  = io.cmd === CSR.P
+  val isEcall   = privInst && !csr_addr(0) && !csr_addr(8)
+  val isEbreak  = privInst && csr_addr(0) && !csr_addr(8)
+  val isEret    = privInst && !csr_addr(0) && csr_addr(8)
   val csrValid  = csrFile.map(_._1 === csr_addr).reduce(_ || _)
-  val csrRO     = csr_addr(11, 10).andR || csr_addr    === CSR.mtvec || csr_addr === CSR.mtdeleg
-  val wen       = io.cmd               === CSR.W        || io.cmd(1) && rs1_addr.orR
+  val csrRO     = csr_addr(11, 10).andR || csr_addr === CSR.mtvec || csr_addr === CSR.mtdeleg
+  val wen       = io.cmd === CSR.W || io.cmd(1) && rs1_addr.orR
   val wdata = MuxLookup(
     io.cmd,
     0.U,
@@ -264,10 +264,10 @@ class CSR(implicit val p: Parameters) extends Module {
   )
 
   io.expt := io.illegal || iaddrInvalid || laddrInvalid || saddrInvalid ||
-    io.cmd(1, 0).orR && (!csrValid  || !privValid) || wen && csrRO ||
-    (privInst        && !privValid) || isEcall     || isEbreak
-  io.evec            := mtvec + (PRV << 6)
-  io.epc             := mepc
+    io.cmd(1, 0).orR && (!csrValid || !privValid) || wen && csrRO ||
+    (privInst && !privValid) || isEcall || isEbreak
+  io.evec := mtvec + (PRV << 6)
+  io.epc  := mepc
 
   // Counters
   time := time + 1.U

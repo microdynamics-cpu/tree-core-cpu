@@ -20,8 +20,8 @@ class CacheIO(implicit val p: Parameters) extends Bundle {
 }
 
 class CacheModuleIO(implicit val p: Parameters) extends Bundle {
-  val cpu   = new CacheIO
-  val axi = new AxiIO
+  val cpu = new CacheIO
+  val axi = new AXI4IO
 }
 
 trait CacheParams extends CoreParams with HasAxiParameters {
@@ -71,8 +71,8 @@ class Cache(implicit val p: Parameters) extends Module with CacheParams {
   val is_alloc_reg = RegNext(is_alloc)
 
   val hit     = Wire(Bool())
-  val wen     = is_write && (hit     || is_alloc_reg) && !io.cpu.abort || is_alloc
-  val ren     = !wen     && (is_idle || is_read)      && io.cpu.req.valid
+  val wen     = is_write && (hit || is_alloc_reg) && !io.cpu.abort || is_alloc
+  val ren     = !wen && (is_idle || is_read) && io.cpu.req.valid
   val ren_reg = RegNext(ren)
 
   val addr    = io.cpu.req.bits.addr

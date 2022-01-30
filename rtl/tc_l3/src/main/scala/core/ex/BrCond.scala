@@ -21,10 +21,10 @@ class BrCond(implicit val p: Parameters) extends Module {
   val ge         = !lt
   val geu        = !ltu
   io.taken :=
-    ((io.br_type   === Control.BR_EQ)  && eq) ||
-      ((io.br_type === Control.BR_NE)  && neq) ||
-      ((io.br_type === Control.BR_LT)  && lt) ||
-      ((io.br_type === Control.BR_GE)  && ge) ||
+    ((io.br_type === Control.BR_EQ) && eq) ||
+      ((io.br_type === Control.BR_NE) && neq) ||
+      ((io.br_type === Control.BR_LT) && lt) ||
+      ((io.br_type === Control.BR_GE) && ge) ||
       ((io.br_type === Control.BR_LTU) && ltu) ||
       ((io.br_type === Control.BR_GEU) && geu)
 }
