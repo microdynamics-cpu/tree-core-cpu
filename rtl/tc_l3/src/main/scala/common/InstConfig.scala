@@ -21,7 +21,9 @@ trait IOConfig {
 trait InstConfig extends IOConfig {
   val SoCEna   = true
   val CacheEna = false
-
+  // fetch
+  val FlashStartAddr = "h0000000030000000".U(XLen.W)
+  val DiffStartAddr  = "h0000000080000000".U(XLen.W)
   // cache
   val NWay          = 4
   val NBank         = 4
