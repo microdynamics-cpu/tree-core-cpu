@@ -265,28 +265,29 @@ socLintCheck: socNameCheck
 	$(MAKE) -C $(YSYXSOC_HOME)/lint/ lint-unused
 	@echo -e "\033[1;32mlint-unused check done\033[0m"
 
-socPrevBuild: chiselBuild socTopModify
-# FIXME: if only need to moidfy core, commit it
-# @cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
+socPrevBuild: changeTargetToSoCTop chiselBuild socNameCheck
+# FIXME: if only need to moidfy core, comment below two lines
+# need to remove 'TestHarness' module from the ysyxSoCFull.v,
+# because it is the test top module
+	@cp $(YSYXSOC_HOME)/soc/ysyxSoCFull.v $(BUILD_DIR)/soc
 	@sed -i s/ysyx_000000/ysyx_210324/g $(BUILD_DIR)/soc/ysyxSoCFull.v
+	@sed -i '/module TestHarness/,/endmodule/d' $(BUILD_DIR)/soc/ysyxSoCFull.v
 	verilator $(SOC_FLAGS)
 
-# socBuild: socPrevBuild
-# 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j2
-
-socBuild: changeTargetToSoCTop chiselBuild socNameCheck
-	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu/projects/soc/vsrc/
+socBuild: socPrevBuild
+	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j1
 
 socTest:
-	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
-
-socRun:
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
+	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/memtest-flash.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/rtthread-flash.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/memtest-loader.bin
 # $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/rtthread-loader.bin
+
+socSubmit:
+	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
+
 ###### clean target ######
 cleanBuild:
 	rm -rf $(BUILD_DIR)
@@ -307,5 +308,5 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
 		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest unit-test \
-		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socTest socRun\
+		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
