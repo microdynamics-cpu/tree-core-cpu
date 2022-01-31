@@ -20,24 +20,24 @@ object ALU {
   val ALU_XXX    = 15.U(ALUOperLen.W)
 }
 
-class ALUIO(implicit p: Parameters) extends Bundle {
-  val A      = Input(UInt(xlen.W))
-  val B      = Input(UInt(xlen.W))
+class ALUIO extends Bundle with IOConfig {
+  val A      = Input(UInt(XLen.W))
+  val B      = Input(UInt(XLen.W))
   val alu_op = Input(UInt(4.W))
-  val out    = Output(UInt(xlen.W))
-  val sum    = Output(UInt(xlen.W))
+  val out    = Output(UInt(XLen.W))
+  val sum    = Output(UInt(XLen.W))
 }
 
-class ALU(implicit p: Parameters) extends Module {
-  val io     = IO(new ALUIO)
-  val sum    = io.A + Mux(io.alu_op(0), -io.B, io.B)
-  val cmp    = Mux(io.A(xlen - 1) === io.B(xlen - 1), sum(xlen - 1), Mux(io.alu_op(1), io.B(xlen - 1), io.A(xlen - 1)))
-  val shamt  = io.B(4, 0).asUInt
-  val shin   = Mux(io.alu_op(3), io.A, Reverse(io.A))
-  val shiftr = (Cat(io.alu_op(0) && shin(xlen - 1), shin).asSInt >> shamt)(xlen - 1, 0)
-  val shiftl = Reverse(shiftr)
+class ALU extends Module with InstConfig {
+  val io               = IO(new ALUIO)
+  protected val sum    = io.A + Mux(io.alu_op(0), -io.B, io.B)
+  protected val cmp    = Mux(io.A(XLen - 1) === io.B(XLen - 1), sum(XLen - 1), Mux(io.alu_op(1), io.B(XLen - 1), io.A(XLen - 1)))
+  protected val shamt  = io.B(4, 0).asUInt
+  protected val shin   = Mux(io.alu_op(3), io.A, Reverse(io.A))
+  protected val shiftr = (Cat(io.alu_op(0) && shin(XLen - 1), shin).asSInt >> shamt)(XLen - 1, 0)
+  protected val shiftl = Reverse(shiftr)
 
-  val out = MuxLookup(
+  protected val out = MuxLookup(
     io.alu_op,
     io.B,
     Seq(
