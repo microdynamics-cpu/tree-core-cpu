@@ -3,21 +3,21 @@ package treecorel3
 import chisel._
 import chisel.uitl._
 
-class HostIO(implicit p: Parameters) extends Bundle {
-  val fromhost = Flipped(Valid(UInt(xlen.W)))
-  val tohost   = Output(UInt(xlen.W))
+class HostIO extends Bundle with IOConfig {
+  val fromhost = Flipped(Valid(UInt(XLen.W)))
+  val tohost   = Output(UInt(XLen.W))
 }
 
-class CoreIO(implicit p: Parameters) extends Bundle {
+class CoreIO extends Bundle {
   val host   = new HostIO
-  val icache = Flipped((new CacheIO))
-  val dcache = Flipped((new CacheIO))
+  val icache = Flipped(new CacheIO)
+  val dcache = Flipped(new CacheIO)
 }
 
-class Core(implicit val p: Parameters) extends Module {
-  val io    = IO(new CoreIO)
-  val dpath = Module(new DataPath)
-  val ctrl  = Module(new Control)
+class Core extends Module {
+  val io              = IO(new CoreIO)
+  protected val dpath = Module(new DataPath)
+  protected val ctrl  = Module(new Control)
 
   io.icache <> dpath.io.icache
   io.dcache <> dpath.io.dcache

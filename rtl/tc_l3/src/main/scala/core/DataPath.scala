@@ -3,61 +3,62 @@ package treecorel3
 import chisel._
 import chisel.util._
 
-object Const {
-  val PC_START = 0x200
-  val PC_EVEC  = 0x100
-}
-
-class DataPathIO(implicit p: Parameters) extends Bundle {
+class DataPathIO extends Bundle {
   val host   = new HostIO
   val icache = Flipped(new CacheIO)
   val dcache = Flipped(new CacheIO)
   val ctrl   = Flipped(new ControlIO)
 }
 
-class Datapath(implicit val p: Parameters) extends Module {
-  val io      = IO(new DataPathIO)
-  val csr     = Module(new CSR)
-  val regFile = Module(new RegFile)
-  val alu     = Module(new ALU)
-  val immGen  = Module(new IMMGen)
-  val brCond  = p(BuildBrCond)(p)
-
-  import Control._
+class Datapath extends Module with InstConfig {
+  val io                = IO(new DataPathIO)
+  protected val regFile = Module(new RegFile)
+  protected val immGen  = Module(new IMMGen)
+  protected val alu     = Module(new ALU)
+  protected val brCond  = Module(new BrCond)
+  protected val csr     = Module(new CSR)
 
   // fetch / execute Register
-  val fe_inst = RegInit(Instruction.NOP)
-  val fe_pc   = Reg(UInt())
+  protected val fe_inst = RegInit(Instruction.NOP)
+  protected val fe_pc   = Reg(UInt())
 
   // execute / write Back Registers
-  val ew_inst = RegInit(Instruction.NOP)
-  val ew_pc   = Reg(UInt())
-  val ew_alu  = Reg(UInt())
-  val csr_in  = Reg(UInt())
+  protected val ew_inst = RegInit(Instruction.NOP)
+  protected val ew_pc   = Reg(UInt())
+  protected val ew_alu  = Reg(UInt())
+  protected val csr_in  = Reg(UInt())
 
   // control signals
-  val st_type  = Reg(io.ctrl.st_type.cloneType)
-  val ld_type  = Reg(io.ctrl.ld_type.cloneType)
-  val wb_sel   = Reg(io.ctrl.wb_sel.cloneType)
-  val wb_en    = Reg(Bool())
-  val csr_cmd  = Reg(io.ctrl.csr_cmd.cloneType)
-  val illegal  = Reg(Bool())
-  val pc_check = Reg(Bool())
+  protected val st_type  = Reg(io.ctrl.st_type.cloneType)
+  protected val ld_type  = Reg(io.ctrl.ld_type.cloneType)
+  protected val wb_sel   = Reg(io.ctrl.wb_sel.cloneType)
+  protected val wb_en    = Reg(Bool())
+  protected val csr_cmd  = Reg(io.ctrl.csr_cmd.cloneType)
+  protected val illegal  = Reg(Bool())
+  protected val pc_check = Reg(Bool())
 
   // fetch
-  val started = RegNext(reset.asBool())
-  val stall   = !io.icache.resp.valid || !io.dcache.resp.valid
-  val pc      = RegInit(Const.PC_START.U(xlen.W) - 4.U(xlen.W))
-  val npc = Mux(
-    stall,
-    pc,
-    Mux(
-      csr.io.expt,
-      csr.io.evec,
-      Mux(io.ctrl.pc_sel === PC_EPC, csr.io.epc, Mux(io.ctrl.pc_sel === PC_ALU || brCond.io.taken, alu.io.sum >> 1.U << 1.U, Mux(io.ctrl.pc_sel === PC_0, pc, pc + 4.U)))
-    )
-  )
-  val inst = Mux(started || io.ctrl.inst_kill || brCond.io.taken || csr.io.expt, Instruction.NOP, io.icache.resp.bits.data)
+  protected val started = RegNext(reset.asBool())
+  protected val stall   = !io.icache.resp.valid || !io.dcache.resp.valid
+  protected val pc      = RegInit(DiffStartAddr - 4.U(XLen.W))
+  protected val npc     = Wire(UInt(XLen.W))
+
+  when(stall) {
+    npc := pc
+  }.elsewhen(csr.io.expt) {
+    npc := csr.io.evec
+  }.elsewhen(io.ctrl.pc_sel === Control.PC_EPC) {
+    npc := csr.io.epc
+  }.elsewhen(io.ctrl.pc_sel === Control.PC_ALU || brCond.io.taken) {
+    npc := (alu.io.sum >> 1.U) << 1.U
+  }.elsewhen(io.ctrl.pc_sel === PC_0) {
+    npc := pc
+  }.otherwise {
+    npc := pc + 4.U
+  }
+
+  protected val inst = Mux(started || io.ctrl.inst_kill || brCond.io.taken || csr.io.expt, Instruction.NOP, io.icache.resp.bits.data)
+
   pc                      := npc
   io.icache.req.bits.addr := npc
   io.icache.req.bits.data := 0.U
@@ -71,14 +72,13 @@ class Datapath(implicit val p: Parameters) extends Module {
     fe_inst := inst
   }
 
-  // execute
-  // decode
+  // execute decode
   io.ctrl.inst := fe_inst
 
   // regFile read
-  val rd_addr  = fe_inst(11, 7)
-  val rs1_addr = fe_inst(19, 15)
-  val rs2_addr = fe_inst(24, 20)
+  protected val rd_addr  = fe_inst(11, 7)
+  protected val rs1_addr = fe_inst(19, 15)
+  protected val rs2_addr = fe_inst(24, 20)
   regFile.io.raddr1 := rs1_addr
   regFile.io.raddr2 := rs2_addr
 
@@ -87,35 +87,35 @@ class Datapath(implicit val p: Parameters) extends Module {
   immGen.io.sel  := io.ctrl.imm_sel
 
   // bypass
-  val wb_rd_addr = ew_inst(11, 7)
-  val rs1hazard  = wb_en && rs1_addr.orR && (rs1_addr === wb_rd_addr)
-  val rs2hazard  = wb_en && rs2_addr.orR && (rs2_addr === wb_rd_addr)
-  val rs1        = Mux(wb_sel === WB_ALU && rs1hazard, ew_alu, regFile.io.rdata1)
-  val rs2        = Mux(wb_sel === WB_ALU && rs2hazard, ew_alu, regFile.io.rdata2)
+  protected val wb_rd_addr = ew_inst(11, 7)
+  protected val rs1hazard  = wb_en && rs1_addr.orR && (rs1_addr === wb_rd_addr)
+  protected val rs2hazard  = wb_en && rs2_addr.orR && (rs2_addr === wb_rd_addr)
+  protected val rs1        = Mux(wb_sel === WB_ALU && rs1hazard, ew_alu, regFile.io.rdata1)
+  protected val rs2        = Mux(wb_sel === WB_ALU && rs2hazard, ew_alu, regFile.io.rdata2)
 
-  // ALU operations
+  // alu oper
   alu.io.A      := Mux(io.ctrl.A_sel === A_RS1, rs1, fe_pc)
   alu.io.B      := Mux(io.ctrl.B_sel === B_RS2, rs2, immGen.io.out)
   alu.io.alu_op := io.ctrl.alu_op
 
-  // Branch condition calc
+  // branch cond calc
   brCond.io.rs1     := rs1
   brCond.io.rs2     := rs2
   brCond.io.br_type := io.ctrl.br_type
 
   // dcache access
-  val daddr   = Mux(stall, ew_alu, alu.io.sum) >> 2.U << 2.U
-  val woffset = alu.io.sum(1) << 4.U | alu.io.sum(0) << 3.U
+  protected val daddr   = Mux(stall, ew_alu, alu.io.sum) >> 2.U << 2.U
+  protected val woffset = alu.io.sum(1) << 4.U | alu.io.sum(0) << 3.U
   io.dcache.req.valid     := !stall && (io.ctrl.st_type.orR || io.ctrl.ld_type.orR)
   io.dcache.req.bits.addr := daddr
   io.dcache.req.bits.data := rs2 << woffset
   io.dcache.req.bits.mask := MuxLookup(
     Mux(stall, st_type, io.ctrl.st_type),
-    "b0000".U,
+    "b0000".U((XLen / 8).W),
     Seq(
-      ST_SW -> "b1111".U,
-      ST_SH -> ("b11".U << alu.io.sum(1, 0)),
-      ST_SB -> ("b1".U << alu.io.sum(1, 0))
+      ST_SW -> "b1111".U((XLen / 8).W),
+      ST_SH -> ("b11".U((XLen / 8).W) << alu.io.sum(1, 0)),
+      ST_SB -> ("b1".U((XLen / 8).W) << alu.io.sum(1, 0))
     )
   )
 
@@ -142,9 +142,9 @@ class Datapath(implicit val p: Parameters) extends Module {
   }
 
   // load
-  val loffset = ew_alu(1) << 4.U | ew_alu(0) << 3.U
-  val lshift  = io.dcache.resp.bits.data >> loffset
-  val load = MuxLookup(
+  protected val loffset = ew_alu(1) << 4.U | ew_alu(0) << 3.U
+  protected val lshift  = io.dcache.resp.bits.data >> loffset
+  protected val load = MuxLookup(
     ld_type,
     io.dcache.resp.bits.data.zext,
     Seq(
@@ -168,14 +168,14 @@ class Datapath(implicit val p: Parameters) extends Module {
   csr.io.st_type  := st_type
   io.host         <> csr.io.host
 
-  // Regfile Write
-  val regWrite = MuxLookup(
+  // regfile write
+  protected val regWrite = MuxLookup(
     wb_sel,
     ew_alu.zext,
     Seq(
-      WB_MEM -> load,
-      WB_PC4 -> (ew_pc + 4.U).zext,
-      WB_CSR -> csr.io.out.zext
+      Control.WB_MEM -> load,
+      Control.WB_PC4 -> (ew_pc + 4.U).zext,
+      Control.WB_CSR -> csr.io.out.zext
     )
   ).asUInt
 
@@ -186,7 +186,7 @@ class Datapath(implicit val p: Parameters) extends Module {
   // Abort store when there's an excpetion
   io.dcache.abort := csr.io.expt
 
-  if (p(Trace)) {
+  if (false) {
     printf("PC: %x, INST: %x, REG[%d] <- %x\n", ew_pc, ew_inst, Mux(regFile.io.wen, wb_rd_addr, 0.U), Mux(regFile.io.wen, regFile.io.wdata, 0.U))
   }
 }
