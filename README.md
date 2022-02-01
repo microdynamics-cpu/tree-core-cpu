@@ -26,7 +26,7 @@ The TreeCore processors are the riscv cores developed under the [Open Source Chi
 
 Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
 
-> NOTE: now the TreeCoreL2 is under phase.
+> NOTE: now the TreeCoreL2 is under tape-out phase. The chip debug and test introduction will release soon.
 
 ## Motivation
 I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
