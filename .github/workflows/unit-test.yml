@@ -13,4 +13,5 @@ jobs:
       - name: Install dependencies
         run: |
           cd rtl
+          chmod +x scripts/install.sh
           make install
