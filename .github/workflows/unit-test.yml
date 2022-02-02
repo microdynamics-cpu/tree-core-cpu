@@ -5,12 +5,11 @@ on:
     branches: [ main, dev, tc-l1, tc-l2, tc-l3 ]
 
 jobs:
-  build:
-    name: Difftest Test
-    runs-on: ubuntu-latest
+  difftest-isa-test:
+    name: Difftest ISA Test
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
           cd rtl
-          make install
