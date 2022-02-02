@@ -1,0 +1,16 @@
+name: unit-test
+
+on:
+  push:
+    branches: [ main, dev, tc-l1 tc-l2 tc-l3 tc-l4 ]
+
+jobs:
+  runs-on: ubuntu-20.04
+  strategy:
+  fail-fast: false
+  steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        cd rtl
+        make install
