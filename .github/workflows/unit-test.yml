@@ -7,8 +7,7 @@ on:
 jobs:
   difftest-isa:
     runs-on: ubuntu-20.04
-    strategy:
-    fail-fast: false
+    name: Difftest Test
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
