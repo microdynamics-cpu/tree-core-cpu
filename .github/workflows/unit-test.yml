@@ -5,9 +5,9 @@ on:
     branches: [ main dev tc-l1 tc-l2 tc-l3 ]
 
 jobs:
-  difftest-isa:
-    runs-on: ubuntu-20.04
+  build:
     name: Difftest Test
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
