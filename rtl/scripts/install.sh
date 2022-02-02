@@ -79,10 +79,11 @@ install_mill() {
     which mill >/dev/null 2>&1 && {
         echo "mill has been installed."
     } || {
-        sudo mkdir /usr/local/bin >/dev/null 2>&1
-        wget -O /tmp/mill https://gitee.com/oscpu/install/raw/master/mill
-        sudo chmod +x /tmp/mill
-        sudo mv /tmp/mill /usr/local/bin/
+        sudo sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9 > /usr/local/bin/mill && chmod +x /usr/local/bin/mill"
+        # sudo mkdir /usr/local/bin >/dev/null 2>&1
+        # wget -O /tmp/mill https://gitee.com/oscpu/install/raw/master/mill
+        # sudo chmod +x /tmp/mill
+        # sudo mv /tmp/mill /usr/local/bin/
     }
 }
 
