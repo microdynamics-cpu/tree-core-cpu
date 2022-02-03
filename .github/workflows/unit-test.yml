@@ -18,4 +18,12 @@ jobs:
           chmod +x scripts/setup.sh
           ls
           make setup
-          ls
+          ls dependency
+          ls dependency/am/abstract-machine
+          ls dependency/am/am-kernels
+          ls dependency/am/riscv-tests
+          ls dependency/am/simple-tests
+          ls dependency/difftest
+          ls dependency/DRAMsim3
+          ls dependency/NEMU
+          ls dependency/ysyxSoC
