@@ -54,7 +54,7 @@ install_verilator() {
         # every time you need to build:
         # unsetenv VERILATOR_ROOT  # For csh; ignore error if on bash
         unset VERILATOR_ROOT  # for bash
-        cd verilator
+        cd /tmp/verilator
         git pull         # make sure git repository is up-to-date
         git tag          # see what versions exist
         #git checkout master      # use development branch (e.g. recent bug fixes)
