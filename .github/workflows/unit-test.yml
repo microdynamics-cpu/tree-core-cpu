@@ -15,7 +15,6 @@ jobs:
           cd rtl
           chmod +x scripts/install.sh
           make install
-          echo "############# verilator and mill install finish!!! #############"
           chmod +x scripts/setup.sh
           ls
           make setup

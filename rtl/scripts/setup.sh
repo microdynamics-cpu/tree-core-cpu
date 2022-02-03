@@ -36,7 +36,8 @@ configYsyxSoftwareFile() {
 configAbstractMachine() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-
+    echo "=====[bef] abstract machine ====="
+    ls
     if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}abstract-machine exist!${END}"
         # if git fsck --full != 0; then
@@ -72,12 +73,13 @@ configAbstractMachine() {
 configTestSuites() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-
+    echo "=====[aft] abstract machine ====="
+    ls
     if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}riscv-tests exist!${END}"
     else
         echo -e "${INFO}[no download]: git clone...${END}"
-    git clone https://github.com/NJU-ProjectN/riscv-tests.git
+        git clone https://github.com/NJU-ProjectN/riscv-tests.git
     fi
 
     cd ${ROOT_PATH}
