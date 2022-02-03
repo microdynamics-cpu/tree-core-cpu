@@ -36,11 +36,6 @@ configYsyxSoftwareFile() {
 configAbstractMachine() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-    echo "=====[bef] abstract machine ====="
-    ls
-    ls riscv-tests
-    ls simple-tests
-    ls am-kernels
     if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}abstract-machine exist!${END}"
         # if git fsck --full != 0; then
@@ -142,6 +137,8 @@ configDiffTest() {
 
 ###### NEMU ######
 configNemu() {
+    cd ${ROOT_PATH}
+
     if [[ -d ${NEMU_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}NEMU exist!${END}"
     else
@@ -191,6 +188,7 @@ configDramSim3() {
 
     cd ${DRAMSIM3_FOLDER_PATH}
     git checkout 5723f6b1cc157ac2d7b4154b50fd1799c9cf54aa
+
     cd ${ROOT_PATH}
 }
 
@@ -204,6 +202,8 @@ configYsyxSoC() {
         echo -e "${INFO}[no download]: git clone...${END}"
         git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
     fi
+
+    cd ${ROOT_PATH}
 }
 
 helpInfo() {
