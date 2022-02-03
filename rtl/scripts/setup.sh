@@ -38,6 +38,9 @@ configAbstractMachine() {
     cd ${AM_FOLDER_PATH}
     echo "=====[bef] abstract machine ====="
     ls
+    ls riscv-tests
+    ls simple-tests
+    ls am-kernels
     if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}abstract-machine exist!${END}"
         # if git fsck --full != 0; then
