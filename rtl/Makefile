@@ -66,9 +66,9 @@ export NOOP_HOME     := $(ROOT_PATH)
 export DRAMSIM3_HOME := $(DRAMSIM3_HOME)
 
 define getRecursiveTestRes
-	@echo "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
 	@printf "[%2d/%d]" $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) $(2)
 	@echo $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) > $(1)/build/log/allcasenum-log.txt
+	-$(BUILD_DIR)/emu -i $<
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
 
 	@printf "[%25s] " $@
@@ -215,7 +215,6 @@ riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 
 $(riscvTestLogFile):
 	@echo "=====HELLO======"
-	@printf "=====ASDFASDF======"
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
 	$(shell touch $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell touch $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
@@ -223,7 +222,6 @@ $(riscvTestLogFile):
 	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
 
 $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
-	@echo "TTTTTTTTTTTTTTTTTTTT"
 	$(call getRecursiveTestRes, $(RISCVTEST_HOME), $(riscvNum))
 
 
