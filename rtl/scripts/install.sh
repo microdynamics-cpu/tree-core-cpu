@@ -99,6 +99,9 @@ install_package libsqlite3-dev
 install_package libreadline-dev libsdl2-dev bison
 # install cmake for DRAMsim3
 install_package cmake
+# isntall riscv toolchain
+install_package g++-riscv64-linux-gnu
+install_package binutils-riscv64-linux-gnu
 
 [[ $GTKWAVE == "true" ]] && install_package gtkwave libcanberra-gtk-module
 [[ $CHISEL == "true" ]] && install_mill
