@@ -167,7 +167,9 @@ configNemu() {
     # change the sim memory from 8G to 256MB
     # need to enter 'make menuconfig' and 
     # modify [Memory Configuration]->[Memory size] to '0x10000000' manually
-    # sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
+    sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
+    # NOTE: you need to set the 'NEMU_HOME' and 'NOOP_HOME' in sh config file!
+    # because the compliation only reads sh env vars
 
     cd ${ROOT_PATH}
 }

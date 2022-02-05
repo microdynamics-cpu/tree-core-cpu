@@ -17,3 +17,6 @@ jobs:
           make install
           chmod +x scripts/setup.sh
           make setup
+          make nemuBuild
+          make dramsim3Build
+# make CHIP_TARGET=tc_l2 unit-test
