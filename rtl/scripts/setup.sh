@@ -71,8 +71,6 @@ configAbstractMachine() {
 configTestSuites() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-    echo "=====[aft] abstract machine ====="
-    ls
     if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}riscv-tests exist!${END}"
     else

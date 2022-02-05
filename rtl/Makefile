@@ -184,7 +184,7 @@ demoTest:
 simpleTestbinFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
 simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-mycpu, simpletest-%, $(basename $(notdir $(file)))))
 simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
-$(shell mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(SIMPLETEST_HOME) ]]; then mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1; fi)
 
 simpleRecursiveTest: $(simpleTestLogFile) $(simpleTestCaseName)
 	@printf "[\033[0;33m%s\033[0m]\n" all-done
@@ -202,11 +202,12 @@ $(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bi
 
 
 ###### riscv test recursive test target ######
+riscvNum = 50
 riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
 riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-mycpu, riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
-riscvNum = 50
-$(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(RISCVTEST_HOME) ]]; then mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
+
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
 	@echo -e "[\033[0;33mAll: $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
@@ -226,7 +227,8 @@ $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
 cpuTestbinFile   = $(foreach dir, $(CPUTEST_HOME)/build, $(wildcard $(dir)/*.bin))
 cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-mycpu, cputest-%, $(basename $(notdir $(file)))))
 cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, $(file)))
-$(shell mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(CPUTEST_HOME) ]]; then mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
+
 cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
 	@echo -e "[\033[0;33mAll: $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
