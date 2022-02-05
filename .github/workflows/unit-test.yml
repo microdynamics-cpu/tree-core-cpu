@@ -19,4 +19,6 @@ jobs:
           make setup
           make nemuBuild
           make dramsim3Build
+          make riscvTestBuild
+          make cpuTestBuild
           make CHIP_TARGET=tc_l2 unit-test
