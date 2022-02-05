@@ -215,6 +215,7 @@ riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 
 $(riscvTestLogFile):
 	@echo "=====HELLO======"
+	@printf "=====ASDFASDF======"
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
 	$(shell touch $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell touch $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
