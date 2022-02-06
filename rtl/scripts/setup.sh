@@ -34,6 +34,8 @@ configYsyxSoftwareFile() {
 # download the am repo from the github
 ###### abstract-machine ######
 configAbstractMachine() {
+    configYsyxSoftwareFile
+
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
     if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
@@ -44,8 +46,10 @@ configAbstractMachine() {
         #     git clone https://github.com/NJU-ProjectN/abstract-machine.git
         # fi
     else
-        echo -e "${INFO}[no download]: git clone...${END}"
-        git clone https://github.com/NJU-ProjectN/abstract-machine.git
+        echo -e "${INFO}[no exist] copy...${END}"
+        cp -rf ${YSYX_SOFTWARE_FILE_PATH}/abstract-machine ./
+        # echo -e "${INFO}[no download]: git clone...${END}"
+        # git clone https://github.com/NJU-ProjectN/abstract-machine.git
     fi
 
     cd ${ABSTRACT_MACHINE_FOLDER_PATH}
