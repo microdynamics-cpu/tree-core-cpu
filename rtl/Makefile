@@ -214,7 +214,6 @@ riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 	@echo -e "[\033[0;33mAll: $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
 
 $(riscvTestLogFile):
-	@echo "=====HELLO======"
 	$(shell touch $(RISCVTEST_HOME)/build/log/$@)
 	$(shell touch $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell touch $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
