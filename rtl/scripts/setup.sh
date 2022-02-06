@@ -53,7 +53,7 @@ configAbstractMachine() {
     fi
 
     cd ${ABSTRACT_MACHINE_FOLDER_PATH}
-    git checkout ysyx2021
+    # git checkout ysyx2021
 
     if [[ -z $AM_HOME ]]; then
         echo -e "${INFO}AM_HOME is empty, set AM_HOME...${END}"

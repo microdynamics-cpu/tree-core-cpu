@@ -68,7 +68,6 @@ export DRAMSIM3_HOME := $(DRAMSIM3_HOME)
 define getRecursiveTestRes
 	@printf "[%2d/%d]" $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) $(2)
 	@echo $$(echo $$(cat $(1)/build/log/allcasenum-log.txt) + 1 | bc) > $(1)/build/log/allcasenum-log.txt
-	-$(BUILD_DIR)/emu -i $<
 	-@$(BUILD_DIR)/emu -i $< &> $(1)/build/log/$@-log.txt
 
 	@printf "[%25s] " $@

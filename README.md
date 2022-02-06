@@ -97,11 +97,14 @@ adsfadfasdfasf
 
 First, you need to install verilator, mill and dependency libraries:
 ```bash
+$ su -
 $ cd rtl
+$ chmod +x scripts/install.sh
 $ make install
 ```
 Then, download and configuare all components from the github:
 ```bash
+$ chmod +x scripts/setup.sh
 $ make setup
 ```
 After that, you need to set the `NEMU_HOME` and `NOOP_HOME` environment variables:
