@@ -34,9 +34,10 @@ configYsyxSoftwareFile() {
 # download the am repo from the github
 ###### abstract-machine ######
 configAbstractMachine() {
+    configYsyxSoftwareFile
+
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-
     if [[ -d ${ABSTRACT_MACHINE_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}abstract-machine exist!${END}"
         # if git fsck --full != 0; then
@@ -45,12 +46,14 @@ configAbstractMachine() {
         #     git clone https://github.com/NJU-ProjectN/abstract-machine.git
         # fi
     else
-        echo -e "${INFO}[no download]: git clone...${END}"
-        git clone https://github.com/NJU-ProjectN/abstract-machine.git
+        echo -e "${INFO}[no exist] copy...${END}"
+        cp -rf ${YSYX_SOFTWARE_FILE_PATH}/abstract-machine ./
+        # echo -e "${INFO}[no download]: git clone...${END}"
+        # git clone https://github.com/NJU-ProjectN/abstract-machine.git
     fi
 
     cd ${ABSTRACT_MACHINE_FOLDER_PATH}
-    git checkout ysyx2021
+    # git checkout ysyx2021
 
     if [[ -z $AM_HOME ]]; then
         echo -e "${INFO}AM_HOME is empty, set AM_HOME...${END}"
@@ -72,12 +75,11 @@ configAbstractMachine() {
 configTestSuites() {
     mkdir -p ${AM_FOLDER_PATH}
     cd ${AM_FOLDER_PATH}
-
     if [[ -d ${RISCV_TESTS_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}riscv-tests exist!${END}"
     else
         echo -e "${INFO}[no download]: git clone...${END}"
-    git clone https://github.com/NJU-ProjectN/riscv-tests.git
+        git clone https://github.com/NJU-ProjectN/riscv-tests.git
     fi
 
     cd ${ROOT_PATH}
@@ -137,6 +139,8 @@ configDiffTest() {
 
 ###### NEMU ######
 configNemu() {
+    cd ${ROOT_PATH}
+
     if [[ -d ${NEMU_FOLDER_PATH} ]]; then
         echo -e "${RIGHT}NEMU exist!${END}"
     else
@@ -167,7 +171,9 @@ configNemu() {
     # change the sim memory from 8G to 256MB
     # need to enter 'make menuconfig' and 
     # modify [Memory Configuration]->[Memory size] to '0x10000000' manually
-    # sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
+    sed -i 's/^\(CONFIG_MSIZE=0x\)\(.*\)/\110000000/' .config
+    # NOTE: you need to set the 'NEMU_HOME' and 'NOOP_HOME' in sh config file!
+    # because the compliation only reads sh env vars
 
     cd ${ROOT_PATH}
 }
@@ -186,6 +192,7 @@ configDramSim3() {
 
     cd ${DRAMSIM3_FOLDER_PATH}
     git checkout 5723f6b1cc157ac2d7b4154b50fd1799c9cf54aa
+
     cd ${ROOT_PATH}
 }
 
@@ -199,6 +206,8 @@ configYsyxSoC() {
         echo -e "${INFO}[no download]: git clone...${END}"
         git clone --depth 1 https://github.com/OSCPU/ysyxSoC.git
     fi
+
+    cd ${ROOT_PATH}
 }
 
 helpInfo() {

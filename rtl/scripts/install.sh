@@ -46,22 +46,26 @@ install_verilator() {
         install_package $package
     done
 
-    git clone https://github.com/verilator/verilator   # Only first time
+    which verilator >/dev/null 2>&1 && {
+        echo "verilator has been installed."
+    } || {
+        git clone https://github.com/verilator/verilator /tmp/verilator  # run first time
 
-    # Every time you need to build:
-    # unsetenv VERILATOR_ROOT  # For csh; ignore error if on bash
-    unset VERILATOR_ROOT  # For bash
-    cd verilator
-    git pull         # Make sure git repository is up-to-date
-    git tag          # See what versions exist
-    #git checkout master      # Use development branch (e.g. recent bug fixes)
-    #git checkout stable      # Use most recent stable release
-    git checkout v4.204  # Switch to specified release version
+        # every time you need to build:
+        # unsetenv VERILATOR_ROOT  # For csh; ignore error if on bash
+        unset VERILATOR_ROOT  # for bash
+        cd /tmp/verilator
+        git pull         # make sure git repository is up-to-date
+        git tag          # see what versions exist
+        #git checkout master      # use development branch (e.g. recent bug fixes)
+        #git checkout stable      # use most recent stable release
+        git checkout v4.204  # switch to specified release version
 
-    autoconf         # Create ./configure script
-    ./configure      # Configure and create Makefile
-    make -j `nproc`  # Build Verilator itself (if error, try just 'make')
-    sudo make install
+        autoconf         # create ./configure script
+        ./configure      # configure and create Makefile
+        make -j `nproc`  # build Verilator itself (if error, try just 'make')
+        sudo make install
+    }
 
     # dpkg -s verilator >/dev/null 2>&1 && {
     #     echo "verilator has been installed."
@@ -95,8 +99,11 @@ install_package libsqlite3-dev
 install_package libreadline-dev libsdl2-dev bison
 # install cmake for DRAMsim3
 install_package cmake
+# isntall riscv toolchain
+install_package g++-riscv64-linux-gnu
+install_package binutils-riscv64-linux-gnu
 
 [[ $GTKWAVE == "true" ]] && install_package gtkwave libcanberra-gtk-module
 [[ $CHISEL == "true" ]] && install_mill
 
-echo "finish!"
+echo "############# verilator and mill install finish!!! #############"
