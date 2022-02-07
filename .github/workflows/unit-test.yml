@@ -15,5 +15,10 @@ jobs:
           cd rtl
           chmod +x scripts/install.sh
           make install
-# chmod +x scripts/setup.sh
-# make setup
+          chmod +x scripts/setup.sh
+          make setup
+          make nemuBuild
+          make dramsim3Build
+          make riscvTestBuild
+          make cpuTestBuild
+          make CHIP_TARGET=tc_l2 unit-test
