@@ -1,6 +1,6 @@
 <p align="center">
     <img width="200px" src="./.images/tree_core_logo.svg" align="center" alt="Tree Core CPU" />
-    <h2 align="center">TreeCore CPU: A series of riscv processors written from scratch</h2>
+    <h2 align="center">TreeCore CPU: A Series of RISCV Processors Written from Scratch</h2>
 </p>
 <p align="center">
    <a href="https://github.com/microdynamics-cpu/tree-core-cpu/actions">
@@ -25,9 +25,12 @@
 
 
 ## Overview
-The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has carried out two season. Now Season 3 is in progress(**_2021.7-2022.1_**).
+The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has carried out three season:
+1. Season 1's achievements is [NutShell](https://github.com/OSCPU/NutShell), [a Linux-Compatible RISC-V Processor Designed by Undergraduates](https://www.youtube.com/watch?v=8K97ahPecqE)(**_2021.8-2021.12_**).
+2. Season 2(**_2020.8-2021.x_**).
+3. Season 3 . Season 3 now is completed(**_2021.7-2022.1_**).
 
-Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
+Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, so not just for high performance. Not like textbooks exhibit the all the knowledges in one time, TreeCore start a very simple model and provide necessary new concepts or knowledge you need to learn.
 
 > NOTE: now the TreeCoreL2 is under tape-out phase. The chip debug and test introduction will release soon.
 
