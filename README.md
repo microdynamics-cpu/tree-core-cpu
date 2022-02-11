@@ -27,15 +27,15 @@
 ## Overview
 The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. Students enroll in this project need to pass tests, submit final design report and prepare oral defense for the qualification of tape-out. It also can be called "One Life, One Chip" project in Chinese which has carried out three season:
 ### Season 1[**2021.8-2021.12**]: Five undergraduates design a tape-outed riscv processor in four months
-Season 1 is a first educational practice which aims to design riscv processor for tape-out in China. And its achievements is [NutShell](https://github.com/OSCPU/NutShell), [a Linux-Compatible RISC-V Processor Designed by Undergraduates](https://www.youtube.com/watch?v=8K97ahPecqE). Five students are all from UCAS(**_University of Chinese Academy of Sciences_**).
+Season 1 was a first educational practice which aimed to design riscv processor by five undergraduates for tape-out in China. And its achievement was [NutShell](https://github.com/OSCPU/NutShell), [a Linux-Compatible RISC-V Processor Designed by Undergraduates](https://www.youtube.com/watch?v=8K97ahPecqE). Five students are all from UCAS(**_University of Chinese Academy of Sciences_**).
 
 ### Season 2[**2020.8-2021.x**]: Eleven undergraduates design their own tape-outed processors
 Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
 
-### Season 3[**2021.7-2022.1**]: One hundred students design
-Season 3 and 100 processor. Season 3 now is completed.
+### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
+TreeCore project is the achievement of this season. Season 3 now is completed, and the official website is [ysyx.org](https://ysyx.org/).
 
-Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, so not just for high performance. Not like textbooks exhibit the all the knowledges in one time, TreeCore start a very simple model and provide necessary new concepts or knowledge you need to learn.
+Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
 
 > NOTE: now the TreeCoreL2 is under tape-out phase. The chip debug and test introduction will release soon.
 
