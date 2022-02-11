@@ -101,7 +101,7 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 ## Usage
 adsfadfasdfasf
 ### Enviroment Setup
-> NOTE: All of the components are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`.
+> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 First, you need to install verilator, mill and dependency libraries:
 ```bash
@@ -110,15 +110,16 @@ $ cd rtl
 $ chmod +x scripts/install.sh
 $ make install
 ```
-Then, download and configuare all components from the github:
+Then, download and configuare all components from the github and gitee:
 ```bash
 $ chmod +x scripts/setup.sh
 $ make setup
 ```
-After that, you need to set the `NEMU_HOME` and `NOOP_HOME` environment variables:
+After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables in sh environment config file:
 ```bash
-$ NEMU_HOME=$(pwd)/dependency/NEMU
-$ NOOP_HOME=$(pwd)/dependency
+$ echo export NEMU_HOME=$(pwd)/dependency/NEMU >> ~/.bashrc # according to shell type your system uses
+$ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
+$ exec bash
 ```
 
 Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
@@ -138,6 +139,7 @@ $ make menuconfig
 
 Usually, 256MB memory address space is enough for simulation. You need to switch into `[Memory - Configuration]` menu and change `[Memory size]` value into `0x10000000` manually as follow picture shows. It can adjust difftest's simulation memory size from 8G to 256MB.
 
+> NOTE: In fact, the `Memory size` has been modified to `0x10000000` in `make setup` phase. Now, you only need to confirm it once more time.
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/nemu-build-mem.png"/>
  <p align="center">
@@ -148,7 +150,7 @@ Usually, 256MB memory address space is enough for simulation. You need to switch
 Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
 
 ### Compile runtime libraries
-If you already run above steps correctly, you need to compile runtime libraries as follow:
+If you already run above commands correctly, you need to compile runtime libraries as follow:
 
 ```bash
 $ make nemuBuild
@@ -156,7 +158,8 @@ $ make dramsim3Build
 ```
 
 ### Compile testcases
-```bash 
+Two type of ISA testcases set are used: `riscv test` and `cpu test`.
+```bash
 $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
@@ -164,7 +167,7 @@ $ make amTestBuild
 > NOTE: you need to enough memory to compile the 
 
 ### Recursive test
-When you modify the processor design, you
+or after you modify the processor design, you need to run recursive test to gurantee the 
 ```bash
 $ make unit-tests
 ```
