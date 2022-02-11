@@ -1,6 +1,6 @@
 <p align="center">
     <img width="200px" src="./.images/tree_core_logo.svg" align="center" alt="Tree Core CPU" />
-    <h2 align="center">TreeCore CPU: A series of riscv processors written from scratch</h2>
+    <h2 align="center">TreeCore CPU: A Series of RISCV Processors Written from Scratch</h2>
 </p>
 <p align="center">
    <a href="https://github.com/microdynamics-cpu/tree-core-cpu/actions">
@@ -25,9 +25,17 @@
 
 
 ## Overview
-The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. It also can be called "One Life, One Chip" project in Chinese which has carried out two season. Now Season 3 is in progress(**_2021.7-2022.1_**).
+The TreeCore processors are the riscv cores developed under the [Open Source Chip Project by University (OSCPU)](https://github.com/OSCPU) project. OSCPU was initiated by ICT, CAS(**_Institute of computing Technology, Chinese Academy of Sciences_**), which aims to make students use all open-source toolchains to design chips by themselves. Students enroll in this project need to pass tests, submit final design report and prepare oral defense for the qualification of tape-out. It also can be called "One Life, One Chip" project in Chinese which has carried out three season:
+### Season 1[**2021.8-2021.12**]: Five undergraduates design a tape-outed riscv processor in four months
+Season 1 was a first educational practice which aimed to design riscv processor by five undergraduates for tape-out in China. And its achievement was [NutShell](https://github.com/OSCPU/NutShell), [a Linux-Compatible RISC-V Processor Designed by Undergraduates](https://www.youtube.com/watch?v=8K97ahPecqE). Five students are all from UCAS(**_University of Chinese Academy of Sciences_**).
 
-Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project is aim to help students to develop a series of riscv processor by step-to-step materials, So not just for high performance. Not like textbooks exhibit the all the knowledges in one time. TreeCore start a very simple model. provide necessary new concepts or knowledge you need to learn.
+### Season 2[**2020.8-2021.x**]: Eleven undergraduates design their own tape-outed processors
+Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
+
+### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
+TreeCore project is the achievement of this season. Season 3 now is completed, and the official website is [ysyx.org](https://ysyx.org/).
+
+Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
 
 > NOTE: now the TreeCoreL2 is under tape-out phase. The chip debug and test introduction will release soon.
 
@@ -93,7 +101,7 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 ## Usage
 adsfadfasdfasf
 ### Enviroment Setup
-> NOTE: All of the components are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`.
+> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 First, you need to install verilator, mill and dependency libraries:
 ```bash
@@ -102,15 +110,16 @@ $ cd rtl
 $ chmod +x scripts/install.sh
 $ make install
 ```
-Then, download and configuare all components from the github:
+Then, download and configuare all components from the github and gitee:
 ```bash
 $ chmod +x scripts/setup.sh
 $ make setup
 ```
-After that, you need to set the `NEMU_HOME` and `NOOP_HOME` environment variables:
+After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables in sh environment config file:
 ```bash
-$ NEMU_HOME=$(pwd)/dependency/NEMU
-$ NOOP_HOME=$(pwd)/dependency
+$ echo export NEMU_HOME=$(pwd)/dependency/NEMU >> ~/.bashrc # according to shell type your system uses
+$ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
+$ exec bash
 ```
 
 Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
@@ -130,6 +139,7 @@ $ make menuconfig
 
 Usually, 256MB memory address space is enough for simulation. You need to switch into `[Memory - Configuration]` menu and change `[Memory size]` value into `0x10000000` manually as follow picture shows. It can adjust difftest's simulation memory size from 8G to 256MB.
 
+> NOTE: In fact, the `Memory size` has been modified to `0x10000000` in `make setup` phase. Now, you only need to confirm it once more time.
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/nemu-build-mem.png"/>
  <p align="center">
@@ -140,7 +150,7 @@ Usually, 256MB memory address space is enough for simulation. You need to switch
 Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
 
 ### Compile runtime libraries
-If you already run above steps correctly, you need to compile runtime libraries as follow:
+If you already run above commands correctly, you need to compile runtime libraries as follow:
 
 ```bash
 $ make nemuBuild
@@ -148,7 +158,8 @@ $ make dramsim3Build
 ```
 
 ### Compile testcases
-```bash 
+Two type of ISA testcases set are used: `riscv test` and `cpu test`.
+```bash
 $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
@@ -156,7 +167,7 @@ $ make amTestBuild
 > NOTE: you need to enough memory to compile the 
 
 ### Recursive test
-When you modify the processor design, you
+or after you modify the processor design, you need to run recursive test to gurantee the 
 ```bash
 $ make unit-tests
 ```
