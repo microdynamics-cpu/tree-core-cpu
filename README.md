@@ -179,7 +179,10 @@ $ make
 ```
 
 ### SoC test
-
+```bash
+$ make socBuild
+$ make socTest
+```
 ### Customize new core project
 
 ## Summary
