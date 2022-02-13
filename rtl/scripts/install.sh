@@ -57,7 +57,7 @@ install_verilator() {
         unset VERILATOR_ROOT  # for bash
         cd dependency/verilator
         git pull         # make sure git repository is up-to-date
-        git tag          # see what versions exist
+        # git tag          # see what versions exist
         #git checkout master      # use development branch (e.g. recent bug fixes)
         #git checkout stable      # use most recent stable release
         git checkout v4.204  # switch to specified release version
@@ -82,10 +82,10 @@ install_mill() {
 
 install_verilator
 
-# install libsqlite3-dev for difftest
+# install for difftest
 install_package libsqlite3-dev
-# install libreadline-dev libsdl2-dev bison for NEMU
-install_package libreadline-dev libsdl2-dev bison
+# install for NEMU
+install_package libreadline-dev libsdl2-dev bison libncurses5-dev
 # install cmake for DRAMsim3
 install_package cmake
 # isntall riscv toolchain
