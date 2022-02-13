@@ -49,12 +49,13 @@ install_verilator() {
     which verilator >/dev/null 2>&1 && {
         echo "verilator has been installed."
     } || {
-        git clone https://github.com/verilator/verilator # run first time
+        mkdir -p dependency
+        git clone https://github.com/verilator/verilator ./dependency/verilator # run first time
 
         # every time you need to build:
         # unsetenv VERILATOR_ROOT  # For csh; ignore error if on bash
         unset VERILATOR_ROOT  # for bash
-        cd verilator
+        cd dependency/verilator
         git pull         # make sure git repository is up-to-date
         git tag          # see what versions exist
         #git checkout master      # use development branch (e.g. recent bug fixes)
