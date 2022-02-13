@@ -49,12 +49,12 @@ install_verilator() {
     which verilator >/dev/null 2>&1 && {
         echo "verilator has been installed."
     } || {
-        git clone https://github.com/verilator/verilator /tmp/verilator  # run first time
+        git clone https://github.com/verilator/verilator # run first time
 
         # every time you need to build:
         # unsetenv VERILATOR_ROOT  # For csh; ignore error if on bash
         unset VERILATOR_ROOT  # for bash
-        cd /tmp/verilator
+        cd verilator
         git pull         # make sure git repository is up-to-date
         git tag          # see what versions exist
         #git checkout master      # use development branch (e.g. recent bug fixes)
@@ -66,14 +66,6 @@ install_verilator() {
         make -j `nproc`  # build Verilator itself (if error, try just 'make')
         sudo make install
     }
-
-    # dpkg -s verilator >/dev/null 2>&1 && {
-    #     echo "verilator has been installed."
-    # } || {
-    #     wget -O /tmp/verilator_4_204_amd64.deb https://gitee.com/oscpu/install/attach_files/817254/download/verilator_4_204_amd64.deb
-    #     sudo dpkg -i /tmp/verilator_4_204_amd64.deb
-    #     rm /tmp/verilator_4_204_amd64.deb
-    # }
 }
 
 install_mill() {
@@ -84,10 +76,6 @@ install_mill() {
         echo "mill has been installed."
     } || {
         sudo sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9 > /usr/local/bin/mill && chmod +x /usr/local/bin/mill"
-        # sudo mkdir /usr/local/bin >/dev/null 2>&1
-        # wget -O /tmp/mill https://gitee.com/oscpu/install/raw/master/mill
-        # sudo chmod +x /tmp/mill
-        # sudo mv /tmp/mill /usr/local/bin/
     }
 }
 
