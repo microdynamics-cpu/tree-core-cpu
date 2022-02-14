@@ -99,13 +99,12 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 #### Configuration
 
 ## Usage
-adsfadfasdfasf
+This section introduces how to set up development environment and runs unit test for your own riscv processor.
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 First, you need to install verilator, mill and dependency libraries:
 ```bash
-$ su -
 $ cd rtl
 $ chmod +x scripts/install.sh
 $ make install
@@ -119,7 +118,7 @@ After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variable
 ```bash
 $ echo export NEMU_HOME=$(pwd)/dependency/NEMU >> ~/.bashrc # according to shell type your system uses
 $ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
-$ exec bash
+$ source ~/.bashrc
 ```
 
 Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
@@ -153,6 +152,7 @@ Last, remember to type `Save` button in bottom menu to save the `.config` file. 
 If you already run above commands correctly, you need to compile runtime libraries as follow:
 
 ```bash
+$ cd ../../
 $ make nemuBuild
 $ make dramsim3Build
 ```
@@ -164,13 +164,24 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
-> NOTE: you need to enough memory to compile the 
+> NOTE: you need to enough memory to compile the application binaries.
 
 ### Recursive test
-or after you modify the processor design, you need to run recursive test to gurantee the 
+After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
+
 ```bash
 $ make unit-tests
 ```
+
+First, Running unit test need to download `mill` from github. If you cannot access the github correctly, you need to type below commands to configure `mill` manually:
+
+```bash
+$ # download '0.9.9-assembly' from https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9-assembly manually.
+$ cp 0.9.9-assembly ~/.cache/mill/download
+$ mv ~/.cache/mill/download/0.9.9-assembly ~/.cache/mill/download/0.9.9 # change name
+$ chmod +x ~/.cache/mill/download/0.9.9
+```
+
 IMG!!!!!!!!!
 
 ### Software test
