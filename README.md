@@ -182,7 +182,12 @@ $ mv ~/.cache/mill/download/0.9.9-assembly ~/.cache/mill/download/0.9.9 # change
 $ chmod +x ~/.cache/mill/download/0.9.9
 ```
 
-IMG!!!!!!!!!
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/isa-unit-test.png"/>
+ <p align="center">
+  <em>The result of unit test</em>
+ </p>
+</p>
 
 ### Software test
 ```bash
