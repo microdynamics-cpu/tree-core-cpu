@@ -99,13 +99,12 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 #### Configuration
 
 ## Usage
-adsfadfasdfasf
+This section introduces how to set up development environment and runs unit test for your own riscv processor.
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 First, you need to install verilator, mill and dependency libraries:
 ```bash
-$ su -
 $ cd rtl
 $ chmod +x scripts/install.sh
 $ make install
@@ -115,20 +114,20 @@ Then, download and configuare all components from the github and gitee:
 $ chmod +x scripts/setup.sh
 $ make setup
 ```
-After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables in sh environment config file:
+After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables to your shell environment config file:
 ```bash
 $ echo export NEMU_HOME=$(pwd)/dependency/NEMU >> ~/.bashrc # according to shell type your system uses
 $ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
-$ exec bash
+$ source ~/.bashrc
 ```
 
-Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
+Running the ISA test don't need 8G memory, so you can configure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
 
 ```bash
 $ cd dependency/NEMU
 $ make menuconfig
 ```
-> NOTE: if you encount `Your display is too small to run Menuconfig!` error, you need to resize the terminal to match need as the console output: `It must be at least 19 lines by 80 columns`.
+> NOTE: if you encounter `Your display is too small to run Menuconfig!` error, you need to resize the terminal to match need as the console output: `It must be at least 19 lines by 80 columns`.
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/nemu-build.png"/>
@@ -150,9 +149,10 @@ Usually, 256MB memory address space is enough for simulation. You need to switch
 Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
 
 ### Compile runtime libraries
-If you already run above commands correctly, you need to compile runtime libraries as follow:
+If you already run above commands correctly, you can compile runtime libraries as follow:
 
 ```bash
+$ cd ../../
 $ make nemuBuild
 $ make dramsim3Build
 ```
@@ -164,14 +164,31 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
-> NOTE: you need to enough memory to compile the 
+> NOTE: you need to enough memory to compile the application binaries.
 
 ### Recursive test
-or after you modify the processor design, you need to run recursive test to gurantee the 
+After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
+
 ```bash
 $ make unit-tests
 ```
-IMG!!!!!!!!!
+
+The unit tests display the progress, testcase name, PASS or FAIL and ipc value.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/isa-unit-test.png"/>
+ <p align="center">
+  <em>TreeCoreL2's unit test result</em>
+ </p>
+</p>
+
+First, Running unit test need to download `mill` from github. If you cannot access the github correctly, you need to type below commands to configure `mill` manually:
+
+```bash
+$ # download '0.9.9-assembly' from https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9-assembly manually.
+$ cp 0.9.9-assembly ~/.cache/mill/download
+$ mv ~/.cache/mill/download/0.9.9-assembly ~/.cache/mill/download/0.9.9 # change name
+$ chmod +x ~/.cache/mill/download/0.9.9
+```
 
 ### Software test
 ```bash
@@ -179,7 +196,10 @@ $ make
 ```
 
 ### SoC test
-
+```bash
+$ make socBuild
+$ make socTest
+```
 ### Customize new core project
 
 ## Summary
