@@ -114,20 +114,20 @@ Then, download and configuare all components from the github and gitee:
 $ chmod +x scripts/setup.sh
 $ make setup
 ```
-After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables in sh environment config file:
+After that, you need to add the `NEMU_HOME` and `NOOP_HOME` environment variables to your shell environment config file:
 ```bash
 $ echo export NEMU_HOME=$(pwd)/dependency/NEMU >> ~/.bashrc # according to shell type your system uses
 $ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
 $ source ~/.bashrc
 ```
 
-Becuase running the isa test don't need 8G memory, so you need to config the simulation memory size to reduce memory usage. You need to type  `make menuconfig` as follow:
+Running the ISA test don't need 8G memory, so you can configure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
 
 ```bash
 $ cd dependency/NEMU
 $ make menuconfig
 ```
-> NOTE: if you encount `Your display is too small to run Menuconfig!` error, you need to resize the terminal to match need as the console output: `It must be at least 19 lines by 80 columns`.
+> NOTE: if you encounter `Your display is too small to run Menuconfig!` error, you need to resize the terminal to match need as the console output: `It must be at least 19 lines by 80 columns`.
 
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/nemu-build.png"/>
@@ -149,7 +149,7 @@ Usually, 256MB memory address space is enough for simulation. You need to switch
 Last, remember to type `Save` button in bottom menu to save the `.config` file. Then, type `Exit` to exit the menuconfig.
 
 ### Compile runtime libraries
-If you already run above commands correctly, you need to compile runtime libraries as follow:
+If you already run above commands correctly, you can compile runtime libraries as follow:
 
 ```bash
 $ cd ../../
@@ -173,6 +173,14 @@ After you modify the processor design, you need to run recursive unit test to gu
 $ make unit-tests
 ```
 
+The unit tests display the progress, testcase name, PASS or FAIL and ipc value.
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/isa-unit-test.png"/>
+ <p align="center">
+  <em>TreeCoreL2's unit test result</em>
+ </p>
+</p>
+
 First, Running unit test need to download `mill` from github. If you cannot access the github correctly, you need to type below commands to configure `mill` manually:
 
 ```bash
@@ -181,13 +189,6 @@ $ cp 0.9.9-assembly ~/.cache/mill/download
 $ mv ~/.cache/mill/download/0.9.9-assembly ~/.cache/mill/download/0.9.9 # change name
 $ chmod +x ~/.cache/mill/download/0.9.9
 ```
-
-<p align="center">
- <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/isa-unit-test.png"/>
- <p align="center">
-  <em>The result of unit test</em>
- </p>
-</p>
 
 ### Software test
 ```bash
