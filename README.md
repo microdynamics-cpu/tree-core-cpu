@@ -196,13 +196,13 @@ $ make
 ```
 
 ### SoC test
+SoC test is based on ysyxSoC project. SoC test provides more accurate simulation environment for processor design.
+
 ```bash
 $ make socBuild
 $ make socTest
 ```
-### Customize new core project
-
-## Summary
+### Add and Customize new project
 
 ## Plan
 
@@ -212,7 +212,8 @@ $ make socTest
 All of the TreeCore codes are release under the [GPL-3.0 License](LICENSE).
 
 ## Acknowledgement
-
+1. [oscpu-framework](https://github.com/OSCPU/oscpu-framework)
+2. [NutShell](https://github.com/OSCPU/NutShell)
 
 ## Reference
 
