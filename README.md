@@ -99,7 +99,22 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 #### Configuration
 
 ## Usage
-This section introduces how to set up development environment and runs unit test for your own riscv processor.
+This section introduces how to set up development environment and runs unit test for your own riscv processor. Project directory is:
+```bash
+env    ->
+         | hello_world_tb.gtkw
+         | hello_world_tb.sh
+         | hello_world_tb.v
+fpga   ->
+         | bare_metal
+report ->
+         | tc_l2.md
+rtl    ->
+         |
+tests
+tools
+```
+
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
