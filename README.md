@@ -118,9 +118,10 @@ tools
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
-First, you need to install verilator, mill and dependency libraries:
+If you're new to TreeCore project, we suggest you start with the install section. Remeber you only need to install once time. First, you need to install verilator, mill and other dependency libraries:
 ```bash
-$ cd rtl
+$ git clone https://github.com/microdynamics-cpu/tree-core-cpu.git
+$ cd tree-core-cpu/rtl
 $ chmod +x scripts/install.sh
 $ make install
 ```
