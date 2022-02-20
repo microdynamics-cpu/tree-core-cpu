@@ -102,23 +102,33 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 This section introduces how to set up development environment and runs unit test for your own riscv processor. Project directory is:
 ```bash
 env    ->
-         | hello_world_tb.gtkw
-         | hello_world_tb.sh
-         | hello_world_tb.v
+         | hello_world_tb.gtkw # gtkwave wave config
+         | hello_world_tb.sh   # compile script
+         | hello_world_tb.v    # hello world verilog module
 fpga   ->
-         | bare_metal
+         | bare_metal/         # bare metal verilog module for fpga
 report ->
-         | tc_l2.md
+         | tc_l2.md            # treecore l2 wiki
 rtl    ->
-         |
-tests
-tools
+         | Makefile            # main Makefile for rtl test
+         | scripts/            # tool scripts called from main Makefile
+         | build.sc            # chisel config
+         | tc_l(x)[1, 2, 3]    # rtl project
+tests  ->
+         | compile_rtl.py      # bare metal module compile script
+         | compliance_test.py  # isa compliance test
+         | run_all_isa_test.py # run all isa test
+tools  ->
+         | bin2mem.py          # convert bin file to mem file
+         | bin2mif.py          # convert bin file to mif file
 ```
 
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
-If you're new to TreeCore project, we suggest you start with the install section. Remeber you only need to install once time. First, you need to install verilator, mill and other dependency libraries:
+If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once.
+
+First, you need to install verilator, mill, difftest, abstract-machine and other dependency libraries:
 ```bash
 $ git clone https://github.com/microdynamics-cpu/tree-core-cpu.git
 $ cd tree-core-cpu/rtl
@@ -180,13 +190,13 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
-> NOTE: you need to enough memory to compile the application binaries.
+> NOTE: you need enough memory to compile the application binaries.
 
 ### Recursive test
 After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
 
 ```bash
-$ make unit-tests
+$ make CHIP_TARGET=tc_l2 unit-test # CHIP_TARGET value is tc_l1, tc_l2, tc_lx...
 ```
 
 The unit tests display the progress, testcase name, PASS or FAIL and ipc value.
