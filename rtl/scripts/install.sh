@@ -60,7 +60,7 @@ install_verilator() {
         # git tag          # see what versions exist
         #git checkout master      # use development branch (e.g. recent bug fixes)
         #git checkout stable      # use most recent stable release
-        git checkout v4.204  # switch to specified release version
+        git checkout v4.210  # switch to specified release version
 
         autoconf         # create ./configure script
         ./configure      # configure and create Makefile
