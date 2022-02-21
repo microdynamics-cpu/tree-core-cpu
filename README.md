@@ -33,11 +33,11 @@ Season 1 was a first educational practice which aimed to design riscv processor 
 Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
 
 ### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
-TreeCoreL2 is the achievement of this season and obtains the qualification of tape-out in second shuttle. Season 3 now is done, and the official website is [ysyx.org](https://ysyx.org/).
-> NOTE: The TreeCoreL2 is under tape-out phase now, so the PCB card debug and embedded function test will release soon.
+TreeCoreL1[[1]](#id_tcl1) and TreeCoreL2[[2]](#id_tcl2) are the achievement of this season. After about six months of development, TreeCoreL2 obtained the qualification of tape-out in second shuttle. You can visit the official website [ysyx.org](https://ysyx.org/) to get more information.
+> NOTE: The PCB card with TreeCoreL2 possible return in the second quarter of 2022, so on board debugging cannot release now.
 
-### Season 4[**2022.2.20-2022.8.31**]: More open source IPs(SDRAM, VGA...), Smoother learning curve(bbs, tutorials, lecture, ...)
-TreeCoreL4 will be the expected achievement of this season.
+### Season 4[**2022.2.20-2022.8.31, in progress**]: More open source IPs(SDRAM, VGA...), Smoother learning curve(bbs, tutorials, lecture, ...)
+TreeCoreL3[[3]](#id_tcl3) and TreeCoreL4[[4]](#id_tcl4) will be the expected achievement of this season.
 
 Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
 
@@ -45,7 +45,7 @@ Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and Tree
 ## Motivation
 I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
 
-The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold and cost is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
+The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
 
 I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like processor design and be willing to spend time on it.
 
@@ -54,14 +54,14 @@ IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 
 **intro** the plan with the such as the target every type core need to meet. and timeline
 
-**TreeCoreL1**
+**TreeCoreL1**<span id="id_tcl1"></span>
 * 64-bits FSM
 * written by chisel3
 
 In fact, TreeCoreL1 is not just a processor, it only supplies the basic implement of Turing machine model: 'loop + '.
 IMG!!!!
 
-**TreeCoreL2**
+**TreeCoreL2**<span id="id_tcl2"></span>
 * 64-bits single-issue, five-stage pipeline riscv core
 * written by chisel3
 * support RISCV integer(I) instruction set
@@ -74,9 +74,10 @@ asdafafaadsfsafa
 IMG!!!!!!!!!!!!!!!
 
 
-**TreeCoreL3(_under development_)**
+**TreeCoreL3(_under development_)**<span id="id_tcl3"></span>
 
-**TreeCoreL4(_under development_)**
+
+**TreeCoreL4(_under development_)**<span id="id_tcl4"></span>
 * 64-bits five-stage pipeline riscv core
 
 
