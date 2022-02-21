@@ -33,11 +33,14 @@ Season 1 was a first educational practice which aimed to design riscv processor 
 Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
 
 ### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
-TreeCore project is the achievement of this season. Season 3 now is completed, and the official website is [ysyx.org](https://ysyx.org/).
+TreeCoreL2 is the achievement of this season and obtains the qualification of tape-out in second shuttle. Season 3 now is done, and the official website is [ysyx.org](https://ysyx.org/).
+> NOTE: The TreeCoreL2 is under tape-out phase now, so the PCB card debug and embedded function test will release soon.
+
+### Season 4[**2022.2.20-2022.8.31**]: More open source IPs(SDRAM, VGA...), Smoother learning curve(bbs, tutorials, lecture, ...)
+TreeCoreL4 will be the expected achievement of this season.
 
 Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
 
-> NOTE: now the TreeCoreL2 is under tape-out phase. The chip debug and test introduction will release soon.
 
 ## Motivation
 I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
@@ -127,6 +130,7 @@ tools  ->
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once.
+> NOTE: In order to download and configure all libraries successful, you **NEED**
 
 First, you need to install verilator, mill, difftest, abstract-machine and other dependency libraries:
 ```bash
