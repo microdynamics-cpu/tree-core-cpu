@@ -58,7 +58,9 @@ IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 * 64-bits FSM
 * written by chisel3
 
-In fact, TreeCoreL1 is not just a processor, it only supplies the basic implement of Turing machine model: 'loop + '.
+In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules writing for learning.
+
+List!!!!
 IMG!!!!
 
 **TreeCoreL2**<span id="id_tcl2"></span>
