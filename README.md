@@ -33,21 +33,26 @@ Season 1 was a first educational practice which aimed to design riscv processor 
 Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
 
 ### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
-TreeCoreL1[[1]](#id_tcl1) and TreeCoreL2[[2]](#id_tcl2) are the achievement of this season. After about six months of development, TreeCoreL2 obtained the qualification of tape-out in second shuttle. You can visit the official website [ysyx.org](https://ysyx.org/) to get more information.
+TreeCoreL1<sup>[[1]](#id_tcl1)</sup> and TreeCoreL2<sup>[[2]](#id_tcl2)</sup> are the achievement of this season. After about six months of development, TreeCoreL2 obtained the qualification of tape-out in second shuttle. You can visit the official website [ysyx.org](https://ysyx.org/) to get more information.
 > NOTE: The PCB card with TreeCoreL2 possible return in the second quarter of 2022, so on board debugging cannot release now.
 
 ### Season 4[**2022.2.20-2022.8.31, in progress**]: More open source IPs(SDRAM, VGA...), Smoother learning curve(bbs, tutorials, lecture, ...)
-TreeCoreL3[[3]](#id_tcl3) and TreeCoreL4[[4]](#id_tcl4) will be the expected achievement of this season.
+TreeCoreL3<sup>[[3]](#id_tcl3)</sup> and TreeCoreL4<sup>[[4]](#id_tcl4)</sup> will be the expected achievement of this season.
 
 Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
 
 
-## Motivation
-I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
+## Story and Motivation
+I heard the word '**_riscv_**' first time in sophomore year(2016). At that time, my roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple riscv processor**. In fact, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. **More and More people believe riscv will usher in a revolution that can change the old pattern in someday**.
+
+#agile development
+1. learn the oscpu
+2. reason
+3. some thinkings
 
 The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
 
-I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like processor design and be willing to spend time on it.
+I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field more easily. So
 
 ## Feature
 IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
