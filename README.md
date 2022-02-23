@@ -49,6 +49,7 @@ I heard the word '**_riscv_**' first time in sophomore year(2016). At that time,
 1. learn the oscpu
 2. reason
 3. some thinkings
+4. some intro
 
 The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
 
