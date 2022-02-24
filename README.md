@@ -33,21 +33,21 @@ Season 1 was a first educational practice which aimed to design riscv processor 
 Unlike Season 1, Season 2 had eleven undergraduates from five universities to design processors, and it is the first attempt to promote this project to the other university.
 
 ### Season 3[**2021.7-2022.1**]: More students(One hundred students), More open source tools(NEMU, difftest, AM...)
-TreeCoreL1[[1]](#id_tcl1) and TreeCoreL2[[2]](#id_tcl2) are the achievement of this season. After about six months of development, TreeCoreL2 obtained the qualification of tape-out in second shuttle. You can visit the official website [ysyx.org](https://ysyx.org/) to get more information.
+TreeCoreL1<sup>[[1]](#id_tcl1)</sup> and TreeCoreL2<sup>[[2]](#id_tcl2)</sup> are the achievement of this season. After about six months of development, TreeCoreL2 obtained the qualification of tape-out in second shuttle. You can visit the official website [ysyx.org](https://ysyx.org/) to get more information.
 > NOTE: The PCB card with TreeCoreL2 possible return in the second quarter of 2022, so on board debugging cannot release now.
 
 ### Season 4[**2022.2.20-2022.8.31, in progress**]: More open source IPs(SDRAM, VGA...), Smoother learning curve(bbs, tutorials, lecture, ...)
-TreeCoreL3[[3]](#id_tcl3) and TreeCoreL4[[4]](#id_tcl4) will be the expected achievement of this season.
+TreeCoreL3<sup>[[3]](#id_tcl3)</sup> and TreeCoreL4<sup>[[4]](#id_tcl4)</sup> will be the expected achievement of this season.
 
-Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to modify the whole design.
+Now the TreeCore has two version: TreeCoreL1(**_TreeCore Learning 1_**) and TreeCoreL2(**_TreeCore Learning 2_**). The TreeCore project aims to help students to learn how to write riscv processors by themselves with **step-to-step materials**. Not like textbooks only exhibit all of concepts in one time, the learn process of TreeCore is incremental. That means TreeCore only provides a very simple model with necessary new knowledges you need to learn first, then add extra codes to perfect the whole design every time until it is finished.
 
 
-## Motivation
-I heard the word '**_riscv_**' first time in sophomore year(that is, the summer of 2016). My roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple soft-core riscv processor**. At that time, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions. Although the performance of riscv are still limited now, **I believe riscv will usher in a revolution that can change the old pattern in someday**.
+## Story and Motivation
+I heard the word '**_riscv_**' first time in sophomore year(2016). At that time, my roommate participated in the pilot class of **_Computer Architecture_**, and their final assignment was to **design a simple riscv processor**. In fact, I only knew it was an open source RISC ISA launched by the UC, Berkeley. What is unexpected to me is that just after a few period of time, the riscv has been supported by many semiconductor giants and research institutions and **more and more people believe riscv will usher in a revolution that can change the old pattern in someday**.
 
-The best way to learn the processor design is to implement it from scratch. When I searched online and found the learning threshold is very high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. So I decided to design a series of open source processors from scratch, which has **simple, understandable architecture, high-quality code with step-to-step tutorial**.
+I've always thought the best way to learn is to practice myself. When searching online, I found the learning threshold of processor is high. In addition, in order to pursue high performance, some open-source riscv cores are very complex(such as using dynamics branch prediction, multi-core processing, out-of-order execution technology, etc), these are very difficult for beginners to learn. In meanwhile, I learned that "One Life, One Chip" project with many ailge hardware developement tools. So why not design and implement processors with these new tools from scratch? The result of that desire is this project.
 
-I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field. In the future, under the mutual promotion of the software and hardware ecosystem, I believe more people will like processor design and be willing to spend time on it.
+I hope it can become a ABC project like Arduino to make more processor enthusiasts and computer related specialized students enter into the computer architecture field more easily.
 
 ## Feature
 IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
@@ -83,9 +83,11 @@ IMG!!!!!!!!!!!!!!!
 * 64-bits five-stage pipeline riscv core
 
 
-
 ## Develop Schedule
-Now, the develop schedule is recorded by the **Tencent Document**. You can click this link [schedule table](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2) to view it.
+Now, the develop schedule of TreeCore is recorded by the **Tencent Document**. You can click below link to view it:
+
+1. TreeCoreL1&2: [schedule table link, state: frozen](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
+2. TreeCoreL3&4: [schedule table link, state: in progress](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
 
 ### Memory Map
 To compatible with SoC test, All types of TreeCore have same memory map range:
@@ -132,8 +134,8 @@ tools  ->
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
-If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once.
-> NOTE: In order to download and configure all libraries successful, you **NEED**
+If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once. Now all of operations(config, compile, test) have been automated by Makefile. You can visit [unit-test.yml](.github/workflows/unit-test.yml) to get more information.
+> NOTE: In order to download and configure all libraries successful, you **NEED** to be able to visit github.com and gitee.com.
 
 First, you need to install verilator, mill, difftest, abstract-machine and other dependency libraries:
 ```bash
@@ -214,7 +216,7 @@ The unit tests display the progress, testcase name, PASS or FAIL and ipc value.
  </p>
 </p>
 
-First, Running unit test need to download `mill` from github. If you cannot access the github correctly, you need to type below commands to configure `mill` manually:
+Running unit test need to download `mill` from github.com. If you cannot access the github correctly, you need to type below commands to configure `mill` manually:
 
 ```bash
 $ # download '0.9.9-assembly' from https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9-assembly manually.
