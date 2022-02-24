@@ -250,7 +250,7 @@ postTest:
 # ref to: https://stackoverflow.com/questions/55133855/how-to-compare-two-string-variables-in-makefile
 	@echo -e "\033[0;33mstart post test check...\033[0m";
 ifeq ($(RUN_PLATFORM), action)
-	@if [ "$$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))" = "1" ]; then\
+	@if [ "$$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))" = "0" ]; then\
 		echo -e "\033[0;32maction check pass!\033[0m";\
 	else \
 		echo -e "\033[0;31maction check fail!\033[0m";\
