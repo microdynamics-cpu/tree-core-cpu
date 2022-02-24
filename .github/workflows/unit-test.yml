@@ -21,4 +21,4 @@ jobs:
           make dramsim3Build
           make riscvTestBuild
           make cpuTestBuild
-          make CHIP_TARGET=tc_l2 unit-test
+          make CHIP_TARGET=tc_l2 RUN_PLATFORM=action unit-test
