@@ -1,6 +1,8 @@
 SHELL=/bin/bash
 
 # be carefully, this path will be used in clean(rm -rf)!!!
+# github action or native
+RUN_PLATFORM     ?= native
 # need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
 CHIP_TARGET      ?= tc_l3
 ROOT_PATH        := $(shell pwd)/dependency
@@ -243,7 +245,21 @@ $(cpuTestLogFile):
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME), 33)
 
-unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
+postTest:
+# ifeq dont's need to indent
+# ref to: https://stackoverflow.com/questions/55133855/how-to-compare-two-string-variables-in-makefile
+	@echo -e "\033[0;33mstart post test check...\033[0m";
+ifeq ($(RUN_PLATFORM), action)
+	@if [ "$$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))" = "1" ]; then\
+		echo -e "\033[0;32maction check pass!\033[0m";\
+	else \
+		echo -e "\033[0;31maction check fail!\033[0m";\
+		exit 1; \
+	fi
+endif
+	@echo -e "\033[0;32mpost check done!\033[0m";
+
+unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
 
 ###### soc name rule test target ######
 socTopModify:
@@ -309,6 +325,6 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
-		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest unit-test \
+		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest postTest unit-test \
 		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
