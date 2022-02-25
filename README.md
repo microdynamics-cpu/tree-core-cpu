@@ -132,7 +132,7 @@ tools  ->
 ```
 
 ### Enviroment Setup
-> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
+> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I **STRONGLY** recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once. Now all of operations(config, compile, test) have been automated by Makefile. You can visit [unit-test.yml](.github/workflows/unit-test.yml) to get more information.
 > NOTE: In order to download and configure all libraries successful, you **NEED** to be able to visit github.com and gitee.com.
@@ -156,7 +156,7 @@ $ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
 $ source ~/.bashrc
 ```
 
-Running the ISA test don't need 8G memory, so you can configure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
+Running the ISA test don't need 8G memory, so you can reconfigure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
 
 ```bash
 $ cd dependency/NEMU
@@ -199,7 +199,7 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
-> NOTE: you need enough memory to compile the application binaries.
+> NOTE: you need enough memory to compile the application binaries. Generally speaking, you need at least 4GB of memory.
 
 ### Recursive test
 After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
