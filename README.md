@@ -86,8 +86,8 @@ IMG!!!!!!!!!!!!!!!
 ## Develop Schedule
 Now, the develop schedule of TreeCore is recorded by the **Tencent Document**. You can click below link to view it:
 
-1. TreeCoreL1&2: [schedule table link, state: frozen](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
-2. TreeCoreL3&4: [schedule table link, state: in progress](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
+1. TreeCoreL1&2(**frozen**): [link](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
+2. TreeCoreL3&4(**in progress**): [link](https://docs.qq.com/sheet/DY2dpdHBlSmZ2UVlX?tab=BB08J2)
 
 ### Memory Map
 To compatible with SoC test, All types of TreeCore have same memory map range:
