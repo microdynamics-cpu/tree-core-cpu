@@ -156,8 +156,9 @@ cpuTestBuild:
 
 ###### (am)am-tests target ######
 # now only test the rtl-time and interrupt
+AM_TARGET ?=h
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=i
+	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=$(AM_TARGET)
 
 ###### (am)coremark target ######
 coremarkTestBuild:
