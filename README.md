@@ -227,7 +227,26 @@ $ chmod +x ~/.cache/mill/download/0.9.9
 
 ### Software test
 ```bash
-$ make 
+# the 'AM_TARGET' option value(default h):
+# h => "hello"
+# H => "display this help message"
+# i => "interrupt/yield test"
+# d => "scan devices"
+# m => "multiprocessor test"
+# t => "real-time clock test"
+# k => "readkey test"
+# v => "display test"
+# a => "audio test"
+# p => "x86 virtual memory test"
+$ make amTestBuild AM_TARGET=i
+$ make amTest
+```
+
+### Benchmark test
+```bash
+$ make coremarkTestBuild
+$ make dhrystoneTestBuild
+$ make microbenchTestBuild
 ```
 
 ### SoC test
@@ -238,7 +257,10 @@ $ make socBuild
 $ make socTest
 ```
 ### Add and Customize new project
-
+```bash
+# First modify the `CHIP_TARGET` in Makefile to your custom name which create folder.
+$ make template
+```
 ## Plan
 
 ## Update
