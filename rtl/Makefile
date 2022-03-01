@@ -309,13 +309,14 @@ socPrevBuild: changeTargetToSoCTop chiselBuild socNameCheck
 socBuild: socPrevBuild
 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j1
 
+# flash, loader
+SOC_APP_TYPE ?= flash
+# hello, memtest, rtthread
+SOC_APP_NAME ?= hello
+SOC_TARGET := $(SOC_APP_NAME)-$(SOC_APP_TYPE)
 socTest:
-	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/memtest-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/rtthread-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/memtest-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/rtthread-loader.bin
+# TODO: check if the bin exist!
+	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/$(SOC_APP_TYPE)/$(SOC_TARGET).bin
 
 socSubmit:
 	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
