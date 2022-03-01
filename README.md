@@ -226,6 +226,7 @@ $ chmod +x ~/.cache/mill/download/0.9.9
 ```
 
 ### Software test
+Software test, also called application test, can provide integrated test for interrupt. You need to recompile the amtest with specific `AM_TARGET` when you want to change the software target.
 ```bash
 # the 'AM_TARGET' option value(default h):
 # h => "hello"
@@ -243,18 +244,26 @@ $ make amTest
 ```
 
 ### Benchmark test
+First, you need to compile the benchmark programs.
 ```bash
 $ make coremarkTestBuild
 $ make dhrystoneTestBuild
 $ make microbenchTestBuild
+```
+```bash
+$ make coremakrTest
+$ make dhrystoneTest
+$ make microbenchTest
 ```
 
 ### SoC test
 SoC test is based on ysyxSoC project. SoC test provides more accurate simulation environment for processor design.
 
 ```bash
-$ make socBuild
-$ make socTest
+$ make CHIP_TARGET=tc_l2 socBuild
+# SOC_APP_TYPE: flash, loader
+# SOC_APP_NAME: hello, memtest, rtthread
+$ make CHIP_TARGET=tc_l2 SOC_APP_TYPE=flash SOC_APP_NAME=hello socTest
 ```
 ### Add and Customize new project
 ```bash
