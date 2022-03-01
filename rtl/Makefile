@@ -262,6 +262,19 @@ endif
 
 unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
 
+###### benchmark(application) rule test target ######
+# BUG: some error
+amTest:
+	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-riscv64-mycpu.bin
+
+coremakrTest:
+	echo "hello1"
+
+dhrystoneTest:
+	echo "hello22"
+
+microbenchTest:
+	echo "hello2"
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -327,5 +340,6 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
 		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest postTest unit-test \
+		amTest coremakrTest dhrystoneTest microbenchTest \
 		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
