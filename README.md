@@ -64,6 +64,13 @@ List!!!!
 IMG!!!!
 
 **TreeCoreL2**<span id="id_tcl2"></span>
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-arch.drawio.svg"/>
+ <p align="center">
+  TreeCoreL2 data flow graph
+ </p>
+</p>
+
 * 64-bits single-issue, five-stage pipeline riscv core
 * written by chisel3
 * support RISCV integer(I) instruction set
