@@ -156,8 +156,9 @@ cpuTestBuild:
 
 ###### (am)am-tests target ######
 # now only test the rtl-time and interrupt
+AM_TARGET ?=h
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=i
+	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=$(AM_TARGET)
 
 ###### (am)coremark target ######
 coremarkTestBuild:
@@ -261,6 +262,19 @@ endif
 
 unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
 
+###### benchmark(application) rule test target ######
+# BUG: some error
+amTest:
+	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-riscv64-mycpu.bin
+
+coremakrTest:
+	echo "hello1"
+
+dhrystoneTest:
+	echo "hello22"
+
+microbenchTest:
+	echo "hello2"
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -295,13 +309,14 @@ socPrevBuild: changeTargetToSoCTop chiselBuild socNameCheck
 socBuild: socPrevBuild
 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j1
 
+# flash, loader
+SOC_APP_TYPE ?= flash
+# hello, memtest, rtthread
+SOC_APP_NAME ?= hello
+SOC_TARGET := $(SOC_APP_NAME)-$(SOC_APP_TYPE)
 socTest:
-	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/memtest-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/rtthread-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/memtest-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/rtthread-loader.bin
+# TODO: check if the bin exist!
+	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/$(SOC_APP_TYPE)/$(SOC_TARGET).bin
 
 socSubmit:
 	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
@@ -326,5 +341,6 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
 		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest postTest unit-test \
+		amTest coremakrTest dhrystoneTest microbenchTest \
 		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
