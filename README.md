@@ -64,6 +64,13 @@ List!!!!
 IMG!!!!
 
 **TreeCoreL2**<span id="id_tcl2"></span>
+<p align="center">
+ <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-arch.drawio.svg"/>
+ <p align="center">
+  TreeCoreL2 data flow graph
+ </p>
+</p>
+
 * 64-bits single-issue, five-stage pipeline riscv core
 * written by chisel3
 * support RISCV integer(I) instruction set
@@ -86,8 +93,8 @@ IMG!!!!!!!!!!!!!!!
 ## Develop Schedule
 Now, the develop schedule of TreeCore is recorded by the **Tencent Document**. You can click below link to view it:
 
-1. TreeCoreL1&2: [schedule table link, state: frozen](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
-2. TreeCoreL3&4: [schedule table link, state: in progress](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
+1. TreeCoreL1&2(**frozen**): [link](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
+2. TreeCoreL3&4(**in progress**): [link](https://docs.qq.com/sheet/DY2dpdHBlSmZ2UVlX?tab=BB08J2)
 
 ### Memory Map
 To compatible with SoC test, All types of TreeCore have same memory map range:
@@ -132,7 +139,7 @@ tools  ->
 ```
 
 ### Enviroment Setup
-> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I strongly recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
+> NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I **STRONGLY** recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
 
 If you're new to TreeCore project, we suggest you start with the install section. Remeber you **ONLY** need to install the below libraries once. Now all of operations(config, compile, test) have been automated by Makefile. You can visit [unit-test.yml](.github/workflows/unit-test.yml) to get more information.
 > NOTE: In order to download and configure all libraries successful, you **NEED** to be able to visit github.com and gitee.com.
@@ -156,7 +163,7 @@ $ echo export NOOP_HOME=$(pwd)/dependency >> ~/.bashrc
 $ source ~/.bashrc
 ```
 
-Running the ISA test don't need 8G memory, so you can configure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
+Running the ISA test don't need 8G memory, so you can reconfigure the `memory size` to reduce the simulation memory usage. Achieving that, you need to type  `make menuconfig` as follow:
 
 ```bash
 $ cd dependency/NEMU
@@ -199,7 +206,7 @@ $ make riscvTestBuild
 $ make cpuTestBuild
 $ make amTestBuild
 ```
-> NOTE: you need enough memory to compile the application binaries.
+> NOTE: you need enough memory to compile the application binaries. Generally speaking, you need at least 4GB of memory.
 
 ### Recursive test
 After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
@@ -226,19 +233,50 @@ $ chmod +x ~/.cache/mill/download/0.9.9
 ```
 
 ### Software test
+Software test, also called application test, can provide integrated test for interrupt. You need to recompile the amtest with specific `AM_TARGET` when you want to change the software target.
 ```bash
-$ make 
+# the 'AM_TARGET' option value(default h):
+# h => "hello"
+# H => "display this help message"
+# i => "interrupt/yield test"
+# d => "scan devices"
+# m => "multiprocessor test"
+# t => "real-time clock test"
+# k => "readkey test"
+# v => "display test"
+# a => "audio test"
+# p => "x86 virtual memory test"
+$ make amTestBuild AM_TARGET=i
+$ make amTest
+```
+
+### Benchmark test
+First, you need to compile the benchmark programs.
+```bash
+$ make coremarkTestBuild
+$ make dhrystoneTestBuild
+$ make microbenchTestBuild
+```
+```bash
+$ make coremakrTest
+$ make dhrystoneTest
+$ make microbenchTest
 ```
 
 ### SoC test
 SoC test is based on ysyxSoC project. SoC test provides more accurate simulation environment for processor design.
 
 ```bash
-$ make socBuild
-$ make socTest
+$ make CHIP_TARGET=tc_l2 socBuild
+# SOC_APP_TYPE: flash, loader
+# SOC_APP_NAME: hello, memtest, rtthread
+$ make CHIP_TARGET=tc_l2 SOC_APP_TYPE=flash SOC_APP_NAME=hello socTest
 ```
 ### Add and Customize new project
-
+```bash
+# First modify the `CHIP_TARGET` in Makefile to your custom name which create folder.
+$ make template
+```
 ## Plan
 
 ## Update
