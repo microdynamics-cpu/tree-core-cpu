@@ -55,10 +55,9 @@ IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 **intro** the plan with the such as the target every type core need to meet. and timeline
 
 **TreeCoreL1**<span id="id_tcl1"></span>
+In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules.
 * 64-bits FSM
 * written by chisel3
-
-In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules writing for learning.
 
 List!!!!
 IMG!!!!
@@ -89,6 +88,7 @@ IMG!!!!!!!!!!!!!!!
 **TreeCoreL4(_under development_)**<span id="id_tcl4"></span>
 * 64-bits five-stage pipeline riscv core
 
+> NOTE: The develop roadmap of TreeCore processor now is simple: adding new features and improving benchmark score from its predecessor. But after the TreeCoreL4, the develop policy will adopt the tick-tock model: Introducing and testing new microarchitecture in every odd version, optimizing microarchitecture, exploring multiple advanced technologies in compiler, OS, GPU with open source EDA in even version. In other words, odd version focuses on microarchitecture, even version focuses on software and development toolset.
 
 ## Develop Schedule
 Now, the develop schedule of TreeCore is recorded by the **Tencent Document**. You can click below link to view it:
