@@ -63,5 +63,6 @@ def main():
     process = subprocess.Popen(iverilog_cmd)
     process.wait(timeout=5)
 
+
 if __name__ == '__main__':
     sys.exit(main())

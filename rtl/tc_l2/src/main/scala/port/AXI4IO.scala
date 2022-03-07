@@ -3,61 +3,49 @@ package treecorel2
 import chisel3._
 import chisel3.util._
 
-class AXI4USERIO extends Bundle with AXI4Config {
-  val valid: Bool = Input(Bool())
-  val req:   UInt = Input(UInt(AxiReqLen.W))
-  val wdata: UInt = Input(UInt(AxiDataWidth.W))
-  val addr:  UInt = Input(UInt(AxiAddrWidth.W))
-  val id:    UInt = Input(UInt(AxiIdLen.W))
-  val size:  UInt = Input(UInt(AxiSizeLen.W))
-  val ready: Bool = Output(Bool())
-  val rdata: UInt = Output(UInt(AxiDataWidth.W))
-  val resp:  UInt = Output(UInt(AxiRespLen.W))
-}
-
 class SOCAXI4ARWIO extends Bundle with AXI4Config {
-  val addr:  UInt = Output(UInt(AxiAddrWidth.W))
-  val id:    UInt = Output(UInt(AxiIdLen.W))
-  val len:   UInt = Output(UInt(8.W))
-  val size:  UInt = Output(UInt(3.W))
-  val burst: UInt = Output(UInt(AxiBurstLen.W))
+  val addr  = Output(UInt(32.W))
+  val id    = Output(UInt(AxiIdLen.W))
+  val len   = Output(UInt(AxiLen.W))
+  val size  = Output(UInt(AxiSizeLen.W))
+  val burst = Output(UInt(AxiBurstLen.W))
 }
 
 class AXI4ARWIO extends SOCAXI4ARWIO {
-  val prot:  UInt = Output(UInt(AxiProtLen.W))
-  val user:  UInt = Output(UInt(AxiUserLen.W))
-  val lock:  Bool = Output(Bool())
-  val cache: UInt = Output(UInt(AxiCacheLen.W))
-  val qos:   UInt = Output(UInt(AxiQosLen.W))
+  override val addr = Output(UInt(XLen.W))
+  val prot          = Output(UInt(AxiProtLen.W))
+  val user          = Output(UInt(AxiUserLen.W))
+  val lock          = Output(Bool())
+  val cache         = Output(UInt(AxiCacheLen.W))
+  val qos           = Output(UInt(AxiQosLen.W))
 }
 
 class SOCAXI4WIO extends Bundle with AXI4Config {
-  val data: UInt = Output(UInt(AxiDataWidth.W))
-  val strb: UInt = Output(UInt((AxiDataWidth / 8).W))
-  val last: Bool = Output(Bool())
+  val data = Output(UInt(XLen.W))
+  val strb = Output(UInt(AxiStrb.W))
+  val last = Output(Bool())
 }
 
 class AXI4WIO extends SOCAXI4WIO {}
 
 class SOCAXI4BIO extends Bundle with AXI4Config {
-  val resp: UInt = Output(UInt(AxiRespLen.W))
-  val id:   UInt = Output(UInt(AxiIdLen.W))
+  val resp = Output(UInt(AxiRespLen.W))
+  val id   = Output(UInt(AxiIdLen.W))
 }
 
 class AXI4BIO extends SOCAXI4BIO {
-  val user: UInt = Output(UInt(AxiUserLen.W))
+  val user = Output(UInt(AxiUserLen.W))
 }
 
 class SOCAXI4RIO extends Bundle with AXI4Config {
-  val resp: UInt = Output(UInt(AxiRespLen.W))
-  val data: UInt = Output(UInt(AxiDataWidth.W))
-  val last: Bool = Output(Bool())
-  val id:   UInt = Output(UInt(AxiIdLen.W))
+  val resp = Output(UInt(AxiRespLen.W))
+  val data = Output(UInt(XLen.W))
+  val last = Output(Bool())
+  val id   = Output(UInt(AxiIdLen.W))
 }
 
-//dont user in both sim
 class AXI4RIO extends SOCAXI4RIO {
-  val user: UInt = Output(UInt(AxiUserLen.W))
+  val user = Output(UInt(AxiUserLen.W))
 }
 
 class SOCAXI4IO extends Bundle {

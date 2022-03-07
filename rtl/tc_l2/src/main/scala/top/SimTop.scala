@@ -1,10 +1,12 @@
-package treecorel2
+package sim
 
 import chisel3._
-import treecorel2._
-import difftest._
+import chisel3.util._
 
-class SimTop() extends Module with AXI4Config {
+import difftest._
+import treecorel2._
+
+class SimTop extends Module {
   val io = IO(new Bundle {
     val logCtrl  = new LogCtrlIO
     val perfInfo = new PerfInfoIO
@@ -12,15 +14,17 @@ class SimTop() extends Module with AXI4Config {
     val memAXI_0 = new AXI4IO
   })
 
-  protected val axiBridge: AXI4Bridge = Module(new AXI4Bridge())
-  io.memAXI_0 <> axiBridge.io.axi
+  protected val proc      = Module(new Processor)
+  protected val axiBridge = Module(new AXI4Bridge)
 
-  protected val treeCoreL2 = Module(new TreeCoreL2())
-  axiBridge.io.inst <> treeCoreL2.io.inst
-  axiBridge.io.mem  <> treeCoreL2.io.mem
-  if (DiffEna) {
-    io.uart <> treeCoreL2.io.uart
-  } else {
-    io.uart <> DontCare
-  }
+  io.uart.in.valid  := false.B
+  io.uart.out.valid := false.B
+  io.uart.out.ch    := 0.U
+
+  proc.io.runEn      <> axiBridge.io.runEn
+  proc.io.dxchg      <> axiBridge.io.dxchg
+  proc.io.socEn      := false.B
+  axiBridge.io.socEn := false.B
+
+  io.memAXI_0 <> axiBridge.io.axi
 }
