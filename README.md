@@ -282,7 +282,7 @@ $ make template
 ## Update
 
 ## License
-All of the TreeCore codes are release under the [GPL-3.0 License](LICENSE).
+TreeCore CPU's codes are release under the [GPL-3.0 License](LICENSE) and compliance with other open source agreements. You can find all 3rd party libraries licenses in [LICENSE_3RD_PARTY.md](LICENSE_3RD_PARTY).
 
 ## Acknowledgement
 1. [oscpu-framework](https://github.com/OSCPU/oscpu-framework)
