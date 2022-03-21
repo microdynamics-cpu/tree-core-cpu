@@ -7,10 +7,10 @@
     <img src="https://img.shields.io/github/workflow/status/microdynamics-cpu/tree-core-cpu/unit-test/main?label=unit-test&logo=github&style=flat-square">
     </a>
     <a href="./LICENSE">
-      <img src="https://img.shields.io/github/license/microdynamics-cpu/tree_core_cpu?color=brightgreen&logo=github&style=flat-square">
+      <img src="https://img.shields.io/github/license/microdynamics-cpu/tree-core-cpu?color=brightgreen&logo=github&style=flat-square">
     </a>
     <a href="https://github.com/microdynamics-cpu/tree-core-cpu">
-      <img alt="stars" src="https://img.shields.io/github/stars/microdynamics-cpu/tree_core_cpu?color=blue&style=flat-square" />
+      <img alt="stars" src="https://img.shields.io/github/stars/microdynamics-cpu/tree-core-cpu?color=blue&style=flat-square" />
     </a>
     <a href="https://github.com/microdynamics-cpu/tree-core-cpu">
       <img src="https://img.shields.io/badge/total%20lines-7k-red?style=flat-square">
@@ -282,7 +282,7 @@ $ make template
 ## Update
 
 ## License
-TreeCore CPU's codes are release under the [GPL-3.0 License](LICENSE) and compliance with other open source agreements. You can find all 3rd party libraries licenses in [LICENSE_3RD_PARTY.md](LICENSE_3RD_PARTY).
+TreeCore CPU's codes are release under the [GPL-3.0 License](./LICENSE) and compliance with other open source agreements. You can find all 3rd party libraries licenses in [3RD_PARTY.md](./3RD_PARTY.md).
 
 ## Acknowledgement
 1. [oscpu-framework](https://github.com/OSCPU/oscpu-framework)
