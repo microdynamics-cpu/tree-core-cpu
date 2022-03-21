@@ -5,7 +5,7 @@ TreeCore CPU utilizes third party software from various sources. Portions of thi
 The following acknowledgements pertain to this software license.
 
 ## Main components used by TreeCore CPU
-These components are installed via composer or via npm. You can check all the dependencies using the instructions from the section Libraries dynamically referenced via Composer and Libraries dynamically referenced via npm.
+These components are installed via [Makefile](./rtl/Makefile). You can check all the dependencies using the specific target in Makefile.
 
 ###  verilator
 * maintainer: [verilator](https://github.com/verilator)
