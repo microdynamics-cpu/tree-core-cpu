@@ -1,8 +1,10 @@
 SHELL=/bin/bash
 
 # be carefully, this path will be used in clean(rm -rf)!!!
+# github action or native
+RUN_PLATFORM     ?= native
 # need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
-CHIP_TARGET      := tc_l2
+CHIP_TARGET      ?= tc_l3
 ROOT_PATH        := $(shell pwd)/dependency
 SOURCE_PATH      := $(ROOT_PATH)/../$(CHIP_TARGET)
 BUILD_DIR        := $(SOURCE_PATH)/build
@@ -92,7 +94,7 @@ template:
 
 ###### chisel target ######
 millTest:
-	mill -i __.test
+	mill -i $(CHIP_TARGET).test
 
 chiselBuild:
 	mkdir -p $(BUILD_DIR)
@@ -102,16 +104,16 @@ chiselHelp:
 	mill -i $(CHIP_TARGET).runMain top.TopMain --help
 
 millCompile:
-	mill -i __.compile
+	mill -i $(CHIP_TARGET).compile
 
 millBsp:
 	mill -i mill.bsp.BSP/install
 
 format:
-	mill -i __.reformat
+	mill -i $(CHIP_TARGET).reformat
 
 checkformat:
-	mill -i __.checkFormat
+	mill -i $(CHIP_TARGET).checkFormat
 
 ###### NEMU target ######
 nemuBuild:
@@ -154,8 +156,9 @@ cpuTestBuild:
 
 ###### (am)am-tests target ######
 # now only test the rtl-time and interrupt
+AM_TARGET ?=h
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=i
+	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=$(AM_TARGET)
 
 ###### (am)coremark target ######
 coremarkTestBuild:
@@ -184,7 +187,7 @@ demoTest:
 simpleTestbinFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
 simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-mycpu, simpletest-%, $(basename $(notdir $(file)))))
 simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
-$(shell mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(SIMPLETEST_HOME) ]]; then mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1; fi)
 
 simpleRecursiveTest: $(simpleTestLogFile) $(simpleTestCaseName)
 	@printf "[\033[0;33m%s\033[0m]\n" all-done
@@ -202,11 +205,12 @@ $(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bi
 
 
 ###### riscv test recursive test target ######
+riscvNum = 50
 riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
 riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-mycpu, riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
-riscvNum = 50
-$(shell mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(RISCVTEST_HOME) ]]; then mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
+
 riscvRecursiveTest: $(riscvTestLogFile) $(riscvTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
 	@echo -e "[\033[0;33mAll: $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(RISCVTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(RISCVTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
@@ -226,7 +230,8 @@ $(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
 cpuTestbinFile   = $(foreach dir, $(CPUTEST_HOME)/build, $(wildcard $(dir)/*.bin))
 cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-mycpu, cputest-%, $(basename $(notdir $(file)))))
 cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, $(file)))
-$(shell mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1)
+$(shell if [[ -d $(CPUTEST_HOME) ]]; then mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
+
 cpuRecursiveTest: $(cpuTestLogFile) $(cpuTestCaseName)
 	@printf "[\033[0;33mall-done\033[0m]\n"
 	@echo -e "[\033[0;33mAll: $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt)  \033[0;32mPASS: $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt)  \033[0;31mFAIL: $$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))\033[0m]";
@@ -241,8 +246,35 @@ $(cpuTestLogFile):
 $(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME), 33)
 
-unit-test: simBuild riscvRecursiveTest cpuRecursiveTest
+postTest:
+# ifeq dont's need to indent
+# ref to: https://stackoverflow.com/questions/55133855/how-to-compare-two-string-variables-in-makefile
+	@echo -e "\033[0;33mstart post test check...\033[0m";
+ifeq ($(RUN_PLATFORM), action)
+	@if [ "$$(echo $$(echo $$(cat $(CPUTEST_HOME)/build/log/allcasenum-log.txt) - $$(cat $(CPUTEST_HOME)/build/log/passcasenum-log.txt) | bc))" = "0" ]; then\
+		echo -e "\033[0;32maction check pass!\033[0m";\
+	else \
+		echo -e "\033[0;31maction check fail!\033[0m";\
+		exit 1; \
+	fi
+endif
+	@echo -e "\033[0;32mpost check done!\033[0m";
 
+unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
+
+###### benchmark(application) rule test target ######
+# BUG: some error
+amTest:
+	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-riscv64-mycpu.bin
+
+coremakrTest:
+	echo "hello1"
+
+dhrystoneTest:
+	echo "hello22"
+
+microbenchTest:
+	echo "hello2"
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -277,13 +309,14 @@ socPrevBuild: changeTargetToSoCTop chiselBuild socNameCheck
 socBuild: socPrevBuild
 	$(MAKE) VM_PARALLEL_BUILDS=1 OPT_FAST="-O3" -C $(SOC_COMPILE_HOME) -f V$(SOC_VSRC_TOP).mk -j1
 
+# flash, loader
+SOC_APP_TYPE ?= flash
+# hello, memtest, rtthread
+SOC_APP_NAME ?= hello
+SOC_TARGET := $(SOC_APP_NAME)-$(SOC_APP_TYPE)
 socTest:
-	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/hello-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/memtest-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/flash/rtthread-flash.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/hello-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/memtest-loader.bin
-# $(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/loader/rtthread-loader.bin
+# TODO: check if the bin exist!
+	$(SOC_VSRC_HOME)/emu -i $(YSYXSOC_HOME)/program/bin/$(SOC_APP_TYPE)/$(SOC_TARGET).bin
 
 socSubmit:
 	@cp $(BUILD_DIR)/soc/ysyx_210324.v ../../oscpu-submit/projects/soc/vsrc/
@@ -307,6 +340,7 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		nemuBuild dramsim3Build difftestBuild changeTargetToSimTop changeTargetToSoCTop simBuild \
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
-		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest unit-test \
+		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest postTest unit-test \
+		amTest coremakrTest dhrystoneTest microbenchTest \
 		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll

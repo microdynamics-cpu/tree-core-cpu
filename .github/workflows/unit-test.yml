@@ -1,0 +1,24 @@
+name: unit-test
+
+on:
+  push:
+    branches: [ main, dev, tc-l1, tc-l2, tc-l3 ]
+
+jobs:
+  difftest-isa-test:
+    name: Difftest ISA Test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          cd rtl
+          chmod +x scripts/install.sh
+          make install
+          chmod +x scripts/setup.sh
+          make setup
+          make nemuBuild
+          make dramsim3Build
+          make riscvTestBuild
+          make cpuTestBuild
+          make CHIP_TARGET=tc_l2 RUN_PLATFORM=action unit-test
