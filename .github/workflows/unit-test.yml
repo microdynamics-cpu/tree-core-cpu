@@ -2,7 +2,7 @@ name: unit-test
 
 on:
   push:
-    branches: [ main, dev, tc-l1, tc-l2, tc-l3 ]
+    branches: [main]
 
 jobs:
   difftest-isa-test:
