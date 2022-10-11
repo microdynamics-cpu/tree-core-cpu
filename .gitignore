@@ -16,5 +16,7 @@ dramsim3epoch.json
 *.wave
 .mypy_cache
 .pytest_cache
+.metals
+.vscode
 dependency
 __pycache__
