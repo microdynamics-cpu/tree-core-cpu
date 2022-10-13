@@ -4,15 +4,15 @@ SHELL=/bin/bash
 # github action or native
 RUN_PLATFORM     ?= native
 # need to set the $(CHIP_TARGET) with tc_lx(2, 3, 4...)
-CHIP_TARGET      ?= tc_l3
+CHIP_TARGET      ?= tc_l2
 ROOT_PATH        := $(shell pwd)/dependency
-SOURCE_PATH      := $(ROOT_PATH)/../$(CHIP_TARGET)
+SOURCE_PATH      := $(ROOT_PATH)/../tc_l2
 BUILD_DIR        := $(SOURCE_PATH)/build
 MILL_OUT_DIR     := $(ROOT_PATH)/../out
 
 AM_FOLDER_PATH   := $(ROOT_PATH)/am
 AM_KERNEL_PATH   := $(AM_FOLDER_PATH)/am-kernels
-VERSION_ID       := riscv64-nemu
+VERSION_ID       := riscv64-mycpu
 
 SIMPLETEST_HOME  := $(AM_FOLDER_PATH)/simple-tests
 RISCVTEST_HOME   := $(AM_FOLDER_PATH)/riscv-tests
