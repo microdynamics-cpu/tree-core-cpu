@@ -2,7 +2,7 @@ name: unit-test
 
 on:
   push:
-    branches: [ main, dev, tc-l1, tc-l2, tc-l3 ]
+    branches: [main]
 
 jobs:
   difftest-isa-test:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
-          cd rtl
+          cd rtl/TreeCoreL2
           chmod +x scripts/install.sh
           make install
           chmod +x scripts/setup.sh

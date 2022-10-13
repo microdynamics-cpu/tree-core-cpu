@@ -25,7 +25,7 @@ fi
 
 UPDATED="false"
 install_package() {
-    for package in $*                     
+    for package in $*
     do
         dpkg -s "$package" >/dev/null 2>&1 && {
             echo "$package has been installed."

@@ -2,7 +2,7 @@ name: check-style
 
 on:
   push:
-    branches: [ main, dev, tc-l1, tc-l2, tc-l3 ]
+    branches: [ main, tc-l2 ]
 
 jobs:
   check-style:
