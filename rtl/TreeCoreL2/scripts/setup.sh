@@ -27,7 +27,7 @@ configYsyxSoftwareFile() {
         echo -e "${RIGHT}ysyx-software-file exist!${END}"
     else
         echo -e "${INFO}[no download]: git clone...${END}"
-        git clone https://github.com/maksyuki/ysyx-software-file.git
+        git clone -b ysyx3 --depth 1 https://github.com/maksyuki/ysyx-software-file.git
     fi
 }
 

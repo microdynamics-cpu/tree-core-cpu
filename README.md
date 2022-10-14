@@ -57,13 +57,13 @@ IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 
 **intro** the plan with the such as the target every type core need to meet. and timeline
 
-**TreeCoreL1**<span id="id_tcl1"></span>
+## TreeCoreL1<span id="id_tcl1"></span>
 * 64-bits FSM
 * written by verilog
 
 In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules writing for learning.
 
-**TreeCoreL2**<span id="id_tcl2"></span>
+## TreeCoreL2<span id="id_tcl2"></span>
 <p align="center">
  <img src="https://raw.githubusercontent.com/microdynamics-cpu/tree-core-cpu-res/main/treecore-l2-arch.drawio.svg"/>
  <p align="center">
@@ -83,21 +83,13 @@ asdafafaadsfsafa
 IMG!!!!!!!!!!!!!!!
 
 
-**TreeCoreL3(_under development_)**<span id="id_tcl3"></span>
-
-
-**TreeCoreL4(_under development_)**<span id="id_tcl4"></span>
-* 64-bits five-stage pipeline riscv core
-
-
-## Develop Schedule
+### Develop Schedule
 Now, the develop schedule of TreeCore is recorded by the **Tencent Document**. You can click below link to view it:
 
 1. TreeCoreL1&2(**frozen**): [link](https://docs.qq.com/sheet/DY3lORW5Pa3pLRFpT?newPad=1&newPadType=clone&tab=BB08J2)
-2. TreeCoreL3&4(**in progress**): [link](https://docs.qq.com/sheet/DY2dpdHBlSmZ2UVlX?tab=BB08J2)
 
 ### Memory Map
-To compatible with SoC test, All types of TreeCore have same memory map range:
+To compatible with ysyx3 SoC test, TreeCoreL2 have below memory map range:
 
 | Range                     | Description                                         |
 | ------------------------- | --------------------------------------------------- |
@@ -113,7 +105,7 @@ To compatible with SoC test, All types of TreeCore have same memory map range:
 
 #### Configuration
 
-## Usage
+### Usage
 This section introduces how to set up development environment and runs unit test for your own riscv processor. Project directory is:
 ```bash
 env    ->
@@ -125,10 +117,8 @@ fpga   ->
 report ->
          | tc_l2.md            # treecore l2 wiki
 rtl    ->
-         | Makefile            # main Makefile for rtl test
-         | scripts/            # tool scripts called from main Makefile
-         | build.sc            # chisel config
-         | tc_l(x)[1, 2, 3]    # rtl project
+         | TreeCoreL1
+         | TreeCoreL2
 tests  ->
          | compile_rtl.py      # bare metal module compile script
          | compliance_test.py  # isa compliance test
@@ -212,7 +202,7 @@ $ make amTestBuild
 After you modify the processor design, you need to run recursive unit test to gurantee the modification is correct.
 
 ```bash
-$ make CHIP_TARGET=tc_l2 unit-test # CHIP_TARGET value is tc_l1, tc_l2, tc_lx...
+$ make CHIP_TARGET=tc_l2 unit-test
 ```
 
 The unit tests display the progress, testcase name, PASS or FAIL and ipc value.
@@ -277,6 +267,13 @@ $ make CHIP_TARGET=tc_l2 SOC_APP_TYPE=flash SOC_APP_NAME=hello socTest
 # First modify the `CHIP_TARGET` in Makefile to your custom name which create folder.
 $ make template
 ```
+
+## TreeCoreL3(_under development_)<span id="id_tcl3"></span>
+
+
+## TreeCoreL4(_under development_)<span id="id_tcl4"></span>
+* 64-bits five-stage pipeline riscv core
+
 ## Plan
 
 ## Update
