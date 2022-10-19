@@ -144,39 +144,39 @@ changeTargetToSoCTop:
 simBuild: changeTargetToSimTop chiselBuild difftestBuild
 
 simpleTestBuild:
-	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=riscv64-mycpu
+	$(MAKE) -C $(SIMPLETEST_HOME) ARCH=$(VERSION_ID)
 
 ###### riscv-tests target ######
 riscvTestBuild:
-	$(MAKE) -C $(RISCVTEST_HOME) ARCH=riscv64-mycpu
+	$(MAKE) -C $(RISCVTEST_HOME) ARCH=$(VERSION_ID)
 
 ###### (am)cpu-tests target ######
 cpuTestBuild:
-	$(MAKE) -C $(CPUTEST_HOME) ARCH=riscv64-mycpu
+	$(MAKE) -C $(CPUTEST_HOME) ARCH=$(VERSION_ID)
 
 ###### (am)am-tests target ######
 # now only test the rtl-time and interrupt
 AM_TARGET ?=h
 amTestBuild:
-	$(MAKE) -C $(AMTEST_HOME) ARCH=riscv64-mycpu mainargs=$(AM_TARGET)
+	$(MAKE) -C $(AMTEST_HOME) ARCH=$(VERSION_ID) mainargs=$(AM_TARGET)
 
 ###### (am)coremark target ######
 coremarkTestBuild:
-	$(MAKE) -C $(COREMARK_HOME) ARCH=riscv64-mycpu
+	$(MAKE) -C $(COREMARK_HOME) ARCH=$(VERSION_ID)
 
 ###### (am)dhrystone target ######
 dhrystoneTestBuild:
-	$(MAKE) -C $(DHRYSTONE_HOME) ARCH=riscv64-mycpu
+	$(MAKE) -C $(DHRYSTONE_HOME) ARCH=$(VERSION_ID)
 
 
 ###### (am)microbench target ######
 microbenchTestBuild:
-	$(MAKE) -C $(MICROBENCH_HOME) ARCH=riscv64-mycpu mainargs=test
+	$(MAKE) -C $(MICROBENCH_HOME) ARCH=$(VERSION_ID) mainargs=test
 
 
 ###### (am)fcemux target ######
 fecmuxTestBuild:
-	$(MAKE) -C $(FCEMUX_HOME) ARCH=riscv64-mycpu mainargs=mario
+	$(MAKE) -C $(FCEMUX_HOME) ARCH=$(VERSION_ID) mainargs=mario
 
 ###### demo test target ######
 demoTest:
@@ -185,7 +185,7 @@ demoTest:
 
 ###### simple test recursive test target ######
 simpleTestbinFile   = $(foreach dir, $(SIMPLETEST_HOME)/build, $(wildcard $(dir)/*.bin))
-simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-riscv64-mycpu, simpletest-%, $(basename $(notdir $(file)))))
+simpleTestCaseName  = $(foreach file, $(simpleTestbinFile), $(patsubst %-$(VERSION_ID), simpletest-%, $(basename $(notdir $(file)))))
 simpleTestLogFile   = $(foreach file, $(simpleTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell if [[ -d $(SIMPLETEST_HOME) ]]; then mkdir -p $(SIMPLETEST_HOME)/build/log 1>/dev/null 2>&1; fi)
 
@@ -200,14 +200,14 @@ $(simpleTestLogFile):
 	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt)
 
-$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-riscv64-mycpu.bin 
+$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-$(VERSION_ID).bin 
 	@$(call getRecursiveTestRes, $(SIMPLETEST_HOME))
 
 
 ###### riscv test recursive test target ######
 riscvNum = 50
 riscvTestbinFile   = $(foreach dir, $(RISCVTEST_HOME)/build, $(wildcard $(dir)/*.bin))
-riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-riscv64-mycpu, riscvtest-%, $(basename $(notdir $(file)))))
+riscvTestCaseName  = $(foreach file, $(riscvTestbinFile), $(patsubst %-$(VERSION_ID), riscvtest-%, $(basename $(notdir $(file)))))
 riscvTestLogFile   = $(foreach file, $(riscvTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell if [[ -d $(RISCVTEST_HOME) ]]; then mkdir -p $(RISCVTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
 
@@ -222,13 +222,13 @@ $(riscvTestLogFile):
 	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell echo 0 > $(RISCVTEST_HOME)/build/log/passcasenum-log.txt)
 
-$(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-riscv64-mycpu.bin
+$(riscvTestCaseName): riscvtest-%: $(RISCVTEST_HOME)/build/%-$(VERSION_ID).bin
 	$(call getRecursiveTestRes, $(RISCVTEST_HOME), $(riscvNum))
 
 
 ###### cpu test recursive test target ######
 cpuTestbinFile   = $(foreach dir, $(CPUTEST_HOME)/build, $(wildcard $(dir)/*.bin))
-cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-riscv64-mycpu, cputest-%, $(basename $(notdir $(file)))))
+cpuTestCaseName  = $(foreach file, $(cpuTestbinFile), $(patsubst %-$(VERSION_ID), cputest-%, $(basename $(notdir $(file)))))
 cpuTestLogFile   = $(foreach file, $(cpuTestCaseName), $(patsubst %, %-log.txt, $(file)))
 $(shell if [[ -d $(CPUTEST_HOME) ]]; then mkdir -p $(CPUTEST_HOME)/build/log 1>/dev/null 2>&1; fi)
 
@@ -243,7 +243,7 @@ $(cpuTestLogFile):
 	$(shell echo 0 > $(CPUTEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell echo 0 > $(CPUTEST_HOME)/build/log/passcasenum-log.txt)
 
-$(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-riscv64-mycpu.bin
+$(cpuTestCaseName): cputest-%: $(CPUTEST_HOME)/build/%-$(VERSION_ID).bin
 	$(call getRecursiveTestRes, $(CPUTEST_HOME), 33)
 
 postTest:
@@ -265,7 +265,7 @@ unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
 ###### benchmark(application) rule test target ######
 # BUG: some error
 amTest:
-	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-riscv64-mycpu.bin
+	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-$(VERSION_ID).bin
 
 coremakrTest:
 	echo "hello1"

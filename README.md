@@ -57,6 +57,29 @@ IMG!!!!!!!!!!!!!!!! to intro three type processor and timeline.
 
 **intro** the plan with the such as the target every type core need to meet. and timeline
 
+## Usage
+This section introduces how to set up development environment and runs unit test for your own riscv processor. Project directory is:
+```bash
+env    ->
+         | hello_world_tb.gtkw # gtkwave wave config
+         | hello_world_tb.sh   # compile script
+         | hello_world_tb.v    # hello world verilog module
+fpga   ->
+         | bare_metal/         # bare metal verilog module for fpga
+report ->
+         | tc_l2.md            # treecore l2 wiki
+rtl    ->
+         | TreeCoreL1
+         | TreeCoreL2
+tests  ->
+         | compile_rtl.py      # bare metal module compile script
+         | compliance_test.py  # isa compliance test
+         | run_all_isa_test.py # run all isa test
+tools  ->
+         | bin2mem.py          # convert bin file to mem file
+         | bin2mif.py          # convert bin file to mif file
+```
+
 ## TreeCoreL1<span id="id_tcl1"></span>
 * 64-bits FSM
 * written by verilog
@@ -104,29 +127,6 @@ To compatible with ysyx3 SoC test, TreeCoreL2 have below memory map range:
 | 0x8000_0000 - 0x8xxx_xxxx | mem                                                 |
 
 #### Configuration
-
-### Usage
-This section introduces how to set up development environment and runs unit test for your own riscv processor. Project directory is:
-```bash
-env    ->
-         | hello_world_tb.gtkw # gtkwave wave config
-         | hello_world_tb.sh   # compile script
-         | hello_world_tb.v    # hello world verilog module
-fpga   ->
-         | bare_metal/         # bare metal verilog module for fpga
-report ->
-         | tc_l2.md            # treecore l2 wiki
-rtl    ->
-         | TreeCoreL1
-         | TreeCoreL2
-tests  ->
-         | compile_rtl.py      # bare metal module compile script
-         | compliance_test.py  # isa compliance test
-         | run_all_isa_test.py # run all isa test
-tools  ->
-         | bin2mem.py          # convert bin file to mem file
-         | bin2mif.py          # convert bin file to mif file
-```
 
 ### Enviroment Setup
 > NOTE: All of the components and tools are installed under linux operation system. To gurantee the compatibility and stability, I **STRONGLY** recommend using `ubuntu 20.04 LTS`. `ubuntu 18.04` and `ubuntu 16.04` is not supported official.
