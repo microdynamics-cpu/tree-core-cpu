@@ -84,7 +84,7 @@ tools  ->
 * 64-bits FSM
 * written by verilog
 
-In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules writing for learning.
+In fact, TreeCoreL1 is not a processor, it is a bundle of some independent verilator programs and common chisel modules writing for learning. 
 
 ## TreeCoreL2<span id="id_tcl2"></span>
 <p align="center">
