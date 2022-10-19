@@ -22,7 +22,7 @@ trait IOConfig {
 }
 
 trait InstConfig extends IOConfig {
-  val SoCEna   = true
+  val SoCEna   = false
   val CacheEna = false
 
   val FlashStartAddr    = "h0000000030000000".U(XLen.W)
