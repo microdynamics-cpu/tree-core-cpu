@@ -48,9 +48,9 @@ SOC_CSRC_INCLPATH += -I$(SOC_CSRC_LIB_HOME)
 # if want to ouput vcd wave, replace '-DDUMP_WAVE_FST' to '-DDUMP_WAVE_VCD',
 # replace '--trace-fst' to '--trace'
 SOC_CXXFLAGS += -std=c++11 -static -Wall $(SOC_CSRC_INCLPATH) -DDUMP_WAVE_FST
-SOC_FLAGS    += --cc --exe --top-module $(SOC_VSRC_TOP) 
+SOC_FLAGS    += --cc --exe --top-module $(SOC_VSRC_TOP)
 SOC_FLAGS    += --x-assign unique -O3 -CFLAGS "$(SOC_CXXFLAGS)"
-SOC_FLAGS    += --trace-fst --assert --stats-vars --output-split 30000 --output-split-cfuncs 30000 
+SOC_FLAGS    += --trace-fst --assert --stats-vars --output-split 30000 --output-split-cfuncs 30000
 SOC_FLAGS    += --timescale "1ns/1ns" -Wno-fatal
 SOC_FLAGS    += -o $(BUILD_DIR)/soc/emu
 SOC_FLAGS    += -Mdir $(BUILD_DIR)/soc/emu-compile
@@ -200,7 +200,7 @@ $(simpleTestLogFile):
 	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/allcasenum-log.txt)
 	$(shell echo 0 > $(SIMPLETEST_HOME)/build/log/passcasenum-log.txt)
 
-$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-$(VERSION_ID).bin 
+$(simpleTestCaseName): simpletest-%: $(SIMPLETEST_HOME)/build/%-$(VERSION_ID).bin
 	@$(call getRecursiveTestRes, $(SIMPLETEST_HOME))
 
 
@@ -267,14 +267,14 @@ unit-test: simBuild riscvRecursiveTest cpuRecursiveTest postTest
 amTest:
 	$(BUILD_DIR)/emu -i $(AMTEST_HOME)/build/amtest-$(VERSION_ID).bin
 
-coremakrTest:
-	echo "hello1"
+coremarkTest:
+	$(BUILD_DIR)/emu -i $(COREMARK_HOME)/build/coremark-$(VERSION_ID).bin
 
 dhrystoneTest:
-	echo "hello22"
+	$(BUILD_DIR)/emu -i $(DHRYSTONE_HOME)/build/dhrystone-$(VERSION_ID).bin
 
 microbenchTest:
-	echo "hello2"
+	$(BUILD_DIR)/emu -i $(MICROBENCH_HOME)/build/microbench-$(VERSION_ID).bin
 ###### soc name rule test target ######
 socTopModify:
 	@mkdir -p $(BUILD_DIR)/soc
@@ -341,6 +341,6 @@ cleanAll: cleanBuild cleanMillOut cleanDepRepo
 		simpleTestBuild riscvTestBuild cpuTestBuild amTestBuild coremarkTestBuild \
 		dhrystoneTestBuild microbenchTestBuild fecmuxTestBuild demoTest \
 		simpleRecursiveTest riscvRecursiveTest cpuRecursiveTest postTest unit-test \
-		amTest coremakrTest dhrystoneTest microbenchTest \
+		amTest coremarkTest dhrystoneTest microbenchTest \
 		socTopModify socNameCheck socLintCheck socPrevBuild socBuild socSubmit socTest\
 		cleanBuild cleanMillOut cleanDepRepo cleanAll
